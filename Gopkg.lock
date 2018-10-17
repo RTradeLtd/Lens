@@ -2,6 +2,27 @@
 
 
 [[projects]]
+  digest = "1:8b36a2a5ed2e66e577c35f9b0f770b4653977a025a59088ba4fd2fbbaa948382"
+  name = "github.com/DavidBelicza/TextRank"
+  packages = [
+    ".",
+    "convert",
+    "parse",
+    "rank",
+  ]
+  pruneopts = "UT"
+  revision = "79e14bab980af3a1c9f4f5b73672ae1ef18ab732"
+  version = "v2.1.1"
+
+[[projects]]
+  digest = "1:4c9f0df01e3c32aa2a34633730208751a8b348666be4c0049fc913fc7576be06"
+  name = "github.com/RTradeLtd/cmd"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "8ba31e4bae28bd058ad2c537aff61fd4b88fceb5"
+  version = "v1.0.0"
+
+[[projects]]
   digest = "1:7a9cc64d30e6628cdb3b183326fd0ff1274b907b5ba6ba3e8f312df0a518da0b"
   name = "github.com/RTradeLtd/config"
   packages = ["."]
@@ -75,6 +96,14 @@
   packages = ["keccakpg"]
   pruneopts = "UT"
   revision = "d9f6b97f8db22dd1e090fd0bbbe98f09cc7dd0a8"
+
+[[projects]]
+  digest = "1:9999472bf9c934426d967c507d61f2de84affb8318b8d8c8bc38b3486edbd826"
+  name = "github.com/ipfs/go-cid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "6e296c5c49ad84dc6a44af69fa1fe4e1245cd0cf"
+  version = "v0.9.0"
 
 [[projects]]
   digest = "1:becc9ab46b2f3aabdd191682d2cc3435a1d16aae002b5dcf0fca26b281cb8e86"
@@ -190,6 +219,22 @@
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:28e83f2abf3e3c83b9ad533a4295bdff102f94868b06d5f7bfe71c5477d81c8f"
+  name = "github.com/multiformats/go-multibase"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "bb91b53e5695e699a86654d77d03db7bc7506d12"
+  version = "v0.3.0"
+
+[[projects]]
+  digest = "1:c0ea71365e7d0e63a2e8f48e6fc2ba92f2f2b739bbeb3cdabdcd719037e175c2"
+  name = "github.com/multiformats/go-multihash"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "8be2a682ab9f254311de1375145a2f78a809b07d"
+  version = "v1.0.8"
+
+[[projects]]
   digest = "1:450b7623b185031f3a456801155c8320209f75d0d4c4e633c6b1e59d44d6e392"
   name = "github.com/opentracing/opentracing-go"
   packages = [
@@ -208,6 +253,14 @@
   pruneopts = "UT"
   revision = "9f5d223c60793748f04a9d5b4b4eacddfc1f755d"
   version = "v1.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:98fa13beefbf581ec173561adad6374c460631593b4bdcf03adc29cd18e5d2f5"
+  name = "github.com/whyrusleeping/base32"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c30ac30633ccdabefe87eb12465113f06f1bab75"
 
 [[projects]]
   branch = "master"
@@ -253,9 +306,15 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/DavidBelicza/TextRank",
+    "github.com/DavidBelicza/TextRank/convert",
+    "github.com/DavidBelicza/TextRank/parse",
+    "github.com/DavidBelicza/TextRank/rank",
+    "github.com/RTradeLtd/cmd",
     "github.com/RTradeLtd/config",
     "github.com/RTradeLtd/database",
     "github.com/gofrs/uuid",
+    "github.com/ipfs/go-cid",
     "github.com/lib/pq",
   ]
   solver-name = "gps-cdcl"
