@@ -1,11 +1,14 @@
 package lens
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/RTradeLtd/Lens/analyzer/text"
+	"github.com/RTradeLtd/Lens/models"
+	"github.com/RTradeLtd/Lens/storage"
 	"github.com/RTradeLtd/Lens/utils"
 	"github.com/RTradeLtd/Lens/xtractor/planetary"
 )
@@ -14,6 +17,7 @@ import (
 type Service struct {
 	TA *text.TextAnalyzer
 	PX *planetary.Extractor
+	SC *storage.Client
 }
 
 // NewService is used to generate our Lens service
@@ -23,9 +27,14 @@ func NewService(opts *ConfigOpts) (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
+	sc, err := storage.NewStorageClient()
+	if err != nil {
+		return nil, err
+	}
 	return &Service{
 		TA: ta,
 		PX: px,
+		SC: sc,
 	}, nil
 }
 
@@ -60,4 +69,24 @@ func (s *Service) Magnify(contentHash string) (string, *MetaData, error) {
 		Summary: utils.Unique(meta),
 	}
 	return parsed[0], metadata, nil
+}
+
+// Store is used to store our collected meta data in a formatted object
+func (s *Service) Store(meta *MetaData, contentHash string, fullPath string) (string, error) {
+	metaModel := models.MetaData{
+		Summary: meta.Summary,
+	}
+	obj := models.Object{
+		Type:          models.TypeTextDocument,
+		AbsoluteName:  fullPath,
+		ReferenceName: contentHash,
+		Locations:     []string{"ipfs"},
+		Paths:         []string{fullPath},
+		MetaData:      metaModel,
+	}
+	marshaled, err := json.Marshal(&obj)
+	if err != nil {
+		return "", err
+	}
+	return s.SC.IPFS.Shell.DagPut(marshaled, "json", "cbor")
 }
