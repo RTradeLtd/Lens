@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	TypeTextDocument = "text-documen"
+	TypeTextDocument = "text-document"
 )
 
 var (
