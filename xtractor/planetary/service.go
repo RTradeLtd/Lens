@@ -19,3 +19,8 @@ func NewPlanetaryExtractor() (*Extractor, error) {
 		Manager: manager,
 	}, nil
 }
+
+// ExtractObject is used to extract an IPLD object from a content hash
+func (e *Extractor) ExtractObject(contentHash string, out interface{}) error {
+	return e.Manager.Shell.DagGet(contentHash, out)
+}
