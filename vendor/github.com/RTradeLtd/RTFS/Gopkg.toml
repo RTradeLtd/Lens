@@ -24,21 +24,18 @@
 #   go-tests = true
 #   unused-packages = true
 
-[[constraint]]
-  name = "github.com/RTradeLtd/config"
-  version = "1.0.2"
 
 [[constraint]]
-  name = "github.com/RTradeLtd/database"
-  version = "1.0.4"
-
-[[constraint]]
-  name = "github.com/gofrs/uuid"
-  version = "3.1.1"
+  name = "github.com/RTradeLtd/go-ipfs-api"
+  branch = "master"
 
 [[constraint]]
   branch = "master"
-  name = "github.com/lib/pq"
+  name = "github.com/ipfs/go-ipfs-keystore"
+
+[[constraint]]
+  name = "github.com/libp2p/go-libp2p-crypto"
+  version = "2.0.1"
 
 [prune]
   go-tests = true
