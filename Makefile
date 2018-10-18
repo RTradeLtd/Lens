@@ -21,3 +21,12 @@ proto:
 	protoc -I=protobuf --go_out=. "protobuf/response.proto"
 	protoc -I=protobuf --go_out=plugins=grpc:. "protobuf/service.proto"
 	@echo "===================          done           ==================="
+
+# Set up test environment
+.PHONY: testenv
+WAIT=3
+testenv:
+	@echo "===================   preparing test env    ==================="
+	docker-compose -f lens.yml up
+	sleep $(WAIT)
+	@echo "===================          done           ==================="

@@ -1,0 +1,12 @@
+version: '3'
+
+services:
+  ipfs:
+    image: ipfs/go-ipfs:v0.4.17
+    command: daemon --migrate=true --enable-pubsub-experiment
+    ports:
+      - 4001:4001
+      - 5001:5001
+      - 8080:8080
+    volumes:
+      - ${BASE}/data/ipfs:/data/ipfs
