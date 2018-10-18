@@ -7,12 +7,12 @@ sudo: required
 
 install:
   - go get -u golang.org/x/lint/golint
+  - go get -u github.com/RTradeLtd/RTFS
 
 before_script:
   - go vet ./...
   - go build ./...
   - go test -run xxxx ./...
-  - go get -u -v github.com/RTradeLtd/RTFS
 
 script:
   - go fmt ./...
