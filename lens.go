@@ -81,39 +81,50 @@ func (s *Service) Magnify(contentHash string) (string, *MetaData, error) {
 
 // Store is used to store our collected meta data in a formatted object
 func (s *Service) Store(meta *MetaData, name string) (string, error) {
+	// generate a uuid for the lens object
 	id, err := uuid.NewV4()
 	if err != nil {
 		return "", err
 	}
+	// create the lens object
 	obj := models.Object{
 		LensID:   id,
 		Name:     name,
 		Keywords: meta.Summary,
 	}
+	// mrshal the lens object
 	marshaled, err := json.Marshal(&obj)
 	if err != nil {
 		return "", err
 	}
+	// iterate over the meta data summary
 	for _, v := range meta.Summary {
+		// check to see if a keyword with this name already exists
 		has, err := s.SS.Has(v)
 		if err != nil {
 			return "", err
 		}
+		// if the keyword does not exist, put the lens object
 		if !has {
 			if err = s.SS.Put(v, marshaled); err != nil {
 				return "", err
 			}
 			continue
 		}
+		// keyword exists, get the keyword object from the database
 		keywordBytes, err := s.SS.Get(v)
 		if err != nil {
 			return "", err
 		}
+		// create a keyword object
 		keyword := models.Keyword{}
+		// unmarshal into the keyword object
 		if err = json.Unmarshal(keywordBytes, &keyword); err != nil {
 			return "", err
 		}
 		detected := false
+		// TODO: this is false logic, we should never see it as its a new uuid
+		// instead, we should store a mapping of content_hash -> uuid
 		for _, v := range keyword.LensIdentifiers {
 			if v == id {
 				detected = true
@@ -124,18 +135,23 @@ func (s *Service) Store(meta *MetaData, name string) (string, error) {
 			// this object has already  been indexed for the particular keyword, so we can skip
 			continue
 		}
+		// update the lens identifiers in the keyword object
 		keyword.LensIdentifiers = append(keyword.LensIdentifiers, id)
+		// TODO: add update to "content hashes" that are mapped in the keyword obj
 		keywordMarshaled, err := json.Marshal(keyword)
 		if err != nil {
 			return "", err
 		}
+		// put (aka, update) the keyword object
 		if err = s.SS.Put(v, keywordMarshaled); err != nil {
 			return "", err
 		}
 	}
+	// store update badgerds with the uuid -> content hash mapping
 	if err = s.SS.Put(id.String(), []byte(name)); err != nil {
 		return "", err
 	}
+	// store the lens object in iPFS
 	resp, err := s.SC.IPFS.Shell.DagPut(marshaled, "json", "cbor")
 	if err != nil {
 		return "", err
