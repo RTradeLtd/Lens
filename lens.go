@@ -20,7 +20,7 @@ type Service struct {
 	TA *text.TextAnalyzer
 	PX *planetary.Extractor
 	SC *storage.Client
-	S  *searcher.Service
+	SS *searcher.Service
 }
 
 // NewService is used to generate our Lens service
@@ -34,10 +34,15 @@ func NewService(opts *ConfigOpts) (*Service, error) {
 	if err != nil {
 		return nil, err
 	}
+	ss, err := searcher.NewService(opts.DataStorePath)
+	if err != nil {
+		return nil, err
+	}
 	return &Service{
 		TA: ta,
 		PX: px,
 		SC: sc,
+		SS: ss,
 	}, nil
 }
 
@@ -89,7 +94,30 @@ func (s *Service) Store(meta *MetaData, name string) (string, error) {
 		return "", err
 	}
 	for _, v := range meta.Summary {
-		if err = s.S.Put(v, marshaled); err != nil {
+		has, err := s.SS.Has(v)
+		if err != nil {
+			return "", err
+		}
+		if !has {
+			if err = s.SS.Put(v, marshaled); err != nil {
+				return "", err
+			}
+			continue
+		}
+		keywordBytes, err := s.SS.Get(v)
+		if err != nil {
+			return "", err
+		}
+		keyword := models.Keyword{}
+		if err = json.Unmarshal(keywordBytes, &keyword); err != nil {
+			return "", err
+		}
+		keyword.LensIdentifiers = append(keyword.LensIdentifiers, id)
+		keywordMarshaled, err := json.Marshal(keyword)
+		if err != nil {
+			return "", err
+		}
+		if err = s.SS.Put(v, keywordMarshaled); err != nil {
 			return "", err
 		}
 	}

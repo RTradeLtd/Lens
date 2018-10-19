@@ -25,7 +25,7 @@ var commands = map[string]cmd.Cmd{
 		Blurb:       "start Lens service",
 		Description: "Start the Lens meta data extraction service",
 		Action: func(cfg config.TemporalConfig, args map[string]string) {
-			lensCfg := lens.ConfigOpts{UseChainAlgorithm: true}
+			lensCfg := lens.ConfigOpts{UseChainAlgorithm: true, DataStorePath: "/tmp/badgerds-lens"}
 			if _, err := lens.NewService(&lensCfg); err != nil {
 				log.Fatal(err)
 			}

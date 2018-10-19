@@ -12,7 +12,7 @@ const (
 )
 
 func TestLens(t *testing.T) {
-	cfg := &lens.ConfigOpts{UseChainAlgorithm: true}
+	cfg := &lens.ConfigOpts{UseChainAlgorithm: true, DataStorePath: "/tmp/badgerds-lens"}
 	service, err := lens.NewService(cfg)
 	if err != nil {
 		t.Fatal(err)
