@@ -45,7 +45,7 @@ func NewAPIServer(listenAddr, protocol string, opts *lens.ConfigOpts) error {
 // SubmitIndexRequest is used to submit a request for something to be indexed by lens
 func (as *APIServer) SubmitIndexRequest(ctx context.Context, req *pb.IndexRequest) (*pb.IndexResponse, error) {
 	switch req.GetDataType() {
-	case "IPLD":
+	case "ipld":
 		break
 	default:
 		return nil, errors.New("invalid data type")

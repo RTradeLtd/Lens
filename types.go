@@ -6,6 +6,10 @@ import "github.com/gofrs/uuid"
 type ConfigOpts struct {
 	UseChainAlgorithm bool
 	DataStorePath     string
+	API               struct {
+		IP   string
+		Port string
+	}
 }
 
 // MetaData is a piece of meta data from a given object after being lensed

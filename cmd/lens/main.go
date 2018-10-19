@@ -1,13 +1,16 @@
 package main
 
 import (
+	"context"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
 
 	"github.com/RTradeLtd/Lens"
+	"github.com/RTradeLtd/Lens/client"
+	pb "github.com/RTradeLtd/Lens/models"
 	"github.com/RTradeLtd/Lens/server"
-
 	"github.com/RTradeLtd/cmd"
 	"github.com/RTradeLtd/config"
 )
@@ -22,14 +25,39 @@ var (
 )
 
 var commands = map[string]cmd.Cmd{
-	"service": cmd.Cmd{
-		Blurb:       "start Lens service",
+	"server": cmd.Cmd{
+		Blurb:       "start Lens server",
 		Description: "Start the Lens meta data extraction service, which includes the API",
 		Action: func(cfg config.TemporalConfig, args map[string]string) {
 			lensCfg := lens.ConfigOpts{UseChainAlgorithm: true, DataStorePath: "/tmp/badgerds-lens"}
 			if err := server.NewAPIServer("0.0.0.0:9999", "tcp", &lensCfg); err != nil {
 				log.Fatal(err)
 			}
+		},
+	},
+	"client": cmd.Cmd{
+		Blurb:       "start the Lens client",
+		Description: "Used to start the lens client, and submit an example index request",
+		Action: func(cfg config.TemporalConfig, args map[string]string) {
+			lensCfg := lens.ConfigOpts{
+				UseChainAlgorithm: true,
+				DataStorePath:     "/tmp/badgerds-lens",
+			}
+			lensCfg.API.IP = "127.0.0.1"
+			lensCfg.API.Port = "9999"
+			client, err := client.NewClient(&lensCfg, true)
+			if err != nil {
+				log.Fatal(err)
+			}
+			req := pb.IndexRequest{
+				DataType:         "ipld",
+				ObjectIdentifier: "QmSi9TLyzTXmrLMXDvhztDoX3jghoG3vcRrnPkLvGgfpdW",
+			}
+			resp, err := client.SubmitIndexRequest(context.Background(), &req)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Printf("%+v\n", resp)
 		},
 	},
 }
