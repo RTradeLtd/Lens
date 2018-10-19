@@ -9,3 +9,8 @@ Currently we only support indexing of textual data, which we accomplish via `tex
 ## Textual Processing
 
 The only language supported is english (for the moment) however we can easily add new language with packages like https://github.com/stopwords-iso
+
+## Testing
+
+Run `make testenv` to spin up our test IPFS node
+Run `go test -v lens_test.go` to demo a basic end-to-end test
