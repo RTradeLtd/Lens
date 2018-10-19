@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"net"
 
 	"github.com/RTradeLtd/Lens"
@@ -16,12 +17,15 @@ type APIServer struct {
 
 // NewAPIServer is used to create our API server
 func NewAPIServer(listenAddr, protocol string, opts *lens.ConfigOpts) error {
+	// create connection we will listen on
 	lis, err := net.Listen(listenAddr, protocol)
 	if err != nil {
 		return err
 	}
 	defer lis.Close()
+	// create a grpc server
 	gServer := grpc.NewServer()
+	// create our lens service
 	serice, err := lens.NewService(opts)
 	if err != nil {
 		return err
@@ -29,7 +33,9 @@ func NewAPIServer(listenAddr, protocol string, opts *lens.ConfigOpts) error {
 	aServer := &APIServer{
 		LS: serice,
 	}
+	// register our gRPC API server, and our service
 	pb.RegisterIndexerAPIServer(gServer, aServer)
+	// serve the connection
 	if err = gServer.Serve(lis); err != nil {
 		return err
 	}
@@ -38,7 +44,25 @@ func NewAPIServer(listenAddr, protocol string, opts *lens.ConfigOpts) error {
 
 // SubmitIndexRequest is used to submit a request for something to be indexed by lens
 func (as *APIServer) SubmitIndexRequest(ctx context.Context, req *pb.IndexRequest) (*pb.IndexResponse, error) {
-	return nil, nil
+	switch req.GetDataType() {
+	case "IPLD":
+		break
+	default:
+		return nil, errors.New("invalid data type")
+	}
+	objectID := req.GetObjectIdentifier()
+	_, metaData, err := as.LS.Magnify(objectID)
+	if err != nil {
+		return nil, err
+	}
+	indexResponse, err := as.LS.Store(metaData, objectID)
+	if err != nil {
+		return nil, err
+	}
+	resp := &pb.IndexResponse{
+		LensIdentifier: indexResponse.LensID.String(),
+	}
+	return resp, nil
 }
 
 // SubmitSearchRequest is used to submit a request ot search through lens

@@ -45,7 +45,7 @@ func TestLens(t *testing.T) {
 	fmt.Println("match found ", string(match))
 	fmt.Println("hash of indexed object ", resp)
 	var out models.Object
-	if err = service.PX.Manager.Shell.DagGet(resp, &out); err != nil {
+	if err = service.PX.Manager.Shell.DagGet(resp.ContentHash, &out); err != nil {
 		t.Fatal(err)
 	}
 	fmt.Println("showing ipld lens object")
