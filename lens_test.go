@@ -3,6 +3,7 @@ package lens_test
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"testing"
 
 	lens "github.com/RTradeLtd/Lens"
@@ -42,6 +43,22 @@ func TestLens(t *testing.T) {
 		t.Fatal(err)
 	}
 	fmt.Println("match found ", string(match))
-	fmt.Printf("%+v\n", keyword)
-	fmt.Println("Meta data collection IFPS hash ", resp)
+	fmt.Println("hash of indexed object ", resp)
+	var out models.Object
+	if err = service.PX.Manager.Shell.DagGet(resp, &out); err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println("showing ipld lens object")
+	fmt.Printf("%+v\n", out)
+	fmt.Println("retrieving content that was indexed")
+	reader, err := service.PX.Manager.Shell.Cat(out.Name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer reader.Close()
+	contentBytes, err := ioutil.ReadAll(reader)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println(string(contentBytes))
 }
