@@ -3,6 +3,15 @@ syntax = "proto3";
 package response;
 
 message IndexResponse {
+    // lensIdentifier is the identifier of the indexed object according to the lens system
     string lensIdentifier = 1;
+    // data is miscellaneous data associated with the response
     bytes data = 2;
+}
+
+message SearchResponse {
+    // name is the "name" of the object, such as an IPFS content hash
+    string name = 1;
+    // objectType is the type of the object, such as IPLD
+    string objectType = 2;
 }
