@@ -18,7 +18,18 @@ func TestService(t *testing.T) {
 	if err = s.Put("testKey", []byte("hello")); err != nil {
 		t.Fatal(err)
 	}
-	if _, err = s.Get("testKey"); err != nil {
+	contents, err := s.Get("testKey")
+	if err != nil {
 		t.Fatal(err)
+	}
+	if string(contents) != "hello" {
+		t.Fatal("failed to get correct object")
+	}
+	has, err := s.Has("testKey")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !has {
+		t.Fatal("has was false but expected it to be true")
 	}
 }
