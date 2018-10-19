@@ -6,6 +6,12 @@ Lens is an opt-in search engine and data collection tool to aid content discover
 
 Searching through Lens will be facilitated through the TEMPORAL web interface. Optionally, we will have a service independent from TEMPORAL which users can submit content to have it be indexed. This however, is not compensated with RTC. In order to receive the RTC, you must participate through Lens indexing within the TEMPORAL web interface.
 
+## Installation
+
+1) Get RTFS dependencies `go get -u -v github.com/RTradeLtd/RTFS`
+2) Get Lens `go get -u -v github.com/RTradeLtd/Lens`
+3) `make cli` this will generate the lens binary (does basically nothing at this point)
+
 ## Processing
 
 Currently, we will only support indexing of content from IPFS. Within this, right now it is liimited to processing of content for which we can extract text from. This text will then be sent through TextRank to extract keywords which can then be used to search for the content. In the future we will expand to support additional content types. It could even be extended such that we do image indexing, leveraging our GPU computing infrastructure to process images, or video data.
