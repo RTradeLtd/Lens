@@ -37,6 +37,11 @@ func TestLens(t *testing.T) {
 	if err = json.Unmarshal(keywordBytes, &keyword); err != nil {
 		t.Fatal(err)
 	}
+	match, err := service.SearchByKeyName("protocols")
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println("match found ", string(match))
 	fmt.Printf("%+v\n", keyword)
 	fmt.Println("Meta data collection IFPS hash ", resp)
 }

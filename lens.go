@@ -133,9 +133,24 @@ func (s *Service) Store(meta *MetaData, name string) (string, error) {
 			return "", err
 		}
 	}
+	if err = s.SS.Put(id.String(), []byte(name)); err != nil {
+		return "", err
+	}
 	resp, err := s.SC.IPFS.Shell.DagPut(marshaled, "json", "cbor")
 	if err != nil {
 		return "", err
 	}
 	return resp, nil
+}
+
+// SearchByKeyName is used to search for an object by key name
+func (s *Service) SearchByKeyName(keyname string) ([]byte, error) {
+	has, err := s.SS.Has(keyname)
+	if err != nil {
+		return nil, err
+	}
+	if !has {
+		return nil, errors.New("keyname does not exist")
+	}
+	return s.SS.Get(keyname)
 }
