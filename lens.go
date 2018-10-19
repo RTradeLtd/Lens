@@ -87,6 +87,7 @@ func (s *Service) Store(meta *MetaData, name string) (string, error) {
 	}
 	obj := models.Object{
 		LensID:   id,
+		Name:     name,
 		Keywords: meta.Summary,
 	}
 	marshaled, err := json.Marshal(&obj)
@@ -111,6 +112,17 @@ func (s *Service) Store(meta *MetaData, name string) (string, error) {
 		keyword := models.Keyword{}
 		if err = json.Unmarshal(keywordBytes, &keyword); err != nil {
 			return "", err
+		}
+		detected := false
+		for _, v := range keyword.LensIdentifiers {
+			if v == id {
+				detected = true
+				break
+			}
+		}
+		if detected {
+			// this object has already  been indexed for the particular keyword, so we can skip
+			continue
 		}
 		keyword.LensIdentifiers = append(keyword.LensIdentifiers, id)
 		keywordMarshaled, err := json.Marshal(keyword)
