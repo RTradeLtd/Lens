@@ -13,7 +13,7 @@ cli:
 	@echo "===================          done           ==================="
 
 # protoc -I protobuf service.proto --go_out=plugins=grpc:protobuf
-.PHONY:
+.PHONY: proto
 proto:
 	@echo "===================  building protobuffs  ==================="
 	# build the request protobuf
