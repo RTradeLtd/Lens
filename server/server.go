@@ -15,14 +15,20 @@ type APIServer struct {
 }
 
 // NewAPIServer is used to create our API server
-func NewAPIServer(listenAddr, protocol string) error {
+func NewAPIServer(listenAddr, protocol string, opts *lens.ConfigOpts) error {
 	lis, err := net.Listen(listenAddr, protocol)
 	if err != nil {
 		return err
 	}
 	defer lis.Close()
 	gServer := grpc.NewServer()
-	aServer := &APIServer{}
+	serice, err := lens.NewService(opts)
+	if err != nil {
+		return err
+	}
+	aServer := &APIServer{
+		LS: serice,
+	}
 	pb.RegisterIndexerAPIServer(gServer, aServer)
 	if err = gServer.Serve(lis); err != nil {
 		return err
