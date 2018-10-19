@@ -22,7 +22,7 @@ func TestLens(t *testing.T) {
 		t.Fatal(err)
 	}
 	fmt.Println("Content-Type ", contentType)
-	resp, err := service.Store(metadata, testHash, fmt.Sprintf("/ipfs/%s", testHash))
+	resp, err := service.Store(metadata, testHash)
 	if err != nil {
 		t.Fatal(err)
 	}

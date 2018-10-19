@@ -8,9 +8,11 @@ import (
 
 	"github.com/RTradeLtd/Lens/analyzer/text"
 	"github.com/RTradeLtd/Lens/models"
+	"github.com/RTradeLtd/Lens/searcher"
 	"github.com/RTradeLtd/Lens/storage"
 	"github.com/RTradeLtd/Lens/utils"
 	"github.com/RTradeLtd/Lens/xtractor/planetary"
+	"github.com/gofrs/uuid"
 )
 
 // Service contains the various components of Lens
@@ -18,6 +20,7 @@ type Service struct {
 	TA *text.TextAnalyzer
 	PX *planetary.Extractor
 	SC *storage.Client
+	S  *searcher.Service
 }
 
 // NewService is used to generate our Lens service
@@ -72,21 +75,27 @@ func (s *Service) Magnify(contentHash string) (string, *MetaData, error) {
 }
 
 // Store is used to store our collected meta data in a formatted object
-func (s *Service) Store(meta *MetaData, contentHash string, fullPath string) (string, error) {
-	metaModel := models.MetaData{
-		Summary: meta.Summary,
+func (s *Service) Store(meta *MetaData, name string) (string, error) {
+	id, err := uuid.NewV4()
+	if err != nil {
+		return "", err
 	}
 	obj := models.Object{
-		Type:          models.TypeTextDocument,
-		AbsoluteName:  fullPath,
-		ReferenceName: contentHash,
-		Locations:     []string{"ipfs"},
-		Paths:         []string{fullPath},
-		MetaData:      metaModel,
+		LensID:   id,
+		Keywords: meta.Summary,
 	}
 	marshaled, err := json.Marshal(&obj)
 	if err != nil {
 		return "", err
 	}
-	return s.SC.IPFS.Shell.DagPut(marshaled, "json", "cbor")
+	for _, v := range meta.Summary {
+		if err = s.S.Put(v, marshaled); err != nil {
+			return "", err
+		}
+	}
+	resp, err := s.SC.IPFS.Shell.DagPut(marshaled, "json", "cbor")
+	if err != nil {
+		return "", err
+	}
+	return resp, nil
 }
