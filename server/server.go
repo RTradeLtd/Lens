@@ -18,7 +18,7 @@ type APIServer struct {
 // NewAPIServer is used to create our API server
 func NewAPIServer(listenAddr, protocol string, opts *lens.ConfigOpts) error {
 	// create connection we will listen on
-	lis, err := net.Listen(listenAddr, protocol)
+	lis, err := net.Listen(protocol, listenAddr)
 	if err != nil {
 		return err
 	}

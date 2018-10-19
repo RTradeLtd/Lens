@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/RTradeLtd/Lens"
+	"github.com/RTradeLtd/Lens/server"
 
 	"github.com/RTradeLtd/cmd"
 	"github.com/RTradeLtd/config"
@@ -23,10 +24,10 @@ var (
 var commands = map[string]cmd.Cmd{
 	"service": cmd.Cmd{
 		Blurb:       "start Lens service",
-		Description: "Start the Lens meta data extraction service",
+		Description: "Start the Lens meta data extraction service, which includes the API",
 		Action: func(cfg config.TemporalConfig, args map[string]string) {
 			lensCfg := lens.ConfigOpts{UseChainAlgorithm: true, DataStorePath: "/tmp/badgerds-lens"}
-			if _, err := lens.NewService(&lensCfg); err != nil {
+			if err := server.NewAPIServer("0.0.0.0:9999", "tcp", &lensCfg); err != nil {
 				log.Fatal(err)
 			}
 		},
