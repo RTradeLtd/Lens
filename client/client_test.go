@@ -21,7 +21,7 @@ func TestClient(t *testing.T) {
 		UseChainAlgorithm: true,
 		DataStorePath:     "/tmp/badgerds-lens",
 	}
-	go server.NewAPIServer("0.0.0.0:9999", "tcp", &cfg)
+	server.NewAPIServer("0.0.0.0:9999", "tcp", &cfg)
 	cfg.API.IP = "127.0.0.1"
 	cfg.API.Port = "9999"
 	c, err := client.NewClient(&cfg, true)
