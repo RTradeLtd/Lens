@@ -18,9 +18,9 @@ Currently, we will only support indexing of content from IPFS. Within this, righ
 
 ## Testing
 
-Currently there is only a very basic end-to-end test, as the `Lens` as a whole is still very early on. 
+1) Build the testenvironment with `make testenv`
+2) Build the command line tool with `make cli`
+3) Start the testenvironment with `docker-compose -f lens.yml up`
+4) In a seperate shell, run `./temporal-lens client` to show a small example of a basic index request, and search request
 
-1) Download repo with `go get -u -v github.com/RTradeLtd/Lens`
-2) Build the test environment with `make testenv`
-3) Run the test with `go test -v lens_test.go`
-4) Cleanup badgerds dir with `rm -rf /tmp/badgerds-lens`
+Note that the first time running `./temporal-lens client` with a fresh badgerds instance will cause the search to fail. Simply re-run `./temporal-lens client` and the search will succeed. The badgerds instance is stored in `/data/lens/badgerds-lens` to enable easy backup.
