@@ -8,8 +8,8 @@ lens:
 .PHONY: cli
 cli:
 	@echo "===================  building Lens CLI  ==================="
-	rm -f lens
-	go build -ldflags "-X main.Version=$(LENSVERSION)" ./cmd/lens
+	rm -f lens temporal-lens
+	go build -ldflags "-X main.Version=$(LENSVERSION)" ./cmd/temporal-lens
 	@echo "===================          done           ==================="
 
 # protoc -I protobuf service.proto --go_out=plugins=grpc:protobuf

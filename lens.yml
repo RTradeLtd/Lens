@@ -10,3 +10,13 @@ services:
       - 8080:8080
     volumes:
       - ${BASE}/data/ipfs:/data/ipfs
+  lens:
+    image: rtradetech/lens:latest
+    network_mode: "host" # expose all
+    restart: on-failure
+    depends_on:
+      - "ipfs"
+    ports:
+      - 9998:9998
+    volumes:
+      - ${BASE}/data/lens:/tmp
