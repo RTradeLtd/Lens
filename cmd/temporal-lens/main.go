@@ -31,7 +31,11 @@ var commands = map[string]cmd.Cmd{
 		Blurb:       "start Lens server",
 		Description: "Start the Lens meta data extraction service, which includes the API",
 		Action: func(cfg config.TemporalConfig, args map[string]string) {
-			lensOpts := lens.ConfigOpts{UseChainAlgorithm: true, DataStorePath: "/tmp/badgerds-lens"}
+			dsPath := os.Getenv("DS_PATH")
+			if dsPath == "" {
+				dsPath = "/data/lens/badgerds-lens"
+			}
+			lensOpts := lens.ConfigOpts{UseChainAlgorithm: true, DataStorePath: dsPath}
 			if err := server.NewAPIServer(cfg.Endpoints.LensGRPC, "tcp", &lensOpts, &cfg); err != nil {
 				log.Fatal(err)
 			}
