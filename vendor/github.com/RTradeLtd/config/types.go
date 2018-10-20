@@ -12,6 +12,8 @@ type TemporalConfig struct {
 	Sendgrid    `json:"sendgrid,omitempty"`
 	Ethereum    `json:"ethereum,omitempty"`
 	Wallets     `json:"wallets,omitempty"`
+	APIKeys     `json:"api_keys,omitempty"`
+	Endpoints   `json:"endpoints,omitempty"`
 }
 
 // API configures the Temporal API
@@ -30,6 +32,7 @@ type API struct {
 	JwtKey               string  `json:"jwt_key"`
 	SizeLimitInGigaBytes string  `json:"size_limit_in_giga_bytes"`
 	Payment              Payment `json:"payment"`
+	LogFile              string  `json:"logfile"`
 }
 
 // Payment configures the GRPC Payment Server API
@@ -112,7 +115,8 @@ type Ethereum struct {
 		} `json:"infura"`
 	} `json:"connection"`
 	Contracts struct {
-		RTCAddress string `json:"rtc_address"`
+		RTCAddress             string `json:"rtc_address"`
+		PaymentContractAddress string `json:"payment_contract_address"`
 	} `json:"contracts"`
 }
 
@@ -124,4 +128,15 @@ type Wallets struct {
 	DASH string `json:"dash"`
 	BTC  string `json:"btc"`
 	LTC  string `json:"ltc"`
+}
+
+// APIKeys are the various API keys we use
+type APIKeys struct {
+	ChainRider string `json:"chain_rider"`
+}
+
+// Endpoints are various endpoints we connect to
+type Endpoints struct {
+	MoneroRPC string `json:"monero_rpc"`
+	LensGRPC  string `json:"lens_grpc"`
 }

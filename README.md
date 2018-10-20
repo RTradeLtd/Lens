@@ -8,9 +8,9 @@ Searching through Lens will be facilitated through the TEMPORAL web interface. O
 
 ## Installation
 
-1) Get RTFS dependencies `go get -u -v github.com/RTradeLtd/RTFS`
-2) Get Lens `go get -u -v github.com/RTradeLtd/Lens`
-3) `make cli` this will generate the lens binary (does basically nothing at this point)
+Lens is available as a docker container that will run the gRPC API, as well as the actual lens service itself. To install the docker container you may run `docker pull rtradetech/lens`.
+
+Alternatively (and the easier option) is to run `docker-compose -f lens.yml up` which will pull the required images (if you do not have them already). To alter the config file and change which IPFS node the Lens service points to, update `/data/lens/config.json`.
 
 ## Processing
 
@@ -25,4 +25,4 @@ Currently, we will only support indexing of content from IPFS. Within this, righ
 
 Note that the first time running `./temporal-lens client` with a fresh badgerds instance will cause the search to fail. Simply re-run `./temporal-lens client` and the search will succeed. The badgerds instance is stored in `/data/lens/badgerds-lens` to enable easy backup.
 
-Currently the CLI is "pre-setup" for easy testing, and demo-ing of Lens functionality, namely
+To use the lens gRPC API Server, set the env var `LENS_IP` to the IP address of the lens GRPC server, and `LENS_PORT` to the port of the lens GRPC server

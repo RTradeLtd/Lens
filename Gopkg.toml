@@ -32,11 +32,11 @@ ignored = ["github.com/RTradeLtd/RTFS"]
 
 [[constraint]]
   name = "github.com/RTradeLtd/cmd"
-  version = "1.0.0"
+  version = "1.0.3-rc1"
 
 [[constraint]]
   name = "github.com/RTradeLtd/config"
-  version = "1.0.2"
+  version = "v1.0.4-rc2"
 
 [[constraint]]
   name = "github.com/RTradeLtd/database"

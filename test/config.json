@@ -77,5 +77,8 @@
 		"api_key": "",
 		"email_address": "",
 		"email_name": ""
+	},
+	"endpoints": {
+		"lens_grpc": "0.0.0.0:9998"
 	}
 }

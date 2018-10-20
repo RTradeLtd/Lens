@@ -31,20 +31,20 @@
   revision = "3d3fc2fb493d8d889dddd5a4524283ac2faa4732"
 
 [[projects]]
-  digest = "1:4c9f0df01e3c32aa2a34633730208751a8b348666be4c0049fc913fc7576be06"
+  digest = "1:d14ed51a8ce8b16f777e5e2f10dfbe339892d44b06e328be3cf016621d567bf5"
   name = "github.com/RTradeLtd/cmd"
   packages = ["."]
   pruneopts = "UT"
-  revision = "8ba31e4bae28bd058ad2c537aff61fd4b88fceb5"
-  version = "v1.0.0"
+  revision = "45d16aa5c3ff272db55df3c0d1ab13a18e2a13d3"
+  version = "v1.0.3-rc1"
 
 [[projects]]
-  digest = "1:7a9cc64d30e6628cdb3b183326fd0ff1274b907b5ba6ba3e8f312df0a518da0b"
+  digest = "1:1a068527d780138794d6ea937b3d8963ac46eef30dcb2b70f9044332f71fc3a5"
   name = "github.com/RTradeLtd/config"
   packages = ["."]
   pruneopts = "UT"
-  revision = "a127385eeeaab29107992f4e5c14119f873ea7c0"
-  version = "v1.0.2"
+  revision = "0bc23259e87dfd95e2e069475f2d5ed34ea04954"
+  version = "v1.0.4-rc2"
 
 [[projects]]
   digest = "1:5f5090f05382959db941fa45acbeb7f4c5241aa8ac0f8f4393dec696e5953f53"
