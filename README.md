@@ -8,9 +8,14 @@ Searching through Lens will be facilitated through the TEMPORAL web interface. O
 
 ## Installation
 
-Lens is available as a docker container that will run the gRPC API, as well as the actual lens service itself. To install the docker container you may run `docker pull rtradetech/lens`.
+NOTE: All commands after `#1` need to be ran from the root directroy of this repo, ie `$GOPATH/src/github.com/RTradeLtd/Lens`
 
-Alternatively (and the easier option) is to run `docker-compose -f lens.yml up` which will pull the required images (if you do not have them already). To alter the config file and change which IPFS node the Lens service points to, update `/data/lens/config.json`.
+1) Download this repository via git or `go get -u -v github.com/RTradeLtd/Lens/...`
+2) Run `docker-compose -f lens.yml up` to create a test environment with default settings (lens grpc server of `0.0.0.0:9998`, with an ipfs api of `127.0.0.1:5001`)
+3) Build the client with `make cli`
+4) Run the client with `./temporal-lens client` and follow any instructions (if asked to set `CONFIG_DAG` set it to `test/config.json`)
+
+Note, after starting up the lens container once, you may change its configuration settings located at `/data/lens/config.json`
 
 ## Processing
 
