@@ -49,15 +49,25 @@ var commands = map[string]cmd.Cmd{
 			if err != nil {
 				log.Fatal(err)
 			}
-			req := pb.IndexRequest{
+			indexReq := pb.IndexRequest{
 				DataType:         "ipld",
 				ObjectIdentifier: "QmSi9TLyzTXmrLMXDvhztDoX3jghoG3vcRrnPkLvGgfpdW",
 			}
-			resp, err := client.SubmitIndexRequest(context.Background(), &req)
+			indexResp, err := client.SubmitIndexRequest(context.Background(), &indexReq)
 			if err != nil {
 				log.Fatal(err)
 			}
-			fmt.Printf("%+v\n", resp)
+			fmt.Println("response from index request")
+			fmt.Printf("%+v\n", indexResp)
+			searchReq := pb.SearchRequest{
+				Keywords: []string{"storage"},
+			}
+			searchResp, err := client.SubmitSearchRequest(context.Background(), &searchReq)
+			if err != nil {
+				log.Fatal(err)
+			}
+			fmt.Println("Response from search request")
+			fmt.Printf("%+v\n", searchResp)
 		},
 	},
 }

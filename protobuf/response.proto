@@ -11,7 +11,7 @@ message IndexResponse {
 
 message SearchResponse {
     // name is the "name" of the object, such as an IPFS content hash
-    string name = 1;
+    repeated string names = 1;
     // objectType is the type of the object, such as IPLD
     string objectType = 2;
 }
