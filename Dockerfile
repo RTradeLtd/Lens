@@ -27,12 +27,11 @@ WORKDIR /daemon
 COPY --from=build-env /bin/temporal-lens /usr/local/bin
 
 # Set up directories
-RUN mkdir /temporal \  
-    mkdir -p /var/log/temporal
+RUN mkdir -p /data/lens  
 
 # Set default configuration
-ENV CONFIG_DAG /temporal/config.json
-COPY ./test/config.json /temporal/config.json
+ENV CONFIG_DAG /data/lens/config.json
+COPY ./test/config.json /data/lens/config.json
 
 # Set default command
 ENTRYPOINT [ "temporal-lens", "server"]

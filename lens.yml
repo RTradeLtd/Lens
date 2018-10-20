@@ -19,4 +19,4 @@ services:
     ports:
       - 9998:9998
     volumes:
-      - ${BASE}/data/lens:/tmp
+      - ${BASE}/data/lens:/data/lens
