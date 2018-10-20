@@ -14,6 +14,8 @@ const (
 )
 
 func TestServer(t *testing.T) {
+	// skip this as we test during the client test
+	t.Skip()
 	// start the server
 	cfg := lens.ConfigOpts{
 		UseChainAlgorithm: true,
