@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"net"
 
 	"github.com/RTradeLtd/Lens"
@@ -45,6 +46,7 @@ func NewAPIServer(listenAddr, protocol string, opts *lens.ConfigOpts, cfg *confi
 
 // SubmitIndexRequest is used to submit a request for something to be indexed by lens
 func (as *APIServer) SubmitIndexRequest(ctx context.Context, req *pb.IndexRequest) (*pb.IndexResponse, error) {
+	fmt.Println("new index request received")
 	switch req.GetDataType() {
 	case "ipld":
 		break
@@ -60,9 +62,12 @@ func (as *APIServer) SubmitIndexRequest(ctx context.Context, req *pb.IndexReques
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(metaData.Summary)
 	resp := &pb.IndexResponse{
 		LensIdentifier: indexResponse.LensID.String(),
+		Keywords:       metaData.Summary,
 	}
+	fmt.Println("finished processing index")
 	return resp, nil
 }
 

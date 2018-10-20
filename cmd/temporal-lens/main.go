@@ -91,7 +91,8 @@ var commands = map[string]cmd.Cmd{
 					log.Fatal(err)
 				}
 				fmt.Println("response from index request")
-				fmt.Printf("%+v\n", indexResp)
+				fmt.Println("Lens Identifier:", indexResp.LensIdentifier)
+				fmt.Println("Keywords for this object:", indexResp.Keywords)
 			} else if cmd == "search" {
 				scanner := bufio.NewScanner(os.Stdin)
 				fmt.Println("how many keywords do you wish to search for?")

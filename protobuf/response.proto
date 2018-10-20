@@ -5,8 +5,10 @@ package response;
 message IndexResponse {
     // lensIdentifier is the identifier of the indexed object according to the lens system
     string lensIdentifier = 1;
+    // keywords  are the keywords that you can use to search for this object within lens
+    repeated string keywords = 2;
     // data is miscellaneous data associated with the response
-    bytes data = 2;
+    bytes data = 3;
 }
 
 message SearchResponse {
