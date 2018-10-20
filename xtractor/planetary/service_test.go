@@ -5,14 +5,20 @@ import (
 	"testing"
 
 	"github.com/RTradeLtd/Lens/xtractor/planetary"
+	"github.com/RTradeLtd/config"
 )
 
 const (
-	testHash = "QmSi9TLyzTXmrLMXDvhztDoX3jghoG3vcRrnPkLvGgfpdW"
+	testHash      = "QmSi9TLyzTXmrLMXDvhztDoX3jghoG3vcRrnPkLvGgfpdW"
+	defaultConfig = "../../test/config.json"
 )
 
 func TestPlanetaryExtractor(t *testing.T) {
-	px, err := planetary.NewPlanetaryExtractor()
+	cfg, err := config.LoadConfig(defaultConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	px, err := planetary.NewPlanetaryExtractor(cfg)
 	if err != nil {
 		t.Fatal(err)
 	}

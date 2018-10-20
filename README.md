@@ -24,3 +24,5 @@ Currently, we will only support indexing of content from IPFS. Within this, righ
 4) In a seperate shell, run `./temporal-lens client` to show a small example of a basic index request, and search request
 
 Note that the first time running `./temporal-lens client` with a fresh badgerds instance will cause the search to fail. Simply re-run `./temporal-lens client` and the search will succeed. The badgerds instance is stored in `/data/lens/badgerds-lens` to enable easy backup.
+
+Currently the CLI is "pre-setup" for easy testing, and demo-ing of Lens functionality, namely

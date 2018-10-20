@@ -1,9 +1,11 @@
 package planetary
 
 import (
+	"fmt"
 	"io/ioutil"
 
 	"github.com/RTradeLtd/RTFS"
+	"github.com/RTradeLtd/config"
 	gocid "github.com/ipfs/go-cid"
 )
 
@@ -13,8 +15,9 @@ type Extractor struct {
 }
 
 // NewPlanetaryExtractor is used to generate our IPLD object extractor
-func NewPlanetaryExtractor() (*Extractor, error) {
-	manager, err := rtfs.Initialize("", "")
+func NewPlanetaryExtractor(cfg *config.TemporalConfig) (*Extractor, error) {
+	ipfsAPI := fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port)
+	manager, err := rtfs.Initialize("", ipfsAPI)
 	if err != nil {
 		return nil, err
 	}

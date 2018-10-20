@@ -6,6 +6,7 @@ import (
 
 	"github.com/RTradeLtd/Lens"
 	pb "github.com/RTradeLtd/Lens/models"
+	"github.com/RTradeLtd/config"
 	context "golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
@@ -16,7 +17,7 @@ type APIServer struct {
 }
 
 // NewAPIServer is used to create our API server
-func NewAPIServer(listenAddr, protocol string, opts *lens.ConfigOpts) error {
+func NewAPIServer(listenAddr, protocol string, opts *lens.ConfigOpts, cfg *config.TemporalConfig) error {
 	// create connection we will listen on
 	lis, err := net.Listen(protocol, listenAddr)
 	if err != nil {
@@ -26,7 +27,7 @@ func NewAPIServer(listenAddr, protocol string, opts *lens.ConfigOpts) error {
 	// create a grpc server
 	gServer := grpc.NewServer()
 	// create our lens service
-	serice, err := lens.NewService(opts)
+	serice, err := lens.NewService(opts, cfg)
 	if err != nil {
 		return err
 	}

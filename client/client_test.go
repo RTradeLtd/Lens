@@ -9,23 +9,29 @@ import (
 	"github.com/RTradeLtd/Lens/client"
 	pb "github.com/RTradeLtd/Lens/models"
 	"github.com/RTradeLtd/Lens/server"
+	"github.com/RTradeLtd/config"
 )
 
 const (
-	testHash = "QmSi9TLyzTXmrLMXDvhztDoX3jghoG3vcRrnPkLvGgfpdW"
+	testHash      = "QmSi9TLyzTXmrLMXDvhztDoX3jghoG3vcRrnPkLvGgfpdW"
+	defaultConfig = "../test/config.json"
 )
 
 func TestClient(t *testing.T) {
 	t.Skip()
 	// start the server
-	cfg := lens.ConfigOpts{
+	opts := lens.ConfigOpts{
 		UseChainAlgorithm: true,
 		DataStorePath:     "/tmp/badgerds-lens",
 	}
-	server.NewAPIServer("0.0.0.0:9999", "tcp", &cfg)
-	cfg.API.IP = "127.0.0.1"
-	cfg.API.Port = "9999"
-	c, err := client.NewClient(&cfg, true)
+	cfg, err := config.LoadConfig(defaultConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	server.NewAPIServer("0.0.0.0:9999", "tcp", &opts, cfg)
+	opts.API.IP = "127.0.0.1"
+	opts.API.Port = "9999"
+	c, err := client.NewClient(&opts, true)
 	if err != nil {
 		t.Fatal(err)
 	}

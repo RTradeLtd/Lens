@@ -9,9 +9,9 @@ import (
 	"github.com/RTradeLtd/Lens/analyzer/text"
 	"github.com/RTradeLtd/Lens/models"
 	"github.com/RTradeLtd/Lens/searcher"
-	"github.com/RTradeLtd/Lens/storage"
 	"github.com/RTradeLtd/Lens/utils"
 	"github.com/RTradeLtd/Lens/xtractor/planetary"
+	"github.com/RTradeLtd/config"
 	"github.com/gofrs/uuid"
 )
 
@@ -19,18 +19,13 @@ import (
 type Service struct {
 	TA *text.TextAnalyzer
 	PX *planetary.Extractor
-	SC *storage.Client
 	SS *searcher.Service
 }
 
 // NewService is used to generate our Lens service
-func NewService(opts *ConfigOpts) (*Service, error) {
+func NewService(opts *ConfigOpts, cfg *config.TemporalConfig) (*Service, error) {
 	ta := text.NewTextAnalyzer(opts.UseChainAlgorithm)
-	px, err := planetary.NewPlanetaryExtractor()
-	if err != nil {
-		return nil, err
-	}
-	sc, err := storage.NewStorageClient()
+	px, err := planetary.NewPlanetaryExtractor(cfg)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +36,6 @@ func NewService(opts *ConfigOpts) (*Service, error) {
 	return &Service{
 		TA: ta,
 		PX: px,
-		SC: sc,
 		SS: ss,
 	}, nil
 }
@@ -152,7 +146,7 @@ func (s *Service) Store(meta *MetaData, name string) (*IndexOperationResponse, e
 		return nil, err
 	}
 	// store the lens object in iPFS
-	hash, err := s.SC.IPFS.Shell.DagPut(marshaled, "json", "cbor")
+	hash, err := s.PX.Manager.Shell.DagPut(marshaled, "json", "cbor")
 	if err != nil {
 		return nil, err
 	}

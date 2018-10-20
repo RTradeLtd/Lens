@@ -8,15 +8,21 @@ import (
 
 	lens "github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/Lens/models"
+	"github.com/RTradeLtd/config"
 )
 
 const (
-	testHash = "QmSi9TLyzTXmrLMXDvhztDoX3jghoG3vcRrnPkLvGgfpdW"
+	testHash      = "QmSi9TLyzTXmrLMXDvhztDoX3jghoG3vcRrnPkLvGgfpdW"
+	defaultConfig = "test/config.json"
 )
 
 func TestLens(t *testing.T) {
-	cfg := &lens.ConfigOpts{UseChainAlgorithm: true, DataStorePath: "/tmp/badgerds-lens"}
-	service, err := lens.NewService(cfg)
+	cfg, err := config.LoadConfig(defaultConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	opts := &lens.ConfigOpts{UseChainAlgorithm: true, DataStorePath: "/tmp/badgerds-lens"}
+	service, err := lens.NewService(opts, cfg)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -7,23 +7,29 @@ import (
 	lens "github.com/RTradeLtd/Lens"
 	pb "github.com/RTradeLtd/Lens/models"
 	"github.com/RTradeLtd/Lens/server"
+	"github.com/RTradeLtd/config"
 )
 
 const (
-	testHash = "QmSi9TLyzTXmrLMXDvhztDoX3jghoG3vcRrnPkLvGgfpdW"
+	testHash      = "QmSi9TLyzTXmrLMXDvhztDoX3jghoG3vcRrnPkLvGgfpdW"
+	defaultConfig = "../test/config.json"
 )
 
 func TestServer(t *testing.T) {
 	// skip this as we test during the client test
 	t.Skip()
 	// start the server
-	cfg := lens.ConfigOpts{
+	opts := lens.ConfigOpts{
 		UseChainAlgorithm: true,
 		DataStorePath:     "/tmp/badgerds-lens",
 	}
-	server.NewAPIServer("127.0.0.1:9999", "Tcp", &cfg)
+	cfg, err := config.LoadConfig(defaultConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	server.NewAPIServer("127.0.0.1:9999", "Tcp", &opts, cfg)
 	serv := server.APIServer{}
-	lensService, err := lens.NewService(&cfg)
+	lensService, err := lens.NewService(&opts, cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
