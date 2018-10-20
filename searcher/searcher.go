@@ -3,6 +3,7 @@ package searcher
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 
 	"github.com/RTradeLtd/Lens/models"
 	"github.com/gofrs/uuid"
@@ -48,7 +49,16 @@ func (s *Service) Has(keyName string) (bool, error) {
 func (s *Service) KeywordSearch(keywords []string) ([]string, error) {
 	ids := []uuid.UUID{}
 	usedIDs := make(map[uuid.UUID]bool)
+	fmt.Println("searching through keywords")
 	for _, v := range keywords {
+		has, err := s.Has(v)
+		if err != nil {
+			return nil, err
+		}
+		if !has {
+			return nil, errors.New("keyword does not exist")
+		}
+		fmt.Println("valid keyword")
 		resp, err := s.Get(v)
 		if err != nil {
 			return nil, err
@@ -57,6 +67,7 @@ func (s *Service) KeywordSearch(keywords []string) ([]string, error) {
 		if err = json.Unmarshal(resp, &k); err != nil {
 			return nil, err
 		}
+		fmt.Printf("%+v\n", k)
 		for _, id := range k.LensIdentifiers {
 			if id != uuid.Nil && !usedIDs[id] {
 				ids = append(ids, id)

@@ -73,6 +73,7 @@ func (as *APIServer) SubmitIndexRequest(ctx context.Context, req *pb.IndexReques
 
 // SubmitSearchRequest is used to submit a request ot search through lens
 func (as *APIServer) SubmitSearchRequest(ctx context.Context, req *pb.SearchRequest) (*pb.SearchResponse, error) {
+	fmt.Println("receiving search request")
 	hashes, err := as.LS.SS.KeywordSearch(req.Keywords)
 	if err != nil {
 		return nil, err
@@ -81,5 +82,6 @@ func (as *APIServer) SubmitSearchRequest(ctx context.Context, req *pb.SearchRequ
 		Names:      hashes,
 		ObjectType: "ipld",
 	}
+	fmt.Println("finished processing search request")
 	return resp, nil
 }

@@ -98,9 +98,17 @@ func (s *Service) Store(meta *MetaData, name string) (*IndexOperationResponse, e
 		if err != nil {
 			return nil, err
 		}
-		// if the keyword does not exist, put the lens object
+		// if the keyword does not exist, create the keyword object
 		if !has {
-			if err = s.SS.Put(v, marshaled); err != nil {
+			keyObj := models.Keyword{
+				Name:            v,
+				LensIdentifiers: []uuid.UUID{id},
+			}
+			keyObjMarshaled, err := json.Marshal(&keyObj)
+			if err != nil {
+				return nil, err
+			}
+			if err = s.SS.Put(v, keyObjMarshaled); err != nil {
 				return nil, err
 			}
 			continue
