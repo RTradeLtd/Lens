@@ -1,6 +1,11 @@
 package searcher
 
 import (
+	"encoding/json"
+	"errors"
+
+	"github.com/RTradeLtd/Lens/models"
+	"github.com/gofrs/uuid"
 	ds "github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-ds-badger"
 )
@@ -37,4 +42,43 @@ func (s *Service) Get(keyName string) ([]byte, error) {
 func (s *Service) Has(keyName string) (bool, error) {
 	k := ds.NewKey(keyName)
 	return s.DS.Has(k)
+}
+
+// KeywordSearch retrieves a slice of content hashes that were indexed with these keywords
+func (s *Service) KeywordSearch(keywords []string) ([]string, error) {
+	ids := []uuid.UUID{}
+	usedIDs := make(map[uuid.UUID]bool)
+	for _, v := range keywords {
+		resp, err := s.Get(v)
+		if err != nil {
+			return nil, err
+		}
+		k := models.Keyword{}
+		if err = json.Unmarshal(resp, &k); err != nil {
+			return nil, err
+		}
+		for _, id := range k.LensIdentifiers {
+			if id != uuid.Nil && !usedIDs[id] {
+				ids = append(ids, id)
+				usedIDs[id] = true
+			}
+		}
+	}
+	hashes := []string{}
+	usedHashes := make(map[string]bool)
+	for _, v := range ids {
+		hashBytes, err := s.Get(v.String())
+		if err != nil {
+			return nil, err
+		}
+		hash := string(hashBytes)
+		if hash != "" && !usedHashes[hash] {
+			hashes = append(hashes, hash)
+			usedHashes[hash] = true
+		}
+	}
+	if len(hashes) == 0 {
+		return nil, errors.New("no hashes found")
+	}
+	return hashes, nil
 }
