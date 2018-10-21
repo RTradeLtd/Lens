@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"testing"
 
 	lens "github.com/RTradeLtd/Lens"
@@ -13,8 +14,28 @@ import (
 
 const (
 	testHash      = "QmSi9TLyzTXmrLMXDvhztDoX3jghoG3vcRrnPkLvGgfpdW"
+	testHashPdf   = "QmTbvUMmniE7wUP1ucbtC9s4ree7s8mSiQBt1c4odzKnY4"
 	defaultConfig = "test/config.json"
 )
+
+func TestContentTypeDetect(t *testing.T) {
+	t.Skip()
+	cfg, err := config.LoadConfig(defaultConfig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	opts := &lens.ConfigOpts{UseChainAlgorithm: true, DataStorePath: "/tmp/badgerds-lens"}
+	service, err := lens.NewService(opts, cfg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	contents, err := service.PX.ExtractContents(testHashPdf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	contentType := http.DetectContentType(contents)
+	fmt.Println(contentType)
+}
 
 func TestLens(t *testing.T) {
 	cfg, err := config.LoadConfig(defaultConfig)
@@ -67,4 +88,14 @@ func TestLens(t *testing.T) {
 		t.Fatal(err)
 	}
 	fmt.Println(string(contentBytes))
+	contentType, metadata, err = service.Magnify(testHashPdf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp, err = service.Store(metadata, testHashPdf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	fmt.Println("pdf processing response")
+	fmt.Printf("%+v\n", resp)
 }

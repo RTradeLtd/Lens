@@ -1,8 +1,10 @@
 package lens
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"net/http"
 	"strings"
 
@@ -13,6 +15,7 @@ import (
 	"github.com/RTradeLtd/Lens/xtractor/planetary"
 	"github.com/RTradeLtd/config"
 	"github.com/gofrs/uuid"
+	"github.com/ledongthuc/pdf"
 )
 
 // Service contains the various components of Lens
@@ -57,14 +60,32 @@ func (s *Service) Magnify(contentHash string) (string, *MetaData, error) {
 		}
 		return false
 	})
+	meta := []string{}
 	switch parsed[0] {
 	case "text/plain":
-		break
+		meta = s.TA.Summarize(string(contents), 0.025)
+	case "application/pdf":
+		if err = ioutil.WriteFile("/tmp/"+contentHash, contents, 0642); err != nil {
+			return "", nil, err
+		}
+		file, reader, err := pdf.Open("/tmp/" + contentHash)
+		if err != nil {
+			return "", nil, err
+		}
+		defer file.Close()
+		var buf bytes.Buffer
+		b, err := reader.GetPlainText()
+		if err != nil {
+			return "", nil, err
+		}
+		if _, err := buf.ReadFrom(b); err != nil {
+			return "", nil, err
+		}
+		contentsString := buf.String()
+		meta = s.TA.Summarize(contentsString, 0.05)
 	default:
 		return "", nil, errors.New("unsupported content type for indexing")
 	}
-	// grab our meta data
-	meta := s.TA.Summarize(string(contents), 0.025)
 	// clear the stored text so we can parse new text later
 	s.TA.Clear()
 	metadata := &MetaData{

@@ -10,6 +10,7 @@ import (
 
 const (
 	testHash      = "QmSi9TLyzTXmrLMXDvhztDoX3jghoG3vcRrnPkLvGgfpdW"
+	testHashPdf   = "QmTbvUMmniE7wUP1ucbtC9s4ree7s8mSiQBt1c4odzKnY4"
 	defaultConfig = "../../test/config.json"
 )
 

@@ -144,6 +144,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:8786c31474f1c8373fbe391bc4f3c7e84972769061fb2c6ff62db5f0db7a9c89"
+  name = "github.com/ledongthuc/pdf"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c92ee462a9fc3c928c7ef8372b42400da65096e5"
+
+[[projects]]
+  branch = "master"
   digest = "1:130cefe87d7eeefc824978dcb78e35672d4c49a11f25c153fbf0cfd952756fa3"
   name = "github.com/minio/blake2b-simd"
   packages = ["."]
@@ -325,6 +333,7 @@
     "github.com/ipfs/go-cid",
     "github.com/ipfs/go-datastore",
     "github.com/ipfs/go-ds-badger",
+    "github.com/ledongthuc/pdf",
     "golang.org/x/net/context",
     "google.golang.org/grpc",
   ]
