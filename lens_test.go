@@ -16,7 +16,7 @@ const (
 	testHash         = "QmSi9TLyzTXmrLMXDvhztDoX3jghoG3vcRrnPkLvGgfpdW"
 	testHashPdf      = "QmTbvUMmniE7wUP1ucbtC9s4ree7s8mSiQBt1c4odzKnY4"
 	testHashMarkdown = "QmS5yadpmuu5hPz884XoRFnTTTKaTS4GmdJddd7maysznm"
-	testHashJpg      = "QmXQBRL6JJQGEqL3L2wsBdZS2MLfZ2GFa6rrorSXtqF7GM"
+	testHashJpg      = "QmNWaM9vM4LUs8ZUHThAqC3hCHeQF8fYdJhLjJMwzJmzYS"
 	defaultConfig    = "test/config.json"
 )
 
