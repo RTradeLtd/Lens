@@ -9,6 +9,14 @@ import (
 	"github.com/DavidBelicza/TextRank"
 )
 
+const (
+	letters = "abcdefghijklmnopqrstuvwxyz"
+)
+
+var (
+	letterArray = []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
+)
+
 // TextAnalyzer is used to analyze and extract meta data from text
 type TextAnalyzer struct {
 	TR        *textrank.TextRank
@@ -58,9 +66,34 @@ func (ta *TextAnalyzer) Summarize(text string, minWeight float32) []string {
 	pairs := []string{}
 	for _, v := range phrases {
 		if v.Weight >= minWeight {
+			if result := ta.validateWord(v.Left); !result {
+				continue
+			}
+			if result := ta.validateWord(v.Right); !result {
+				continue
+			}
 			pairs = append(pairs, v.Left)
 			pairs = append(pairs, v.Right)
 		}
 	}
 	return pairs
+}
+
+func (ta *TextAnalyzer) validateWord(str string) bool {
+	for _, c := range str {
+		cStr := string(c)
+		if result := stringInSlice(cStr, letterArray); !result {
+			return result
+		}
+	}
+	return true
+}
+
+func stringInSlice(a string, list []string) bool {
+	for _, b := range list {
+		if b == a {
+			return true
+		}
+	}
+	return false
 }
