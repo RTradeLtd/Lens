@@ -21,7 +21,7 @@ const (
 )
 
 func TestContentTypeDetect(t *testing.T) {
-	//	t.Skip()
+	t.Skip()
 	cfg, err := config.LoadConfig(defaultConfig)
 	if err != nil {
 		t.Fatal(err)
