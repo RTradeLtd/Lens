@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/RTradeLtd/Lens/analyzer/images"
+
 	"github.com/RTradeLtd/Lens/analyzer/text"
 	"github.com/RTradeLtd/Lens/models"
 	"github.com/RTradeLtd/Lens/searcher"
@@ -21,6 +23,7 @@ import (
 // Service contains the various components of Lens
 type Service struct {
 	TA *text.TextAnalyzer
+	IA *images.Analyzer
 	PX *planetary.Extractor
 	SS *searcher.Service
 }
@@ -36,8 +39,14 @@ func NewService(opts *ConfigOpts, cfg *config.TemporalConfig) (*Service, error) 
 	if err != nil {
 		return nil, err
 	}
+	imagesOpts := &images.ConfigOpts{ModelLocation: "/tmp"}
+	ia, err := images.NewAnalyzer(imagesOpts)
+	if err != nil {
+		return nil, err
+	}
 	return &Service{
 		TA: ta,
+		IA: ia,
 		PX: px,
 		SS: ss,
 	}, nil
@@ -98,6 +107,16 @@ func (s *Service) Magnify(contentHash string) (string, *MetaData, error) {
 		if parsed2[0] == "text" {
 			meta = s.TA.Summarize(string(contents), 0.25)
 			break
+		}
+		if parsed2[0] == "image" {
+			if err = ioutil.WriteFile("/tmp/"+contentHash, contents, 0642); err != nil {
+				return "", nil, err
+			}
+			keyword, err := s.IA.ClassifyImage("/tmp/" + contentHash)
+			if err != nil {
+				return "", nil, err
+			}
+			meta = []string{keyword}
 		}
 		return "", nil, errors.New("unsupported content type for indexing")
 	}
