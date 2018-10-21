@@ -13,9 +13,10 @@ import (
 )
 
 const (
-	testHash      = "QmSi9TLyzTXmrLMXDvhztDoX3jghoG3vcRrnPkLvGgfpdW"
-	testHashPdf   = "QmTbvUMmniE7wUP1ucbtC9s4ree7s8mSiQBt1c4odzKnY4"
-	defaultConfig = "test/config.json"
+	testHash         = "QmSi9TLyzTXmrLMXDvhztDoX3jghoG3vcRrnPkLvGgfpdW"
+	testHashPdf      = "QmTbvUMmniE7wUP1ucbtC9s4ree7s8mSiQBt1c4odzKnY4"
+	testHashMarkdown = "QmS5yadpmuu5hPz884XoRFnTTTKaTS4GmdJddd7maysznm"
+	defaultConfig    = "test/config.json"
 )
 
 func TestContentTypeDetect(t *testing.T) {
@@ -34,6 +35,14 @@ func TestContentTypeDetect(t *testing.T) {
 		t.Fatal(err)
 	}
 	contentType := http.DetectContentType(contents)
+	fmt.Println("content type of pdf")
+	fmt.Println(contentType)
+	contents, err = service.PX.ExtractContents(testHashMarkdown)
+	if err != nil {
+		t.Fatal(err)
+	}
+	contentType = http.DetectContentType(contents)
+	fmt.Println("content type of markdown")
 	fmt.Println(contentType)
 }
 

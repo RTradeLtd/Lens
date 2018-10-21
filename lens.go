@@ -47,9 +47,16 @@ func NewService(opts *ConfigOpts, cfg *config.TemporalConfig) (*Service, error) 
 // and returned the summarized meta-data. Returned parameters are in the format of:
 // content type, meta-data, error
 func (s *Service) Magnify(contentHash string) (string, *MetaData, error) {
+	has, err := s.SS.Has(contentHash)
+	if err != nil {
+		return "", nil, err
+	}
+	if has {
+		return "", nil, errors.New("this object has already been indexed")
+	}
 	contents, err := s.PX.ExtractContents(contentHash)
 	if err != nil {
-		return "", nil, nil
+		return "", nil, err
 	}
 	contentType := http.DetectContentType(contents)
 	// it will be in the format of `<content-type>; charset=...`
@@ -60,10 +67,16 @@ func (s *Service) Magnify(contentHash string) (string, *MetaData, error) {
 		}
 		return false
 	})
+	parsed2 := strings.FieldsFunc(contentType, func(r rune) bool {
+		if r == '/' {
+			return true
+		}
+		return false
+	})
 	meta := []string{}
 	switch parsed[0] {
 	case "text/plain":
-		meta = s.TA.Summarize(string(contents), 0.025)
+		meta = s.TA.Summarize(string(contents), 0.25)
 	case "application/pdf":
 		if err = ioutil.WriteFile("/tmp/"+contentHash, contents, 0642); err != nil {
 			return "", nil, err
@@ -82,8 +95,12 @@ func (s *Service) Magnify(contentHash string) (string, *MetaData, error) {
 			return "", nil, err
 		}
 		contentsString := buf.String()
-		meta = s.TA.Summarize(contentsString, 0.05)
+		meta = s.TA.Summarize(contentsString, 0.25)
 	default:
+		if parsed2[0] == "text" {
+			meta = s.TA.Summarize(string(contents), 0.25)
+			break
+		}
 		return "", nil, errors.New("unsupported content type for indexing")
 	}
 	// clear the stored text so we can parse new text later
@@ -169,6 +186,10 @@ func (s *Service) Store(meta *MetaData, name string) (*IndexOperationResponse, e
 		if err = s.SS.Put(v, keywordMarshaled); err != nil {
 			return nil, err
 		}
+	}
+	// store the name of the object so we can avoid duplicate processing in the future
+	if err = s.SS.Put(name, []byte(id.String())); err != nil {
+		return nil, err
 	}
 	// store update badgerds with the uuid -> content hash mapping
 	if err = s.SS.Put(id.String(), []byte(name)); err != nil {
