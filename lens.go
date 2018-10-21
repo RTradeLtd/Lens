@@ -75,8 +75,6 @@ func (s *Service) Magnify(contentHash string) (string, *MetaData, error) {
 	})
 	meta := []string{}
 	switch parsed[0] {
-	case "text/plain":
-		meta = s.TA.Summarize(string(contents), 0.25)
 	case "application/pdf":
 		if err = ioutil.WriteFile("/tmp/"+contentHash, contents, 0642); err != nil {
 			return "", nil, err
