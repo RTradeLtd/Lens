@@ -16,11 +16,12 @@ const (
 	testHash         = "QmSi9TLyzTXmrLMXDvhztDoX3jghoG3vcRrnPkLvGgfpdW"
 	testHashPdf      = "QmTbvUMmniE7wUP1ucbtC9s4ree7s8mSiQBt1c4odzKnY4"
 	testHashMarkdown = "QmS5yadpmuu5hPz884XoRFnTTTKaTS4GmdJddd7maysznm"
+	testHashJpg      = "QmXQBRL6JJQGEqL3L2wsBdZS2MLfZ2GFa6rrorSXtqF7GM"
 	defaultConfig    = "test/config.json"
 )
 
 func TestContentTypeDetect(t *testing.T) {
-	t.Skip()
+	//	t.Skip()
 	cfg, err := config.LoadConfig(defaultConfig)
 	if err != nil {
 		t.Fatal(err)
@@ -43,6 +44,13 @@ func TestContentTypeDetect(t *testing.T) {
 	}
 	contentType = http.DetectContentType(contents)
 	fmt.Println("content type of markdown")
+	fmt.Println(contentType)
+	contents, err = service.PX.ExtractContents(testHashJpg)
+	if err != nil {
+		t.Fatal(err)
+	}
+	contentType = http.DetectContentType(contents)
+	fmt.Println("content type of jpg")
 	fmt.Println(contentType)
 }
 

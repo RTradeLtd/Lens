@@ -207,6 +207,17 @@
   version = "v1.1"
 
 [[projects]]
+  digest = "1:3e5ca727d3db1a37023cdad84c1b33847f291fb0ce1caaa31e8212d6f62a1c75"
+  name = "github.com/tensorflow/tensorflow"
+  packages = [
+    "tensorflow/go",
+    "tensorflow/go/op",
+  ]
+  pruneopts = "UT"
+  revision = "c19e29306ce1777456b2dbb3a14f511edf7883a8"
+  version = "v1.11.0"
+
+[[projects]]
   branch = "master"
   digest = "1:98fa13beefbf581ec173561adad6374c460631593b4bdcf03adc29cd18e5d2f5"
   name = "github.com/whyrusleeping/base32"
@@ -334,6 +345,8 @@
     "github.com/ipfs/go-datastore",
     "github.com/ipfs/go-ds-badger",
     "github.com/ledongthuc/pdf",
+    "github.com/tensorflow/tensorflow/tensorflow/go",
+    "github.com/tensorflow/tensorflow/tensorflow/go/op",
     "golang.org/x/net/context",
     "google.golang.org/grpc",
   ]
