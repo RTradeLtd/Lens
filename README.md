@@ -19,7 +19,15 @@ Note, after starting up the lens container once, you may change its configuratio
 
 ## Supported Formats
 
-Only IPFS CIDs are supported, and they must be plaintext files. We attempt to determine the content type via mime type sniffing, and if it results in anything other than `text/plain` and indexing requests will be rejected.
+Only IPFS CIDs are supported, and they must be plaintext files. We attempt to determine the content type via mime type sniffing, and use that to determine whether or not we can analyze the content.
+
+Please see the following table for supported content types that we can index. Note if the type is listed as `<type>/*` it means that any "sub type" of that mime type is supported.
+
+| Mime Type        | Support Level | Tested Types             |
+|------------------|---------------|--------------------------|
+| `text/*`         | Alpha         | `text/plain`, `text/html`|
+| `image/*`        | Alpha         | `image/jpeg`             |
+| `application/pdf`| Alpha         | `application/pdf`        |
 
 ## Processing
 
@@ -44,6 +52,8 @@ Object:
 
 * An object is content that was indexed, and includes a Lens Identifier for this content within the lens system (note, this is simply to enable easy lookup and is not valid outside of Lens)
 * Also includes are all the keywords that can be used to search for this particular content
+
+For image indexing, we currently run the images against pre-trained InceptionV5 tensorflow models. In the future we will more than likely migrate to models we train ourselves, leveraging our extensive GPU computing infrastructure.
 
 ## Searching
 
