@@ -117,6 +117,7 @@ func (s *Service) Magnify(contentHash string) (string, *MetaData, error) {
 				return "", nil, err
 			}
 			meta = []string{keyword}
+			break
 		}
 		return "", nil, errors.New("unsupported content type for indexing")
 	}
