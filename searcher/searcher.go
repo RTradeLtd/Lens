@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
+
+	"github.com/ipfs/go-datastore/query"
 
 	"github.com/RTradeLtd/Lens/models"
 	"github.com/gofrs/uuid"
@@ -25,6 +28,15 @@ func NewService(dsPath string) (*Service, error) {
 	return &Service{
 		DS: ds,
 	}, nil
+}
+
+// GetEntries is used to get all known entries
+func (s *Service) GetEntries() ([]query.Entry, error) {
+	resp, err := s.DS.Query(query.Query{})
+	if err != nil {
+		log.Fatal(err)
+	}
+	return resp.Rest()
 }
 
 // Put is used to store something in badgerds

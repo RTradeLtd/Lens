@@ -16,6 +16,13 @@ func TestService(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	entries, err := s.GetEntries()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(entries) == 0 {
+		t.Fatal("failed to find entries")
+	}
 	if err = s.Put("testKey", []byte("hello")); err != nil {
 		t.Fatal(err)
 	}
