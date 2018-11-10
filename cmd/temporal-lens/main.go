@@ -11,10 +11,10 @@ import (
 
 	"github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/Lens/client"
-	pb "github.com/RTradeLtd/Lens/models"
 	"github.com/RTradeLtd/Lens/server"
 	"github.com/RTradeLtd/cmd"
 	"github.com/RTradeLtd/config"
+	pbreq "github.com/RTradeLtd/grpc/lens/request"
 )
 
 var (
@@ -86,7 +86,7 @@ var commands = map[string]cmd.Cmd{
 				if objectID == "" {
 					log.Fatal("OBJECT_ID env var is empty. This is the name of an object, such as a content hash for IPFS")
 				}
-				indexReq := pb.IndexRequest{
+				indexReq := pbreq.IndexRequest{
 					DataType:         dataType,
 					ObjectIdentifier: objectID,
 				}
@@ -118,7 +118,7 @@ var commands = map[string]cmd.Cmd{
 					}
 					keywords = append(keywords, word) // grab a single line of input
 				}
-				searchReq := pb.SearchRequest{
+				searchReq := pbreq.SearchRequest{
 					Keywords: keywords,
 				}
 				fmt.Println("sending search request")

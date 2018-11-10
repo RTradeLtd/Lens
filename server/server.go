@@ -6,8 +6,10 @@ import (
 	"net"
 
 	"github.com/RTradeLtd/Lens"
-	pb "github.com/RTradeLtd/Lens/models"
 	"github.com/RTradeLtd/config"
+	pb "github.com/RTradeLtd/grpc/lens"
+	pbreq "github.com/RTradeLtd/grpc/lens/request"
+	pbresp "github.com/RTradeLtd/grpc/lens/response"
 	context "golang.org/x/net/context"
 	"google.golang.org/grpc"
 )
@@ -45,7 +47,7 @@ func NewAPIServer(listenAddr, protocol string, opts *lens.ConfigOpts, cfg *confi
 }
 
 // SubmitIndexRequest is used to submit a request for something to be indexed by lens
-func (as *APIServer) SubmitIndexRequest(ctx context.Context, req *pb.IndexRequest) (*pb.IndexResponse, error) {
+func (as *APIServer) SubmitIndexRequest(ctx context.Context, req *pbreq.IndexRequest) (*pbresp.IndexResponse, error) {
 	fmt.Println("new index request received")
 	switch req.GetDataType() {
 	case "ipld":
@@ -63,7 +65,7 @@ func (as *APIServer) SubmitIndexRequest(ctx context.Context, req *pb.IndexReques
 		return nil, err
 	}
 	fmt.Println(metaData.Summary)
-	resp := &pb.IndexResponse{
+	resp := &pbresp.IndexResponse{
 		LensIdentifier: indexResponse.LensID.String(),
 		Keywords:       metaData.Summary,
 	}
@@ -72,13 +74,13 @@ func (as *APIServer) SubmitIndexRequest(ctx context.Context, req *pb.IndexReques
 }
 
 // SubmitSearchRequest is used to submit a request ot search through lens
-func (as *APIServer) SubmitSearchRequest(ctx context.Context, req *pb.SearchRequest) (*pb.SearchResponse, error) {
+func (as *APIServer) SubmitSearchRequest(ctx context.Context, req *pbreq.SearchRequest) (*pbresp.SearchResponse, error) {
 	fmt.Println("receiving search request")
 	hashes, err := as.LS.SS.KeywordSearch(req.Keywords)
 	if err != nil {
 		return nil, err
 	}
-	resp := &pb.SearchResponse{
+	resp := &pbresp.SearchResponse{
 		Names:      hashes,
 		ObjectType: "ipld",
 	}

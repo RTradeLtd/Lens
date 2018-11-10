@@ -47,6 +47,18 @@
   version = "v1.0.4-rc2"
 
 [[projects]]
+  digest = "1:e314d7bc32ccf55e31010be9b5853a080f4a8c055eb9b72b3fedd887a9b3b1b9"
+  name = "github.com/RTradeLtd/grpc"
+  packages = [
+    "lens",
+    "lens/request",
+    "lens/response",
+  ]
+  pruneopts = "UT"
+  revision = "1f2cbda75e1b38d96f4495794a66e76fa975af1e"
+  version = "v1.0.5"
+
+[[projects]]
   digest = "1:5f5090f05382959db941fa45acbeb7f4c5241aa8ac0f8f4393dec696e5953f53"
   name = "github.com/dgraph-io/badger"
   packages = [
@@ -339,6 +351,8 @@
     "github.com/DavidBelicza/TextRank/rank",
     "github.com/RTradeLtd/cmd",
     "github.com/RTradeLtd/config",
+    "github.com/RTradeLtd/grpc/lens",
+    "github.com/RTradeLtd/grpc/lens/request",
     "github.com/gofrs/uuid",
     "github.com/golang/protobuf/proto",
     "github.com/ipfs/go-cid",

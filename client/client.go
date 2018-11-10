@@ -5,7 +5,9 @@ import (
 	"fmt"
 
 	"github.com/RTradeLtd/Lens"
-	pb "github.com/RTradeLtd/Lens/models"
+	pb "github.com/RTradeLtd/grpc/lens"
+	pbreq "github.com/RTradeLtd/grpc/lens/request"
+	pbresp "github.com/RTradeLtd/grpc/lens/response"
 	"google.golang.org/grpc"
 )
 
@@ -36,11 +38,11 @@ func NewClient(opts *lens.ConfigOpts, insecure bool) (*Client, error) {
 }
 
 // SubmitIndexRequest is used to submit an index request to lens
-func (c *Client) SubmitIndexRequest(ctx context.Context, req *pb.IndexRequest) (*pb.IndexResponse, error) {
+func (c *Client) SubmitIndexRequest(ctx context.Context, req *pbreq.IndexRequest) (*pbresp.IndexResponse, error) {
 	return c.IC.SubmitIndexRequest(ctx, req)
 }
 
 // SubmitSearchRequest is used to submit a request to search through lens
-func (c *Client) SubmitSearchRequest(ctx context.Context, req *pb.SearchRequest) (*pb.SearchResponse, error) {
+func (c *Client) SubmitSearchRequest(ctx context.Context, req *pbreq.SearchRequest) (*pbresp.SearchResponse, error) {
 	return c.IC.SubmitSearchRequest(ctx, req)
 }

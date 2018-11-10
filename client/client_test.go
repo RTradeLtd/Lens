@@ -7,9 +7,9 @@ import (
 
 	"github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/Lens/client"
-	pb "github.com/RTradeLtd/Lens/models"
 	"github.com/RTradeLtd/Lens/server"
 	"github.com/RTradeLtd/config"
+	pb "github.com/RTradeLtd/grpc/lens/request"
 )
 
 const (
