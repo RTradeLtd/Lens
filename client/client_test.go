@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/Lens/client"
+	"github.com/RTradeLtd/Lens/lens"
 	"github.com/RTradeLtd/Lens/server"
 	"github.com/RTradeLtd/config"
 	pb "github.com/RTradeLtd/grpc/lens/request"
