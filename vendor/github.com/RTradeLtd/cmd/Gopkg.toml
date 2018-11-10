@@ -1,6 +1,6 @@
 [[constraint]]
   name = "github.com/RTradeLtd/config"
-  version = "v1.0.4-rc2"
+  version = "v1.0.8-rc2"
 
 [prune]
   go-tests = true

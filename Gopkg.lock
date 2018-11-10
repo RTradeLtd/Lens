@@ -31,28 +31,29 @@
   revision = "3d3fc2fb493d8d889dddd5a4524283ac2faa4732"
 
 [[projects]]
-  digest = "1:d14ed51a8ce8b16f777e5e2f10dfbe339892d44b06e328be3cf016621d567bf5"
+  digest = "1:af507368fe03bbc8c684c30fbbf9901f9b1f5b33188434f0b6afcf21cd21e687"
   name = "github.com/RTradeLtd/cmd"
   packages = ["."]
   pruneopts = "UT"
-  revision = "45d16aa5c3ff272db55df3c0d1ab13a18e2a13d3"
-  version = "v1.0.3-rc1"
+  revision = "20a519310f096a721cb787911b0f3e207dbdfb58"
+  version = "v1.0.4-rc1"
 
 [[projects]]
-  digest = "1:1a068527d780138794d6ea937b3d8963ac46eef30dcb2b70f9044332f71fc3a5"
+  digest = "1:85b96e99377a2d1b7fba5b8f3d4f48e99aa9f84cffd5f1793c984a712edb530d"
   name = "github.com/RTradeLtd/config"
   packages = ["."]
   pruneopts = "UT"
-  revision = "0bc23259e87dfd95e2e069475f2d5ed34ea04954"
-  version = "v1.0.4-rc2"
+  revision = "bb92c485347b7fcb2ea6aa130b1c1ebd493018ae"
+  version = "v1.0.8-rc2"
 
 [[projects]]
-  digest = "1:e314d7bc32ccf55e31010be9b5853a080f4a8c055eb9b72b3fedd887a9b3b1b9"
+  digest = "1:f929620f61a76b8fea9414960430bd0d856f13c15de11afdb1dbe7e46e9ec14f"
   name = "github.com/RTradeLtd/grpc"
   packages = [
     "lens",
     "lens/request",
     "lens/response",
+    "middleware",
   ]
   pruneopts = "UT"
   revision = "1f2cbda75e1b38d96f4495794a66e76fa975af1e"
@@ -109,6 +110,17 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "d460ce9f8df2e77fb1ba55ca87fafed96c607494"
+  version = "v1.0.0"
+
+[[projects]]
+  digest = "1:c805a0558c867a671fc2dd1c6134b92a4d15c3fee5803abc70fdabdcb683ea0b"
+  name = "github.com/grpc-ecosystem/go-grpc-middleware"
+  packages = [
+    ".",
+    "tags",
+  ]
+  pruneopts = "UT"
+  revision = "c250d6563d4d4c20252cd865923440e829844f4e"
   version = "v1.0.0"
 
 [[projects]]
@@ -353,8 +365,11 @@
     "github.com/RTradeLtd/config",
     "github.com/RTradeLtd/grpc/lens",
     "github.com/RTradeLtd/grpc/lens/request",
+    "github.com/RTradeLtd/grpc/lens/response",
+    "github.com/RTradeLtd/grpc/middleware",
     "github.com/gofrs/uuid",
-    "github.com/golang/protobuf/proto",
+    "github.com/grpc-ecosystem/go-grpc-middleware",
+    "github.com/grpc-ecosystem/go-grpc-middleware/tags",
     "github.com/ipfs/go-cid",
     "github.com/ipfs/go-datastore",
     "github.com/ipfs/go-ds-badger",
@@ -363,6 +378,7 @@
     "github.com/tensorflow/tensorflow/tensorflow/go/op",
     "golang.org/x/net/context",
     "google.golang.org/grpc",
+    "google.golang.org/grpc/credentials",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

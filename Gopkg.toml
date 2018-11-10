@@ -22,9 +22,10 @@
 # [prune]
 #   non-go = false
 #   go-tests = true
-#   unused-packages = true
+#   unused-packages = true 
 
 ignored = ["github.com/RTradeLtd/RTFS"]
+
 
 [[constraint]]
   name = "github.com/DavidBelicza/TextRank"
@@ -32,11 +33,11 @@ ignored = ["github.com/RTradeLtd/RTFS"]
 
 [[constraint]]
   name = "github.com/RTradeLtd/cmd"
-  version = "1.0.3-rc1"
+  version = "1.0.4-rc1"
 
 [[constraint]]
   name = "github.com/RTradeLtd/config"
-  version = "v1.0.4-rc2"
+  version = "v1.0.8-rc2"
 
 [[constraint]]
   name = "github.com/RTradeLtd/database"

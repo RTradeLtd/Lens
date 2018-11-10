@@ -10,8 +10,12 @@ import (
 	pb "github.com/RTradeLtd/grpc/lens"
 	pbreq "github.com/RTradeLtd/grpc/lens/request"
 	pbresp "github.com/RTradeLtd/grpc/lens/response"
+	"github.com/RTradeLtd/grpc/middleware"
+	"github.com/grpc-ecosystem/go-grpc-middleware"
+	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	context "golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials"
 )
 
 // APIServer is the Lens API server
@@ -26,9 +30,30 @@ func NewAPIServer(listenAddr, protocol string, opts *lens.ConfigOpts, cfg *confi
 	if err != nil {
 		return err
 	}
-	defer lis.Close()
+	// setup authentication interceptor
+	unaryIntercept, streamInterceptor := middleware.NewServerInterceptors(cfg.Endpoints.Lens.AuthKey)
+	// setup server options
+	serverOpts := []grpc.ServerOption{
+		grpc_middleware.WithUnaryServerChain(
+			unaryIntercept,
+			grpc_ctxtags.UnaryServerInterceptor(grpc_ctxtags.WithFieldExtractor(grpc_ctxtags.CodeGenRequestFieldExtractor))),
+		grpc_middleware.WithStreamServerChain(
+			streamInterceptor,
+			grpc_ctxtags.StreamServerInterceptor(grpc_ctxtags.WithFieldExtractor(grpc_ctxtags.CodeGenRequestFieldExtractor))),
+	}
+	// setup tls configuration
+	if cfg.Lens.TLS.CertPath != "" {
+		creds, err := credentials.NewServerTLSFromFile(
+			cfg.Endpoints.Lens.TLS.CertPath,
+			cfg.Endpoints.Lens.TLS.KeyFile)
+		if err != nil {
+			return err
+		}
+		serverOpts = append(serverOpts, grpc.Creds(creds))
+	}
 	// create a grpc server
-	gServer := grpc.NewServer()
+	gServer := grpc.NewServer(serverOpts...)
+
 	// create our lens service
 	serice, err := lens.NewService(opts, cfg)
 	if err != nil {

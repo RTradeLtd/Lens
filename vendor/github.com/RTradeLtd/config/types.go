@@ -12,6 +12,7 @@ type TemporalConfig struct {
 	Sendgrid    `json:"sendgrid,omitempty"`
 	Ethereum    `json:"ethereum,omitempty"`
 	Wallets     `json:"wallets,omitempty"`
+	TNS         `json:"tns,omitempty"`
 	APIKeys     `json:"api_keys,omitempty"`
 	Endpoints   `json:"endpoints,omitempty"`
 }
@@ -130,6 +131,14 @@ type Wallets struct {
 	LTC  string `json:"ltc"`
 }
 
+// TNS configures our TNS manager
+type TNS struct {
+	ZoneName           string `json:"zone_name"`
+	ZoneManagerKeyName string `json:"zone_manager_key_name"`
+	ZoneKeyName        string `json:"zone_key_name"`
+	LogFile            string `json:"log_file"`
+}
+
 // APIKeys are the various API keys we use
 type APIKeys struct {
 	ChainRider string `json:"chain_rider"`
@@ -138,5 +147,18 @@ type APIKeys struct {
 // Endpoints are various endpoints we connect to
 type Endpoints struct {
 	MoneroRPC string `json:"monero_rpc"`
-	LensGRPC  string `json:"lens_grpc"`
+	Lens      struct {
+		URL string `json:"url"`
+		TLS struct {
+			CertPath string `json:"cert_path"`
+			KeyFile  string `json:"key_file"`
+		}
+		AuthKey string `json:"auth_key"`
+		LogFile string `json:"log_file"`
+	} `json:"lens"`
+	MongoDB struct {
+		URL              string `json:"url"`
+		DB               string `json:"db"`
+		UploadCollection string `json:"uploads"`
+	} `json:"mongodb"`
 }
