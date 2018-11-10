@@ -34,13 +34,13 @@ func TestService(t *testing.T) {
 		t.Fatal("has was false but expected it to be true")
 	}
 	keywords := []string{"storage"}
-	hashes, err := s.KeywordSearch(keywords)
+	objects, err := s.KeywordSearch(keywords)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(hashes) == 0 {
+	if len(*objects) == 0 {
 		t.Fatal("no hashes recovered")
 	}
 	fmt.Println("hashes recovered")
-	fmt.Println(hashes)
+	fmt.Println(objects)
 }

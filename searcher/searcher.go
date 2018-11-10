@@ -2,7 +2,6 @@ package searcher
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/RTradeLtd/Lens/models"
@@ -46,52 +45,61 @@ func (s *Service) Has(keyName string) (bool, error) {
 }
 
 // KeywordSearch retrieves a slice of content hashes that were indexed with these keywords
-func (s *Service) KeywordSearch(keywords []string) ([]string, error) {
+func (s *Service) KeywordSearch(keywords []string) (*[]models.Object, error) {
+	// ids are a list of id's for which this keyword matched
 	ids := []uuid.UUID{}
+	// usedIDs represetn lens identifiers we've already searched
 	usedIDs := make(map[uuid.UUID]bool)
 	fmt.Println("searching through keywords")
+	// search through all keywords
 	for _, v := range keywords {
+		// check if we have content for this keyword
 		has, err := s.Has(v)
 		if err != nil {
 			return nil, err
 		}
+		// if we don't skip it
 		if !has {
-			// this keyword does not exist lets skip it
 			continue
-			// return nil, errors.New("keyword does not exist")
 		}
 		fmt.Println("valid keyword")
+		// get the keyword object from the datastore
 		resp, err := s.Get(v)
 		if err != nil {
 			return nil, err
 		}
+		// prepare  messsage to unmarshal the data into
 		k := models.Keyword{}
+		// unmarshal into keyword object
 		if err = json.Unmarshal(resp, &k); err != nil {
 			return nil, err
 		}
 		fmt.Printf("%+v\n", k)
+		// search through all the identifiers
 		for _, id := range k.LensIdentifiers {
+			// if the id is not nil, and we haven't seen this id already
 			if id != uuid.Nil && !usedIDs[id] {
+				// add it to the list of IDs to process
 				ids = append(ids, id)
 				usedIDs[id] = true
 			}
 		}
 	}
-	hashes := []string{}
-	usedHashes := make(map[string]bool)
+	var (
+		objects []models.Object
+		object  models.Object
+	)
 	for _, v := range ids {
-		hashBytes, err := s.Get(v.String())
+		objectBytes, err := s.Get(v.String())
 		if err != nil {
-			return nil, err
+			// don't hard fail, skip processing this id
+			continue
 		}
-		hash := string(hashBytes)
-		if hash != "" && !usedHashes[hash] {
-			hashes = append(hashes, hash)
-			usedHashes[hash] = true
+		if err = json.Unmarshal(objectBytes, &object); err != nil {
+			// don't hard fail, skip processing this id
+			continue
 		}
+		objects = append(objects, object)
 	}
-	if len(hashes) == 0 {
-		return nil, errors.New("no hashes found")
-	}
-	return hashes, nil
+	return &objects, nil
 }

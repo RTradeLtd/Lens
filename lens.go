@@ -232,8 +232,8 @@ func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResp
 	if err = s.SS.Put(name, []byte(id.String())); err != nil {
 		return nil, err
 	}
-	// store update badgerds with the uuid -> content hash mapping
-	if err = s.SS.Put(id.String(), []byte(name)); err != nil {
+	// store a "mapping" of the lens uuid to its corresponding lens object
+	if err = s.SS.Put(id.String(), marshaled); err != nil {
 		return nil, err
 	}
 	// store the lens object in iPFS

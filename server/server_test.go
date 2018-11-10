@@ -45,7 +45,7 @@ func TestServer(t *testing.T) {
 	if resp.LensIdentifier == "" {
 		t.Fatal("response should have uuid")
 	}
-	shouldBeEmptyResp, shouldBeEmptyErr := serv.SubmitSearchRequest(context.Background(), nil)
+	shouldBeEmptyResp, shouldBeEmptyErr := serv.SubmitSimpleSearchRequest(context.Background(), nil)
 	if shouldBeEmptyErr != nil {
 		t.Fatal(shouldBeEmptyErr)
 	}

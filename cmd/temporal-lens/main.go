@@ -118,7 +118,7 @@ var commands = map[string]cmd.Cmd{
 					Keywords: keywords,
 				}
 				fmt.Println("sending search request")
-				searchResp, err := client.SubmitSearchRequest(context.Background(), &searchReq)
+				searchResp, err := client.SubmitSimpleSearchRequest(context.Background(), &searchReq)
 				if err != nil {
 					log.Fatal(err)
 				}

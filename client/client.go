@@ -42,7 +42,7 @@ func (c *Client) SubmitIndexRequest(ctx context.Context, req *pbreq.IndexRequest
 	return c.IC.SubmitIndexRequest(ctx, req)
 }
 
-// SubmitSearchRequest is used to submit a request to search through lens
-func (c *Client) SubmitSearchRequest(ctx context.Context, req *pbreq.SearchRequest) (*pbresp.SearchResponse, error) {
-	return c.IC.SubmitSearchRequest(ctx, req)
+// SubmitSimpleSearchRequest is used to submit a simple search request against lens
+func (c *Client) SubmitSimpleSearchRequest(ctx context.Context, req *pbreq.SearchRequest) (*pbresp.SimpleSearchResponse, error) {
+	return c.IC.SubmitSimpleSearchRequest(ctx, req)
 }
