@@ -2,6 +2,7 @@ package searcher
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 
 	"github.com/RTradeLtd/Lens/models"
@@ -89,15 +90,21 @@ func (s *Service) KeywordSearch(keywords []string) (*[]models.Object, error) {
 		objects []models.Object
 		object  models.Object
 	)
+	fmt.Println("searching for ids")
 	for _, v := range ids {
+		has, err := s.Has(v.String())
+		if err != nil {
+			return nil, err
+		}
+		if !has {
+			return nil, errors.New("no entry with lens id found")
+		}
 		objectBytes, err := s.Get(v.String())
 		if err != nil {
-			// don't hard fail, skip processing this id
-			continue
+			return nil, err
 		}
 		if err = json.Unmarshal(objectBytes, &object); err != nil {
-			// don't hard fail, skip processing this id
-			continue
+			return nil, err
 		}
 		objects = append(objects, object)
 	}
