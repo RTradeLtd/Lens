@@ -56,7 +56,9 @@ func (s *Service) KeywordSearch(keywords []string) ([]string, error) {
 			return nil, err
 		}
 		if !has {
-			return nil, errors.New("keyword does not exist")
+			// this keyword does not exist lets skip it
+			continue
+			// return nil, errors.New("keyword does not exist")
 		}
 		fmt.Println("valid keyword")
 		resp, err := s.Get(v)

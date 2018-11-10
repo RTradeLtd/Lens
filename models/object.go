@@ -7,7 +7,6 @@ type Object struct {
 	// LensID is the id of this particular object within the lens system
 	LensID uuid.UUID `json:"lens_id"`
 	// Name is how you identify the object on it's network. For IPFS/ipld objects, it is the content hash
-	Name string `json:"name"`
-	// Keywords are they words that when search will reveal this content hash
-	Keywords []string `json:"keywords"`
+	Name     string   `json:"name"`
+	MetaData MetaData `json:"meta_data"`
 }

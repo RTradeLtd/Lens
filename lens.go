@@ -28,6 +28,22 @@ type Service struct {
 	SS *searcher.Service
 }
 
+// ConfigOpts are options used to configure the lens service
+type ConfigOpts struct {
+	UseChainAlgorithm bool
+	DataStorePath     string
+	API               struct {
+		IP   string
+		Port string
+	}
+}
+
+// IndexOperationResponse is the response from a successfuly lens indexing operation
+type IndexOperationResponse struct {
+	ContentHash string    `json:"lens_object_content_hash"`
+	LensID      uuid.UUID `json:"lens_id"`
+}
+
 // NewService is used to generate our Lens service
 func NewService(opts *ConfigOpts, cfg *config.TemporalConfig) (*Service, error) {
 	ta := text.NewTextAnalyzer(opts.UseChainAlgorithm)
@@ -55,7 +71,7 @@ func NewService(opts *ConfigOpts, cfg *config.TemporalConfig) (*Service, error) 
 // Magnify is used to examine a given content hash, determine if it's parsable
 // and returned the summarized meta-data. Returned parameters are in the format of:
 // content type, meta-data, error
-func (s *Service) Magnify(contentHash string) (string, *MetaData, error) {
+func (s *Service) Magnify(contentHash string) (string, *models.MetaData, error) {
 	has, err := s.SS.Has(contentHash)
 	if err != nil {
 		return "", nil, err
@@ -82,9 +98,13 @@ func (s *Service) Magnify(contentHash string) (string, *MetaData, error) {
 		}
 		return false
 	})
-	meta := []string{}
+	var (
+		meta     []string
+		category string
+	)
 	switch parsed[0] {
 	case "application/pdf":
+		category = "pdf"
 		if err = ioutil.WriteFile("/tmp/"+contentHash, contents, 0642); err != nil {
 			return "", nil, err
 		}
@@ -105,10 +125,12 @@ func (s *Service) Magnify(contentHash string) (string, *MetaData, error) {
 		meta = s.TA.Summarize(contentsString, 0.25)
 	default:
 		if parsed2[0] == "text" {
+			category = "document"
 			meta = s.TA.Summarize(string(contents), 0.25)
 			break
 		}
 		if parsed2[0] == "image" {
+			category = "image"
 			if err = ioutil.WriteFile("/tmp/"+contentHash, contents, 0642); err != nil {
 				return "", nil, err
 			}
@@ -123,14 +145,16 @@ func (s *Service) Magnify(contentHash string) (string, *MetaData, error) {
 	}
 	// clear the stored text so we can parse new text later
 	s.TA.Clear()
-	metadata := &MetaData{
-		Summary: utils.Unique(meta),
+	metadata := &models.MetaData{
+		Summary:  utils.Unique(meta),
+		MimeType: contentType,
+		Category: category,
 	}
 	return parsed[0], metadata, nil
 }
 
 // Store is used to store our collected meta data in a formatted object
-func (s *Service) Store(meta *MetaData, name string) (*IndexOperationResponse, error) {
+func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResponse, error) {
 	// generate a uuid for the lens object
 	id, err := uuid.NewV4()
 	if err != nil {
@@ -140,7 +164,7 @@ func (s *Service) Store(meta *MetaData, name string) (*IndexOperationResponse, e
 	obj := models.Object{
 		LensID:   id,
 		Name:     name,
-		Keywords: meta.Summary,
+		MetaData: *meta,
 	}
 	// mrshal the lens object
 	marshaled, err := json.Marshal(&obj)
@@ -169,7 +193,7 @@ func (s *Service) Store(meta *MetaData, name string) (*IndexOperationResponse, e
 			}
 			continue
 		}
-		// keyword exists, get the keyword object from the database
+		// keyword exists, get the keyword object from the datastore
 		keywordBytes, err := s.SS.Get(v)
 		if err != nil {
 			return nil, err
@@ -181,8 +205,7 @@ func (s *Service) Store(meta *MetaData, name string) (*IndexOperationResponse, e
 			return nil, err
 		}
 		detected := false
-		// TODO: this is false logic, we should never see it as its a new uuid
-		// instead, we should store a mapping of content_hash -> uuid
+		// this should never be reached, but it is here for additional checks and balances
 		for _, v := range keyword.LensIdentifiers {
 			if v == id {
 				detected = true
@@ -195,7 +218,7 @@ func (s *Service) Store(meta *MetaData, name string) (*IndexOperationResponse, e
 		}
 		// update the lens identifiers in the keyword object
 		keyword.LensIdentifiers = append(keyword.LensIdentifiers, id)
-		// TODO: add update to "content hashes" that are mapped in the keyword obj
+		// TODO: add field ot model of  content hashes that are mapped in the keyword obj
 		keywordMarshaled, err := json.Marshal(keyword)
 		if err != nil {
 			return nil, err
@@ -205,7 +228,7 @@ func (s *Service) Store(meta *MetaData, name string) (*IndexOperationResponse, e
 			return nil, err
 		}
 	}
-	// store the name of the object so we can avoid duplicate processing in the future
+	// store the name (aka, content hash) of the object so we can avoid duplicate processing in the future
 	if err = s.SS.Put(name, []byte(id.String())); err != nil {
 		return nil, err
 	}
@@ -219,6 +242,7 @@ func (s *Service) Store(meta *MetaData, name string) (*IndexOperationResponse, e
 		return nil, err
 	}
 	resp := &IndexOperationResponse{
+		// this is the hash of the ipld object
 		ContentHash: hash,
 		LensID:      id,
 	}
