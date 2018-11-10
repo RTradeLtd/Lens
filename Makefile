@@ -8,7 +8,7 @@ lens:
 .PHONY: cli
 cli:
 	@echo "===================  building Lens CLI  ==================="
-	rm -f lens temporal-lens
+	rm -f temporal-lens
 	go build -ldflags "-X main.Version=$(LENSVERSION)" ./cmd/temporal-lens
 	@echo "===================          done           ==================="
 
