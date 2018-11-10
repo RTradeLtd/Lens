@@ -17,7 +17,7 @@ const (
 	testHashPdf      = "QmTbvUMmniE7wUP1ucbtC9s4ree7s8mSiQBt1c4odzKnY4"
 	testHashMarkdown = "QmS5yadpmuu5hPz884XoRFnTTTKaTS4GmdJddd7maysznm"
 	testHashJpg      = "QmNWaM9vM4LUs8ZUHThAqC3hCHeQF8fYdJhLjJMwzJmzYS"
-	defaultConfig    = "test/config.json"
+	defaultConfig    = "../test/config.json"
 )
 
 func TestContentTypeDetect(t *testing.T) {
