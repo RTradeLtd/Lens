@@ -11,7 +11,9 @@ import (
 
 	"github.com/RTradeLtd/Lens/client"
 	"github.com/RTradeLtd/Lens/lens"
+	"github.com/RTradeLtd/Lens/searcher"
 	"github.com/RTradeLtd/Lens/server"
+	rtfs "github.com/RTradeLtd/RTFS"
 	"github.com/RTradeLtd/cmd"
 	"github.com/RTradeLtd/config"
 	pbreq "github.com/RTradeLtd/grpc/lens/request"
@@ -33,6 +35,28 @@ var commands = map[string]cmd.Cmd{
 		Action: func(cfg config.TemporalConfig, args map[string]string) {
 			lensOpts := lens.ConfigOpts{UseChainAlgorithm: true, DataStorePath: dsPath}
 			if err := server.NewAPIServer(cfg.Endpoints.Lens.URL, "tcp", &lensOpts, &cfg); err != nil {
+				log.Fatal(err)
+			}
+		},
+	},
+	"migrate": cmd.Cmd{
+		Blurb:       "Used to migrate teh datastore",
+		Description: "Performs a complete migration of the old datastore to new datastore",
+		Action: func(cfg config.TemporalConfig, args map[string]string) {
+			im, err := rtfs.Initialize(
+				"", fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port))
+			if err != nil {
+				log.Fatal(err)
+			}
+			s, err := searcher.NewService(dsPath)
+			if err != nil {
+				log.Fatal(err)
+			}
+			entriesToMigrate, err := s.GetEntries()
+			if err != nil {
+				log.Fatal(err)
+			}
+			if err = s.MigrateEntries(entriesToMigrate, im, true); err != nil {
 				log.Fatal(err)
 			}
 		},
