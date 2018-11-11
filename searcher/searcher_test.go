@@ -5,13 +5,25 @@ import (
 	"testing"
 
 	"github.com/RTradeLtd/Lens/searcher"
+	rtfs "github.com/RTradeLtd/RTFS"
+	"github.com/RTradeLtd/config"
 )
 
 const (
-	testPath = "testds"
+	testPath    = "testds"
+	testCfgPath = "../test/config.json"
 )
 
 func TestService(t *testing.T) {
+	// load the config object
+	cfg, err := config.LoadConfig(testCfgPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	im, err := rtfs.Initialize("", fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port))
+	if err != nil {
+		t.Fatal(err)
+	}
 	s, err := searcher.NewService(testPath)
 	if err != nil {
 		t.Fatal(err)
@@ -23,7 +35,7 @@ func TestService(t *testing.T) {
 	if len(entries) == 0 {
 		t.Fatal("failed to find entries")
 	}
-	if err = s.MigrateEntries(entries); err != nil {
+	if err = s.MigrateEntries(entries, im, true); err != nil {
 		t.Fatal(err)
 	}
 	if err = s.Put("testKey", []byte("hello")); err != nil {

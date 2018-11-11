@@ -4,14 +4,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
 	"strings"
 
-	"github.com/ipfs/go-datastore/query"
-
 	"github.com/RTradeLtd/Lens/models"
+	"github.com/RTradeLtd/RTFS"
 	"github.com/gofrs/uuid"
 	ds "github.com/ipfs/go-datastore"
+	"github.com/ipfs/go-datastore/query"
 	"github.com/ipfs/go-ds-badger"
 )
 
@@ -41,7 +43,7 @@ func (s *Service) GetEntries() ([]query.Entry, error) {
 }
 
 // MigrateEntries is used to migrate entries to newer object types
-func (s *Service) MigrateEntries(entries []query.Entry) error {
+func (s *Service) MigrateEntries(entries []query.Entry, im *rtfs.IpfsManager, migrateContent bool) error {
 	var (
 		ids      []uuid.UUID
 		keywords = make(map[string][]uuid.UUID)
@@ -50,7 +52,7 @@ func (s *Service) MigrateEntries(entries []query.Entry) error {
 	// extract id's to mgirate
 	for _, v := range entries {
 		split := strings.Split(v.Key, "/")
-		id, err := uuid.FromString(split[1])
+		_, err := uuid.FromString(split[1])
 		if err != nil {
 			// make sure we don't process ipfs hashes
 			if split[1][0] == 'Q' {
@@ -66,12 +68,13 @@ func (s *Service) MigrateEntries(entries []query.Entry) error {
 			for _, v := range keyword.LensIdentifiers {
 				// we have to use split[1] as the `name` field was improperly set to an ipfs hash
 				keywords[split[1]] = append(keywords[split[1]], v)
+				ids = append(ids, v)
 			}
 			continue
 		}
-		ids = append(ids, id)
+		//ids = append(ids, id)
 	}
-	fmt.Println("keywords ", keywords)
+	fmt.Println(keywords)
 	// rebuild our keywords and properly migrate them
 	for name, identifiers := range keywords {
 		key := models.Keyword{
@@ -84,7 +87,6 @@ func (s *Service) MigrateEntries(entries []query.Entry) error {
 			// dont hard fail
 			continue
 		}
-		fmt.Println("marshaled key bytes in string ", string(keyBytes))
 		if err = s.Put(name, keyBytes); err != nil {
 			continue
 		}
@@ -121,7 +123,6 @@ func (s *Service) MigrateEntries(entries []query.Entry) error {
 					fmt.Println("error migrating lens object ", err)
 					continue
 				}
-				fmt.Println("updated object ", string(bytes))
 				continue
 			}
 			// format the meta-data
@@ -143,21 +144,65 @@ func (s *Service) MigrateEntries(entries []query.Entry) error {
 				fmt.Println("failed to store new object ", err)
 				continue
 			}
-			fmt.Printf("new object %+v\n", obj)
 		}
 	}
-	//TODO: enable category migration
-	/*processedIds := make(map[string]bool)
-	// update the category
-	for _, id := range ids {
-		if processedIds[id.String()] {
-			fmt.Println("id already processed ", id)
-			continue
+	if migrateContent && im != nil {
+		processedIds := make(map[string]bool)
+		// update the category
+		for _, id := range ids {
+			if processedIds[id.String()] {
+				fmt.Println("id already processed ", id)
+				continue
+			}
+			processedIds[id.String()] = true
+			// getthe data from IPFs so we can sniff its mime-type
+			// grab the object from the database
+			objBytes, err := s.Get(id.String())
+			if err != nil {
+				// don't hard fail
+				fmt.Println("failed to get lens object ", err)
+				continue
+			}
+			var obj models.Object
+			if err = json.Unmarshal(objBytes, &obj); err != nil {
+				fmt.Println("failed to unmarshal lens object ", err)
+				// don't hard fail
+				continue
+			}
+			reader, err := im.Shell.Cat(obj.Name)
+			if err != nil {
+				fmt.Println("failed to get content from ipfs ", err)
+				continue
+			}
+			dataBytes, err := ioutil.ReadAll(reader)
+			if err != nil {
+				fmt.Println("failed to get bytes from reader ", err)
+				continue
+			}
+			contentType := http.DetectContentType(dataBytes)
+			split := strings.Split(contentType, ";")
+			// update the content type
+			obj.MetaData.MimeType = split[0]
+			if contentType == "application/pdf" {
+				obj.MetaData.Category = "pdf"
+			} else {
+				split := strings.Split(contentType, "/")
+				obj.MetaData.Category = split[0]
+			}
+			// marshal the newly update object
+			objBytes, err = json.Marshal(&obj)
+			if err != nil {
+				// dont hard fail
+				fmt.Println("failed to marshal updated object ", err)
+				continue
+			}
+			fmt.Printf("%+v\n", obj)
+			if err = s.Put(id.String(), objBytes); err != nil {
+				fmt.Println("failed to store updated object ", err)
+				continue
+			}
 		}
-		processedIds[id.String()] = true
-		// getthe data from IPFs so we can sniff its mime-type
-		s.
-	}*/
+	}
 	return nil
 }
 
