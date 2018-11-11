@@ -1,5 +1,7 @@
 package models
 
+import "github.com/gofrs/uuid"
+
 // MetaData is a piece of meta data from a given object after being lensed
 type MetaData struct {
 	Summary  []string `json:"summary"`
@@ -10,8 +12,8 @@ type MetaData struct {
 // Category is a particular search category, such as document, pdf, etc..
 type Category struct {
 	Name string `json:"name"`
-	// ObjectIdentifiers are distributed web object identifiers such as IPFS content hashes
-	ObjectIdentifiers []string `json:"object_identifiers"`
+	// LensIdentifiers are id's of indexed lens object which match this category
+	LensIdentifiers []uuid.UUID `json:"object_identifiers"`
 }
 
 // MetaDataOld is an old metadata object

@@ -10,7 +10,12 @@ message IndexRequest {
     string objectIdentifier = 2;
 }
 
-message SearchRequest {
+message SimpleSearchRequest {
     // repeated means there can be 0 or more "keywords"
     repeated string keywords = 1;
+}
+
+message AdvancedSearchRequest {
+    repeated string keywords = 1;
+    repeated string categories = 2;
 }

@@ -47,7 +47,7 @@
   version = "v1.0.8-rc2"
 
 [[projects]]
-  digest = "1:3d67a8814c90795c294a50eaa1ceb0aade2be4d93cbb4e344899e6a5ba1498aa"
+  digest = "1:9f090e268445d6102b037947f398f51a8e11d130da44a898916712819ec6e8c6"
   name = "github.com/RTradeLtd/grpc"
   packages = [
     "lens",
@@ -56,8 +56,8 @@
     "middleware",
   ]
   pruneopts = "UT"
-  revision = "7d8322a88cebeabac74ec3d23719b9e9ae5a0904"
-  version = "v1.0.6-rc2"
+  revision = "24708f6488ec1c62880296a20e5808f8c4fc090d"
+  version = "v1.0.6-rc4"
 
 [[projects]]
   digest = "1:5f5090f05382959db941fa45acbeb7f4c5241aa8ac0f8f4393dec696e5953f53"
@@ -368,11 +368,11 @@
     "github.com/RTradeLtd/grpc/lens/response",
     "github.com/RTradeLtd/grpc/middleware",
     "github.com/gofrs/uuid",
-    "github.com/golang/protobuf/proto",
     "github.com/grpc-ecosystem/go-grpc-middleware",
     "github.com/grpc-ecosystem/go-grpc-middleware/tags",
     "github.com/ipfs/go-cid",
     "github.com/ipfs/go-datastore",
+    "github.com/ipfs/go-datastore/query",
     "github.com/ipfs/go-ds-badger",
     "github.com/ledongthuc/pdf",
     "github.com/tensorflow/tensorflow/tensorflow/go",

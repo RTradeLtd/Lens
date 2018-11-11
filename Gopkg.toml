@@ -28,7 +28,7 @@ ignored = ["github.com/RTradeLtd/RTFS"]
 
 [[constraint]]
   name = "github.com/RTradeLtd/grpc"
-  version = "v1.0.6-rc2"
+  version = "v1.0.6-rc4" 
 
 [[constraint]]
   name = "github.com/DavidBelicza/TextRank"

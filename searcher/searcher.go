@@ -289,3 +289,82 @@ func (s *Service) KeywordSearch(keywords []string) (*[]models.Object, error) {
 	}
 	return &objects, nil
 }
+
+// FilterOpts is used to configure an advanced search
+type FilterOpts struct {
+	Categories  []string
+	Keywords    []string
+	SearchDepth int
+}
+
+// AdvancedSearch is used to perform an advanced search against the lens index
+func (s *Service) AdvancedSearch(opts *FilterOpts) (*[]models.Object, error) {
+	var (
+		idsToSearch []string
+		category    models.Category
+		obj         models.Object
+	)
+
+	// search through categories, and get a list of IDs to search for
+	for _, v := range opts.Categories {
+		has, err := s.Has(v)
+		if err != nil {
+			// dont hard fail
+			continue
+		}
+		if !has {
+			// dont hard fail
+			continue
+		}
+		categoryBytes, err := s.Get(v)
+		if err != nil {
+			// dont hard fail
+			continue
+		}
+		if err = json.Unmarshal(categoryBytes, &category); err != nil {
+			// dont hard fail
+			continue
+		}
+		idsToSearch = append(idsToSearch, category.ObjectIdentifiers...)
+	}
+	var (
+		matchedObjects []models.Object
+		matched        = make(map[uuid.UUID]bool)
+	)
+	for _, v := range idsToSearch {
+		id, err := uuid.FromString(v)
+		if err != nil {
+			// dont hard fail
+			continue
+		}
+		has, err := s.Has(id.String())
+		if err != nil {
+			// dont hard fail
+			continue
+		}
+		if !has {
+			// dont hard fail
+			continue
+		}
+		objBytes, err := s.Get(id.String())
+		if err != nil {
+			// dont hard fail
+			continue
+		}
+		if err = json.Unmarshal(objBytes, &obj); err != nil {
+			// dont hard fail
+			continue
+		}
+		for _, keyword := range opts.Keywords {
+			for i := 0; i < opts.SearchDepth; i++ {
+				if keyword == obj.MetaData.Summary[i] {
+					if matched[id] {
+						continue
+					}
+					matchedObjects = append(matchedObjects, obj)
+				}
+			}
+		}
+	}
+	return nil, nil
+}

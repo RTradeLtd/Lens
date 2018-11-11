@@ -27,18 +27,19 @@ const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 func init() { proto.RegisterFile("service.proto", fileDescriptor_a0b84a42fa06f626) }
 
 var fileDescriptor_a0b84a42fa06f626 = []byte{
-	// 176 bytes of a gzipped FileDescriptorProto
+	// 182 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xe2, 0xe2, 0x2d, 0x4e, 0x2d, 0x2a,
 	0xcb, 0x4c, 0x4e, 0xd5, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x97, 0x12, 0x2d, 0x4a, 0x2d, 0x2c, 0x4d,
 	0x2d, 0x2e, 0xd1, 0x87, 0xd2, 0x50, 0x61, 0xf1, 0xa2, 0xd4, 0xe2, 0x82, 0xfc, 0xbc, 0xe2, 0x54,
-	0x7d, 0x18, 0x03, 0x22, 0x61, 0xd4, 0xc6, 0xc4, 0xc5, 0xe5, 0x99, 0x97, 0x92, 0x5a, 0x91, 0x5a,
-	0xe4, 0x18, 0xe0, 0x29, 0xe4, 0xc6, 0x25, 0x14, 0x5c, 0x9a, 0x94, 0x9b, 0x59, 0x02, 0x16, 0x0b,
-	0x82, 0x98, 0x21, 0x24, 0xaa, 0x07, 0x33, 0x0d, 0x59, 0x58, 0x4a, 0x5c, 0x0f, 0x6e, 0x18, 0x54,
-	0x1c, 0xc2, 0x53, 0x62, 0x10, 0x0a, 0xe5, 0x92, 0x84, 0x98, 0x13, 0x9c, 0x99, 0x5b, 0x90, 0x93,
-	0x1a, 0x9c, 0x9a, 0x58, 0x94, 0x9c, 0x01, 0x33, 0x4e, 0x0c, 0x6e, 0x1c, 0x8a, 0xb8, 0x94, 0x1c,
-	0xc2, 0x3c, 0x54, 0x6d, 0x70, 0x63, 0x23, 0xb9, 0xa4, 0x21, 0xc6, 0x3a, 0xa6, 0x94, 0x25, 0xe6,
-	0x25, 0xa7, 0xa6, 0x10, 0x67, 0xb0, 0x02, 0xc2, 0x60, 0x74, 0x8d, 0x30, 0xa3, 0x93, 0xd8, 0xc0,
-	0xe1, 0x61, 0x0c, 0x08, 0x00, 0x00, 0xff, 0xff, 0x99, 0x73, 0x81, 0x61, 0x50, 0x01, 0x00, 0x00,
+	0x7d, 0x18, 0x03, 0x22, 0x61, 0x34, 0x85, 0x89, 0x8b, 0xcb, 0x33, 0x2f, 0x25, 0xb5, 0x22, 0xb5,
+	0xc8, 0x31, 0xc0, 0x53, 0xc8, 0x8d, 0x4b, 0x28, 0xb8, 0x34, 0x29, 0x37, 0xb3, 0x04, 0x2c, 0x16,
+	0x04, 0x31, 0x43, 0x48, 0x54, 0x0f, 0x66, 0x1a, 0xb2, 0xb0, 0x94, 0xb8, 0x1e, 0xdc, 0x30, 0xa8,
+	0x38, 0x84, 0xa7, 0xc4, 0x20, 0x14, 0xcd, 0x25, 0x09, 0x31, 0x27, 0x38, 0x33, 0xb7, 0x20, 0x27,
+	0x35, 0x38, 0x35, 0xb1, 0x28, 0x39, 0x03, 0x66, 0x9c, 0x0c, 0xdc, 0x38, 0x2c, 0xb2, 0x52, 0x72,
+	0x08, 0x53, 0x51, 0xa5, 0xe1, 0x86, 0x27, 0x72, 0x49, 0x43, 0x0c, 0x77, 0x4c, 0x29, 0x4b, 0xcc,
+	0x4b, 0x4e, 0x4d, 0x41, 0x35, 0x5e, 0x0e, 0x6e, 0x3c, 0x56, 0x79, 0x29, 0x05, 0x84, 0x05, 0xe8,
+	0x0a, 0x60, 0x56, 0x24, 0xb1, 0x81, 0x43, 0xc7, 0x18, 0x10, 0x00, 0x00, 0xff, 0xff, 0x19, 0xdc,
+	0xe2, 0x34, 0x5e, 0x01, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -56,9 +57,9 @@ type IndexerAPIClient interface {
 	// SubmitIndexRequest is used to submit content to be indexed by the lens system
 	SubmitIndexRequest(ctx context.Context, in *request.IndexRequest, opts ...grpc.CallOption) (*response.IndexResponse, error)
 	// SubmitSimpleSearchRequest is used to perform a simple search against the lens index
-	SubmitSimpleSearchRequest(ctx context.Context, in *request.SearchRequest, opts ...grpc.CallOption) (*response.SimpleSearchResponse, error)
+	SubmitSimpleSearchRequest(ctx context.Context, in *request.SimpleSearchRequest, opts ...grpc.CallOption) (*response.SimpleSearchResponse, error)
 	// SubmitAdvancedSearchRequest is used to perform an advanced search against the lens index
-	SubmitAdvancedSearchRequest(ctx context.Context, in *request.SearchRequest, opts ...grpc.CallOption) (*response.AdvancedSearchResponse, error)
+	SubmitAdvancedSearchRequest(ctx context.Context, in *request.AdvancedSearchRequest, opts ...grpc.CallOption) (*response.AdvancedSearchResponse, error)
 }
 
 type indexerAPIClient struct {
@@ -78,7 +79,7 @@ func (c *indexerAPIClient) SubmitIndexRequest(ctx context.Context, in *request.I
 	return out, nil
 }
 
-func (c *indexerAPIClient) SubmitSimpleSearchRequest(ctx context.Context, in *request.SearchRequest, opts ...grpc.CallOption) (*response.SimpleSearchResponse, error) {
+func (c *indexerAPIClient) SubmitSimpleSearchRequest(ctx context.Context, in *request.SimpleSearchRequest, opts ...grpc.CallOption) (*response.SimpleSearchResponse, error) {
 	out := new(response.SimpleSearchResponse)
 	err := c.cc.Invoke(ctx, "/IndexerAPI/SubmitSimpleSearchRequest", in, out, opts...)
 	if err != nil {
@@ -87,7 +88,7 @@ func (c *indexerAPIClient) SubmitSimpleSearchRequest(ctx context.Context, in *re
 	return out, nil
 }
 
-func (c *indexerAPIClient) SubmitAdvancedSearchRequest(ctx context.Context, in *request.SearchRequest, opts ...grpc.CallOption) (*response.AdvancedSearchResponse, error) {
+func (c *indexerAPIClient) SubmitAdvancedSearchRequest(ctx context.Context, in *request.AdvancedSearchRequest, opts ...grpc.CallOption) (*response.AdvancedSearchResponse, error) {
 	out := new(response.AdvancedSearchResponse)
 	err := c.cc.Invoke(ctx, "/IndexerAPI/SubmitAdvancedSearchRequest", in, out, opts...)
 	if err != nil {
@@ -101,9 +102,9 @@ type IndexerAPIServer interface {
 	// SubmitIndexRequest is used to submit content to be indexed by the lens system
 	SubmitIndexRequest(context.Context, *request.IndexRequest) (*response.IndexResponse, error)
 	// SubmitSimpleSearchRequest is used to perform a simple search against the lens index
-	SubmitSimpleSearchRequest(context.Context, *request.SearchRequest) (*response.SimpleSearchResponse, error)
+	SubmitSimpleSearchRequest(context.Context, *request.SimpleSearchRequest) (*response.SimpleSearchResponse, error)
 	// SubmitAdvancedSearchRequest is used to perform an advanced search against the lens index
-	SubmitAdvancedSearchRequest(context.Context, *request.SearchRequest) (*response.AdvancedSearchResponse, error)
+	SubmitAdvancedSearchRequest(context.Context, *request.AdvancedSearchRequest) (*response.AdvancedSearchResponse, error)
 }
 
 func RegisterIndexerAPIServer(s *grpc.Server, srv IndexerAPIServer) {
@@ -129,7 +130,7 @@ func _IndexerAPI_SubmitIndexRequest_Handler(srv interface{}, ctx context.Context
 }
 
 func _IndexerAPI_SubmitSimpleSearchRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(request.SearchRequest)
+	in := new(request.SimpleSearchRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -141,13 +142,13 @@ func _IndexerAPI_SubmitSimpleSearchRequest_Handler(srv interface{}, ctx context.
 		FullMethod: "/IndexerAPI/SubmitSimpleSearchRequest",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(IndexerAPIServer).SubmitSimpleSearchRequest(ctx, req.(*request.SearchRequest))
+		return srv.(IndexerAPIServer).SubmitSimpleSearchRequest(ctx, req.(*request.SimpleSearchRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _IndexerAPI_SubmitAdvancedSearchRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(request.SearchRequest)
+	in := new(request.AdvancedSearchRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -159,7 +160,7 @@ func _IndexerAPI_SubmitAdvancedSearchRequest_Handler(srv interface{}, ctx contex
 		FullMethod: "/IndexerAPI/SubmitAdvancedSearchRequest",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(IndexerAPIServer).SubmitAdvancedSearchRequest(ctx, req.(*request.SearchRequest))
+		return srv.(IndexerAPIServer).SubmitAdvancedSearchRequest(ctx, req.(*request.AdvancedSearchRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }

@@ -7,9 +7,11 @@ import (
 
 	"github.com/RTradeLtd/Lens/lens"
 	"github.com/RTradeLtd/config"
+
 	pb "github.com/RTradeLtd/grpc/lens"
 	pbreq "github.com/RTradeLtd/grpc/lens/request"
 	pbresp "github.com/RTradeLtd/grpc/lens/response"
+
 	"github.com/RTradeLtd/grpc/middleware"
 	"github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
@@ -99,7 +101,7 @@ func (as *APIServer) SubmitIndexRequest(ctx context.Context, req *pbreq.IndexReq
 }
 
 // SubmitSimpleSearchRequest is used to submit a simple search request against the lens index
-func (as *APIServer) SubmitSimpleSearchRequest(ctx context.Context, req *pbreq.SearchRequest) (*pbresp.SimpleSearchResponse, error) {
+func (as *APIServer) SubmitSimpleSearchRequest(ctx context.Context, req *pbreq.SimpleSearchRequest) (*pbresp.SimpleSearchResponse, error) {
 	fmt.Println("receiving search request")
 	objects, err := as.LS.SS.KeywordSearch(req.Keywords)
 	if err != nil {
@@ -118,6 +120,6 @@ func (as *APIServer) SubmitSimpleSearchRequest(ctx context.Context, req *pbreq.S
 }
 
 // SubmitAdvancedSearchRequest is used to submit an advanced search request against the lens index
-func (as *APIServer) SubmitAdvancedSearchRequest(ctx context.Context, in *pbreq.SearchRequest) (*pbresp.AdvancedSearchResponse, error) {
+func (as *APIServer) SubmitAdvancedSearchRequest(ctx context.Context, in *pbreq.AdvancedSearchRequest) (*pbresp.AdvancedSearchResponse, error) {
 	return nil, nil
 }
