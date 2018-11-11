@@ -43,11 +43,9 @@ func (s *Service) GetEntries() ([]query.Entry, error) {
 // MigrateEntries is used to migrate entries to newer object types
 func (s *Service) MigrateEntries(entries []query.Entry) error {
 	var (
-		oldObj      models.ObjectOld
-		ids         []uuid.UUID
-		keywords    = make(map[string][]uuid.UUID)
-		keyword     models.Keyword
-		migratedIds []uuid.UUID
+		ids      []uuid.UUID
+		keywords = make(map[string][]uuid.UUID)
+		keyword  models.Keyword
 	)
 	// extract id's to mgirate
 	for _, v := range entries {
@@ -74,22 +72,82 @@ func (s *Service) MigrateEntries(entries []query.Entry) error {
 		ids = append(ids, id)
 	}
 	fmt.Println("keywords ", keywords)
-	fmt.Println("ids ", ids)
-	// migrate the id'
-	for _, v := range ids {
-		objectBytes, err := s.Get(v.String())
+	// rebuild our keywords and properly migrate them
+	for name, identifiers := range keywords {
+		key := models.Keyword{
+			Name:            name,
+			LensIdentifiers: identifiers,
+		}
+		// marshal the keyword
+		keyBytes, err := json.Marshal(&key)
 		if err != nil {
-			fmt.Println("error getting object ", err)
-			// don't have fail
+			// dont hard fail
 			continue
 		}
-		// unmarshal into old object type
-		if err = json.Unmarshal(objectBytes, &oldObj); err != nil {
-			fmt.Println("error unmarshaling ", err)
+		fmt.Println("marshaled key bytes in string ", string(keyBytes))
+		//TODO: re-enable put
+		/*if err = s.Put(name, keyBytes); err != nil {
 			continue
+		}*/
+		for _, id := range identifiers {
+			// get the data it refers to
+			bytes, err := s.Get(id.String())
+			if err != nil {
+				// dont hard fail
+				continue
+			}
+			// if we can't unmarshal into new object, then it's al "old" object and refers to the content hash
+			var obj models.Object
+			if err = json.Unmarshal(bytes, &obj); err == nil {
+				// get the new object
+				bytes, err = s.Get(id.String())
+				if err != nil {
+					// dont hard fail
+					continue
+				}
+				if err = json.Unmarshal(bytes, &obj); err != nil {
+					// dont hard fail
+					continue
+				}
+				obj.MetaData.Summary = append(obj.MetaData.Summary, name)
+				// marshal the object
+				bytes, err = json.Marshal(&obj)
+				if err != nil {
+					// dont hard fail
+					continue
+				}
+				// update the new object
+				if err = s.Put(id.String(), bytes); err != nil {
+					// dont hard fail
+					fmt.Println("error migrating lens object ", err)
+					continue
+				}
+				fmt.Println("updated object ", string(bytes))
+				continue
+			}
+			// format the meta-data
+			meta := models.MetaData{
+				Summary: []string{name},
+			}
+			obj.LensID = id
+			obj.MetaData = meta
+			obj.Name = string(bytes)
+			// marshal the new object
+			bytes, err = json.Marshal(&obj)
+			if err != nil {
+				// don't hard fail
+				fmt.Println("error marshaling new object ", err)
+				continue
+			}
+			// store the new object
+			if err = s.Put(id.String(), bytes); err != nil {
+				fmt.Println("failed to store new object ", err)
+				continue
+			}
+			fmt.Printf("new object %+v\n", obj)
 		}
-		migratedIds = append(migratedIds, v)
 	}
+
 	return nil
 }
 
