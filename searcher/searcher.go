@@ -146,7 +146,18 @@ func (s *Service) MigrateEntries(entries []query.Entry) error {
 			fmt.Printf("new object %+v\n", obj)
 		}
 	}
-
+	//TODO: enable category migration
+	/*processedIds := make(map[string]bool)
+	// update the category
+	for _, id := range ids {
+		if processedIds[id.String()] {
+			fmt.Println("id already processed ", id)
+			continue
+		}
+		processedIds[id.String()] = true
+		// getthe data from IPFs so we can sniff its mime-type
+		s.
+	}*/
 	return nil
 }
 
