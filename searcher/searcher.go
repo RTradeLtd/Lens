@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/ipfs/go-datastore/query"
 
@@ -37,6 +38,59 @@ func (s *Service) GetEntries() ([]query.Entry, error) {
 		log.Fatal(err)
 	}
 	return resp.Rest()
+}
+
+// MigrateEntries is used to migrate entries to newer object types
+func (s *Service) MigrateEntries(entries []query.Entry) error {
+	var (
+		oldObj      models.ObjectOld
+		ids         []uuid.UUID
+		keywords    = make(map[string][]uuid.UUID)
+		keyword     models.Keyword
+		migratedIds []uuid.UUID
+	)
+	// extract id's to mgirate
+	for _, v := range entries {
+		split := strings.Split(v.Key, "/")
+		id, err := uuid.FromString(split[1])
+		if err != nil {
+			// make sure we don't process ipfs hashes
+			if split[1][0] == 'Q' {
+				continue
+			}
+			keywordBytes, err := s.Get(split[1])
+			if err != nil {
+				continue
+			}
+			if err = json.Unmarshal(keywordBytes, &keyword); err != nil {
+				continue
+			}
+			for _, v := range keyword.LensIdentifiers {
+				// we have to use split[1] as the `name` field was improperly set to an ipfs hash
+				keywords[split[1]] = append(keywords[split[1]], v)
+			}
+			continue
+		}
+		ids = append(ids, id)
+	}
+	fmt.Println("keywords ", keywords)
+	fmt.Println("ids ", ids)
+	// migrate the id'
+	for _, v := range ids {
+		objectBytes, err := s.Get(v.String())
+		if err != nil {
+			fmt.Println("error getting object ", err)
+			// don't have fail
+			continue
+		}
+		// unmarshal into old object type
+		if err = json.Unmarshal(objectBytes, &oldObj); err != nil {
+			fmt.Println("error unmarshaling ", err)
+			continue
+		}
+		migratedIds = append(migratedIds, v)
+	}
+	return nil
 }
 
 // Put is used to store something in badgerds

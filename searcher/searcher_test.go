@@ -23,6 +23,9 @@ func TestService(t *testing.T) {
 	if len(entries) == 0 {
 		t.Fatal("failed to find entries")
 	}
+	if err = s.MigrateEntries(entries); err != nil {
+		t.Fatal(err)
+	}
 	if err = s.Put("testKey", []byte("hello")); err != nil {
 		t.Fatal(err)
 	}

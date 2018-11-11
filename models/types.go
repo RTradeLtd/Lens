@@ -13,3 +13,8 @@ type Category struct {
 	// ObjectIdentifiers are distributed web object identifiers such as IPFS content hashes
 	ObjectIdentifiers []string `json:"object_identifiers"`
 }
+
+// MetaDataOld is an old metadata object
+type MetaDataOld struct {
+	Summary []string `json:"summary"`
+}
