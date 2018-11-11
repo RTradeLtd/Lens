@@ -85,10 +85,9 @@ func (s *Service) MigrateEntries(entries []query.Entry) error {
 			continue
 		}
 		fmt.Println("marshaled key bytes in string ", string(keyBytes))
-		//TODO: re-enable put
-		/*if err = s.Put(name, keyBytes); err != nil {
+		if err = s.Put(name, keyBytes); err != nil {
 			continue
-		}*/
+		}
 		for _, id := range identifiers {
 			// get the data it refers to
 			bytes, err := s.Get(id.String())
