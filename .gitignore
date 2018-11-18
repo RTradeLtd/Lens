@@ -1,2 +1,9 @@
+# IDEs
 .vscode
+
+# temporary
+tmp
+vendor
+
+# binaries
 /temporal-lens
