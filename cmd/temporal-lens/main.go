@@ -13,10 +13,10 @@ import (
 	"github.com/RTradeLtd/Lens/lens"
 	"github.com/RTradeLtd/Lens/searcher"
 	"github.com/RTradeLtd/Lens/server"
-	rtfs "github.com/RTradeLtd/RTFS"
 	"github.com/RTradeLtd/cmd"
 	"github.com/RTradeLtd/config"
 	pbreq "github.com/RTradeLtd/grpc/lens/request"
+	"github.com/RTradeLtd/rtfs"
 )
 
 var (
@@ -138,7 +138,7 @@ var commands = map[string]cmd.Cmd{
 					}
 					keywords = append(keywords, word) // grab a single line of input
 				}
-				searchReq := pbreq.SearchRequest{
+				searchReq := pbreq.SimpleSearchRequest{
 					Keywords: keywords,
 				}
 				fmt.Println("sending search request")

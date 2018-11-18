@@ -10,11 +10,11 @@ import (
 	"strings"
 
 	"github.com/RTradeLtd/Lens/models"
-	"github.com/RTradeLtd/RTFS"
+	"github.com/RTradeLtd/rtfs"
 	"github.com/gofrs/uuid"
 	ds "github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
-	"github.com/ipfs/go-ds-badger"
+	badger "github.com/ipfs/go-ds-badger"
 )
 
 // Service is our searcher service

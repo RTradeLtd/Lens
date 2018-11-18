@@ -5,8 +5,8 @@ import (
 	"testing"
 
 	"github.com/RTradeLtd/Lens/searcher"
-	rtfs "github.com/RTradeLtd/RTFS"
 	"github.com/RTradeLtd/config"
+	"github.com/RTradeLtd/rtfs"
 )
 
 const (
