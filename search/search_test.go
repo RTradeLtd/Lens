@@ -1,10 +1,10 @@
-package searcher_test
+package search_test
 
 import (
 	"fmt"
 	"testing"
 
-	"github.com/RTradeLtd/Lens/searcher"
+	"github.com/RTradeLtd/Lens/search"
 	"github.com/RTradeLtd/config"
 	"github.com/RTradeLtd/rtfs"
 )
@@ -23,7 +23,7 @@ func TestService(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	s, err := searcher.NewService(testPath)
+	s, err := search.NewService(testPath)
 	if err != nil {
 		t.Fatal(err)
 	}

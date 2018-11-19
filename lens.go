@@ -12,7 +12,7 @@ import (
 
 	"github.com/RTradeLtd/Lens/analyzer/text"
 	"github.com/RTradeLtd/Lens/models"
-	"github.com/RTradeLtd/Lens/searcher"
+	"github.com/RTradeLtd/Lens/search"
 	"github.com/RTradeLtd/Lens/utils"
 	"github.com/RTradeLtd/Lens/xtractor/planetary"
 	"github.com/RTradeLtd/config"
@@ -25,7 +25,7 @@ type Service struct {
 	TA *text.Analyzer
 	IA *images.Analyzer
 	PX *planetary.Extractor
-	SS *searcher.Service
+	SS *search.Service
 }
 
 // ConfigOpts are options used to configure the lens service
@@ -54,7 +54,7 @@ func NewService(opts *ConfigOpts, cfg *config.TemporalConfig) (*Service, error) 
 	if err != nil {
 		return nil, err
 	}
-	ss, err := searcher.NewService(opts.DataStorePath)
+	ss, err := search.NewService(opts.DataStorePath)
 	if err != nil {
 		return nil, err
 	}

@@ -11,7 +11,7 @@ import (
 
 	"github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/Lens/client"
-	"github.com/RTradeLtd/Lens/searcher"
+	"github.com/RTradeLtd/Lens/search"
 	"github.com/RTradeLtd/Lens/server"
 	"github.com/RTradeLtd/cmd"
 	"github.com/RTradeLtd/config"
@@ -48,7 +48,7 @@ var commands = map[string]cmd.Cmd{
 			if err != nil {
 				log.Fatal(err)
 			}
-			s, err := searcher.NewService(dsPath)
+			s, err := search.NewService(dsPath)
 			if err != nil {
 				log.Fatal(err)
 			}
