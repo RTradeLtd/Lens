@@ -17,8 +17,8 @@ var (
 	letterArray = []string{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"}
 )
 
-// TextAnalyzer is used to analyze and extract meta data from text
-type TextAnalyzer struct {
+// Analyzer is used to analyze and extract meta data from text
+type Analyzer struct {
 	TR        *textrank.TextRank
 	Rule      parse.Rule
 	Language  convert.Language
@@ -26,7 +26,7 @@ type TextAnalyzer struct {
 }
 
 // NewTextAnalyzer is used to generate our text analyzer
-func NewTextAnalyzer(useChainAlgorithm bool) *TextAnalyzer {
+func NewTextAnalyzer(useChainAlgorithm bool) *Analyzer {
 	// create our text rank object
 	tr := textrank.NewTextRank()
 	// generate our ruleset for parsing
@@ -39,7 +39,7 @@ func NewTextAnalyzer(useChainAlgorithm bool) *TextAnalyzer {
 	} else {
 		algo = textrank.NewDefaultAlgorithm()
 	}
-	return &TextAnalyzer{
+	return &Analyzer{
 		TR:        tr,
 		Rule:      rule,
 		Language:  language,
@@ -48,20 +48,20 @@ func NewTextAnalyzer(useChainAlgorithm bool) *TextAnalyzer {
 }
 
 // Clear is used to reset the data that textrank is parsing
-func (ta *TextAnalyzer) Clear() {
+func (ta *Analyzer) Clear() {
 	newTR := textrank.NewTextRank()
 	ta.TR = newTR
 }
 
 // RetrievePhrases is a short wrapper around the FindPhrases function
-func (ta *TextAnalyzer) RetrievePhrases(text string) []rank.Phrase {
+func (ta *Analyzer) RetrievePhrases(text string) []rank.Phrase {
 	ta.TR.Populate(text, ta.Language, ta.Rule)
 	ta.TR.Ranking(ta.Algorithm)
 	return textrank.FindPhrases(ta.TR)
 }
 
 // Summarize is used to summary a given piece of text
-func (ta *TextAnalyzer) Summarize(text string, minWeight float32) []string {
+func (ta *Analyzer) Summarize(text string, minWeight float32) []string {
 	phrases := ta.RetrievePhrases(text)
 	pairs := []string{}
 	for _, v := range phrases {
@@ -79,7 +79,7 @@ func (ta *TextAnalyzer) Summarize(text string, minWeight float32) []string {
 	return pairs
 }
 
-func (ta *TextAnalyzer) validateWord(str string) bool {
+func (ta *Analyzer) validateWord(str string) bool {
 	for _, c := range str {
 		cStr := string(c)
 		if result := stringInSlice(cStr, letterArray); !result {

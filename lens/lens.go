@@ -22,7 +22,7 @@ import (
 
 // Service contains the various components of Lens
 type Service struct {
-	TA *text.TextAnalyzer
+	TA *text.Analyzer
 	IA *images.Analyzer
 	PX *planetary.Extractor
 	SS *searcher.Service
