@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/Lens/client"
-	"github.com/RTradeLtd/Lens/lens"
 	"github.com/RTradeLtd/Lens/server"
 	"github.com/RTradeLtd/config"
 	pb "github.com/RTradeLtd/grpc/lens/request"
@@ -23,6 +23,7 @@ func TestClient(t *testing.T) {
 	opts := lens.ConfigOpts{
 		UseChainAlgorithm: true,
 		DataStorePath:     "/tmp/badgerds-lens",
+		API:               lens.APIOpts{IP: "127.0.0.1", Port: "9999"},
 	}
 	cfg, err := config.LoadConfig(defaultConfig)
 	if err != nil {

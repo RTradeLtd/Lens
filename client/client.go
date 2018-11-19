@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/RTradeLtd/Lens/lens"
+	"github.com/RTradeLtd/Lens"
 	pb "github.com/RTradeLtd/grpc/lens"
 	pbreq "github.com/RTradeLtd/grpc/lens/request"
 	pbresp "github.com/RTradeLtd/grpc/lens/response"
@@ -43,6 +43,6 @@ func (c *Client) SubmitIndexRequest(ctx context.Context, req *pbreq.IndexRequest
 }
 
 // SubmitSimpleSearchRequest is used to submit a simple search request against lens
-func (c *Client) SubmitSimpleSearchRequest(ctx context.Context, req *pbreq.SearchRequest) (*pbresp.SimpleSearchResponse, error) {
+func (c *Client) SubmitSimpleSearchRequest(ctx context.Context, req *pbreq.SimpleSearchRequest) (*pbresp.SimpleSearchResponse, error) {
 	return c.IC.SubmitSimpleSearchRequest(ctx, req)
 }

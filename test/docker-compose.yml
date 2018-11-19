@@ -1,0 +1,15 @@
+version: '3'
+
+services:
+  ipfs:
+    container_name: "ipfs_node"
+    image: ipfs/go-ipfs:v0.4.18
+    command: daemon --migrate=true --enable-pubsub-experiment
+    ports:
+      - 4001:4001
+      - 5001:5001
+      - 8080:8080
+    volumes:
+      - ${PWD}/test/ipfs/config:/data/ipfs/config
+      - ${PWD}/test/ipfs/version:/data/ipfs/version
+      - ${PWD}/test/ipfs/datastore_spec:/data/ipfs/datastore_spec

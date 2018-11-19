@@ -12,8 +12,8 @@ type MetaData struct {
 // Category is a particular search category, such as document, pdf, etc..
 type Category struct {
 	Name string `json:"name"`
-	// LensIdentifiers are id's of indexed lens object which match this category
-	LensIdentifiers []uuid.UUID `json:"object_identifiers"`
+	// Identifiers are id's of indexed lens object which match this category
+	Identifiers []uuid.UUID `json:"object_identifiers"`
 }
 
 // MetaDataOld is an old metadata object

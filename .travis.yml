@@ -7,8 +7,10 @@ sudo: required
 
 install:
   - go get -u golang.org/x/lint/golint
-  - go get -u github.com/RTradeLtd/RTFS
-  - ./setup/scripts/tensorflow_install.sh
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+  - curl -L "https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-1.12.0.tar.gz" | sudo tar -C /usr/local -xz
+  - sudo ldconfig
+  - dep ensure
 
 before_script:
   - go vet ./...

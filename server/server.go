@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net"
 
-	"github.com/RTradeLtd/Lens/lens"
+	"github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/config"
 
 	pb "github.com/RTradeLtd/grpc/lens"

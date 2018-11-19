@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 
-	"github.com/RTradeLtd/RTFS"
 	"github.com/RTradeLtd/config"
+	"github.com/RTradeLtd/rtfs"
 	gocid "github.com/ipfs/go-cid"
 )
 
