@@ -1,5 +1,7 @@
 #! /bin/bash
 
+set -e
+
 # setup
 TENSORFLOW_VERSION="1.12.0"
 TENSORFLOW_DIR="tmp/tensorflow"
