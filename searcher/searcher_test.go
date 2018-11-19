@@ -10,12 +10,11 @@ import (
 )
 
 const (
-	testPath    = "tmp"
+	testPath    = "../test/ds"
 	testCfgPath = "../test/config.json"
 )
 
 func TestService(t *testing.T) {
-	// load the config object
 	cfg, err := config.LoadConfig(testCfgPath)
 	if err != nil {
 		t.Fatal(err)
@@ -53,8 +52,9 @@ func TestService(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !has {
-		t.Fatal("has was false but expected it to be true")
+		t.Fatal("expected 'testKey' to be present")
 	}
+
 	//TODO: re-enable after updating testds
 	t.Skip()
 	keywords := []string{"storage"}
@@ -65,6 +65,6 @@ func TestService(t *testing.T) {
 	if len(*objects) == 0 {
 		t.Fatal("no hashes recovered")
 	}
-	fmt.Println("hashes recovered")
-	fmt.Println(objects)
+	t.Log("hashes recovered")
+	t.Log(objects)
 }
