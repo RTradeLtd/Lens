@@ -2,20 +2,16 @@ package main
 
 import (
 	"bufio"
-	"context"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
-	"strconv"
 
 	"github.com/RTradeLtd/Lens"
-	"github.com/RTradeLtd/Lens/client"
 	"github.com/RTradeLtd/Lens/search"
 	"github.com/RTradeLtd/Lens/server"
 	"github.com/RTradeLtd/cmd"
 	"github.com/RTradeLtd/config"
-	pbreq "github.com/RTradeLtd/grpc/lens/request"
 	"github.com/RTradeLtd/rtfs"
 )
 
@@ -58,96 +54,6 @@ var commands = map[string]cmd.Cmd{
 			}
 			if err = s.MigrateEntries(entriesToMigrate, im, true); err != nil {
 				log.Fatal(err)
-			}
-		},
-	},
-	"client": cmd.Cmd{
-		Blurb:       "run Lens client commands",
-		Description: "Used to start query the lens server\n./temporal-lens client [index|search]\nindex is used to submit an index request\nsearch is used to submit a search request",
-		Action: func(cfg config.TemporalConfig, args map[string]string) {
-			if len(os.Args) < 3 {
-				err := fmt.Errorf(
-					"not enough arguments provided\n\n%s",
-					"/temporal-lens client [index|search]\nindex is used to submit an index request\nsearch is used to submit a search request",
-				)
-				log.Fatal(err)
-			}
-			cmd := os.Args[2]
-			switch cmd {
-			case "index", "search":
-				break
-			default:
-				log.Fatal("invalid 2nd arg, must be index or search")
-			}
-			lensCfg := lens.ConfigOpts{
-				UseChainAlgorithm: true,
-				DataStorePath:     "/tmp/badgerds-lens",
-			}
-			lensIP := os.Getenv("LENS_IP")
-			if lensIP == "" {
-				log.Fatal("LENS_IP env var is empty")
-			}
-			lensPort := os.Getenv("LENS_PORT")
-			if lensPort == "" {
-				log.Fatal("LENS_PORT env var is empty")
-			}
-			lensCfg.API.IP = "127.0.0.1"
-			lensCfg.API.Port = "9998"
-			client, err := client.NewClient(&lensCfg, true)
-			if err != nil {
-				log.Fatal(err)
-			}
-			if cmd == "index" {
-				dataType := os.Getenv("DATA_TYPE")
-				if dataType == "" {
-					log.Fatal("DATA_TYPE env var is empty, must be the type of data you are submitting to be indexed")
-				}
-				objectID := os.Getenv("OBJECT_ID")
-				if objectID == "" {
-					log.Fatal("OBJECT_ID env var is empty. This is the name of an object, such as a content hash for IPFS")
-				}
-				indexReq := pbreq.IndexRequest{
-					DataType:         dataType,
-					ObjectIdentifier: objectID,
-				}
-				indexResp, err := client.SubmitIndexRequest(context.Background(), &indexReq)
-				if err != nil {
-					log.Fatal(err)
-				}
-				fmt.Println("response from index request")
-				fmt.Println("Lens Identifier:", indexResp.LensIdentifier)
-				fmt.Println("Keywords for this object:", indexResp.Keywords)
-			} else if cmd == "search" {
-				scanner := bufio.NewScanner(os.Stdin)
-				fmt.Println("how many keywords do you wish to search for?")
-
-				numKeywordsString, err := hanldeScanner(scanner)
-				if err != nil {
-					log.Fatal(err)
-				}
-				numKeywords, err := strconv.ParseInt(numKeywordsString, 10, 64)
-				if err != nil {
-					log.Fatal(err)
-				}
-				keywords := []string{}
-				for count := int64(0); count < numKeywords; count++ {
-					fmt.Println("enter a keyword to search for")
-					word, err := hanldeScanner(scanner)
-					if err != nil {
-						log.Fatal(err)
-					}
-					keywords = append(keywords, word) // grab a single line of input
-				}
-				searchReq := pbreq.SimpleSearchRequest{
-					Keywords: keywords,
-				}
-				fmt.Println("sending search request")
-				searchResp, err := client.SubmitSimpleSearchRequest(context.Background(), &searchReq)
-				if err != nil {
-					log.Fatal(err)
-				}
-				fmt.Println("Response from search request")
-				fmt.Printf("%+v\n", searchResp)
 			}
 		},
 	},
