@@ -34,18 +34,18 @@ func TestServer(t *testing.T) {
 		t.Fatal(err)
 	}
 	serv.LS = lensService
-	req := pb.IndexRequest{
+	req := pb.Index{
 		DataType:         "ipld",
 		ObjectIdentifier: testHash,
 	}
-	resp, err := serv.SubmitIndexRequest(context.Background(), &req)
+	resp, err := serv.Index(context.Background(), &req)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if resp.LensIdentifier == "" {
+	if resp.Id == "" {
 		t.Fatal("response should have uuid")
 	}
-	shouldBeEmptyResp, shouldBeEmptyErr := serv.SubmitSimpleSearchRequest(context.Background(), nil)
+	shouldBeEmptyResp, shouldBeEmptyErr := serv.Search(context.Background(), nil)
 	if shouldBeEmptyErr != nil {
 		t.Fatal(shouldBeEmptyErr)
 	}

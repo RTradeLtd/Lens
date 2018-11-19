@@ -73,8 +73,8 @@ func NewAPIServer(listenAddr, protocol string, opts *lens.ConfigOpts, cfg *confi
 	return nil
 }
 
-// SubmitIndexRequest is used to submit a request for something to be indexed by lens
-func (as *APIServer) SubmitIndexRequest(ctx context.Context, req *pbreq.IndexRequest) (*pbresp.IndexResponse, error) {
+// Index is used to submit a request for something to be indexed by lens
+func (as *APIServer) Index(ctx context.Context, req *pbreq.Index) (*pbresp.Index, error) {
 	fmt.Println("new index request received")
 	switch req.GetDataType() {
 	case "ipld":
@@ -92,16 +92,16 @@ func (as *APIServer) SubmitIndexRequest(ctx context.Context, req *pbreq.IndexReq
 		return nil, err
 	}
 	fmt.Println(metaData.Summary)
-	resp := &pbresp.IndexResponse{
-		LensIdentifier: indexResponse.LensID.String(),
-		Keywords:       metaData.Summary,
+	resp := &pbresp.Index{
+		Id:       indexResponse.LensID.String(),
+		Keywords: metaData.Summary,
 	}
 	fmt.Println("finished processing index")
 	return resp, nil
 }
 
-// SubmitSimpleSearchRequest is used to submit a simple search request against the lens index
-func (as *APIServer) SubmitSimpleSearchRequest(ctx context.Context, req *pbreq.SimpleSearchRequest) (*pbresp.SimpleSearchResponse, error) {
+// Search is used to submit a simple search request against the lens index
+func (as *APIServer) Search(ctx context.Context, req *pbreq.Search) (*pbresp.Results, error) {
 	fmt.Println("receiving search request")
 	objects, err := as.LS.SS.KeywordSearch(req.Keywords)
 	if err != nil {
@@ -111,15 +111,17 @@ func (as *APIServer) SubmitSimpleSearchRequest(ctx context.Context, req *pbreq.S
 	for _, v := range *objects {
 		hashes = append(hashes, v.Name)
 	}
-	resp := &pbresp.SimpleSearchResponse{
-		Names:      hashes,
-		ObjectType: "ipld",
+	var objs []*pbresp.Object
+	for _, v := range *objects {
+		objs = append(objs, &pbresp.Object{
+			Name:     v.Name,
+			MimeType: v.MetaData.MimeType,
+			Category: v.MetaData.Category,
+		})
+	}
+	resp := &pbresp.Results{
+		Objects: objs,
 	}
 	fmt.Println("finished processing search request")
 	return resp, nil
-}
-
-// SubmitAdvancedSearchRequest is used to submit an advanced search request against the lens index
-func (as *APIServer) SubmitAdvancedSearchRequest(ctx context.Context, in *pbreq.AdvancedSearchRequest) (*pbresp.AdvancedSearchResponse, error) {
-	return nil, nil
 }
