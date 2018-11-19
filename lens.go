@@ -32,10 +32,13 @@ type Service struct {
 type ConfigOpts struct {
 	UseChainAlgorithm bool
 	DataStorePath     string
-	API               struct {
-		IP   string
-		Port string
-	}
+	API               APIOpts
+}
+
+// APIOpts defines options for the lens API
+type APIOpts struct {
+	IP   string
+	Port string
 }
 
 // IndexOperationResponse is the response from a successfuly lens indexing operation

@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	testPath    = "testds"
+	testPath    = "tmp"
 	testCfgPath = "../test/config.json"
 )
 

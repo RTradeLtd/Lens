@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/RTradeLtd/Lens/lens"
+	"github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/Lens/models"
 	"github.com/RTradeLtd/config"
 )
@@ -55,6 +55,7 @@ func TestContentTypeDetect(t *testing.T) {
 }
 
 func TestLens(t *testing.T) {
+	t.Skip()
 	cfg, err := config.LoadConfig(defaultConfig)
 	if err != nil {
 		t.Fatal(err)

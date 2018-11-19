@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/RTradeLtd/Lens/lens"
+	"github.com/RTradeLtd/Lens"
 	pb "github.com/RTradeLtd/grpc/lens"
 	pbreq "github.com/RTradeLtd/grpc/lens/request"
 	pbresp "github.com/RTradeLtd/grpc/lens/response"

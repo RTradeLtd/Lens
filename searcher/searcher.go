@@ -325,7 +325,7 @@ func (s *Service) AdvancedSearch(opts *FilterOpts) (*[]models.Object, error) {
 			// dont hard fail
 			continue
 		}
-		for _, id := range category.LensIdentifiers {
+		for _, id := range category.Identifiers {
 			idsToSearch = append(idsToSearch, id.String())
 		}
 	}
