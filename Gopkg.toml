@@ -1,5 +1,3 @@
-ignored = ["github.com/RTradeLtd/RTFS"]
-
 [[constraint]]
   name = "github.com/tensorflow/tensorflow"
   branch = "r1.12"
