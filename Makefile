@@ -37,7 +37,7 @@ proto:
 WAIT=3
 testenv:
 	@echo "===================   preparing test env    ==================="
-	docker-compose -f lens.yml up -d
+	docker-compose -f test/docker-compose.yml up -d
 	sleep $(WAIT)
 	@echo "===================          done           ==================="
 
