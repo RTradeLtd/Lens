@@ -4,7 +4,7 @@
 
 [[constraint]]
   name = "github.com/RTradeLtd/grpc"
-  version = "v1.0.6-rc4" 
+  version = "v1.0.5b"
 
 [[constraint]]
   name = "github.com/DavidBelicza/TextRank"
