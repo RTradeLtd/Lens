@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/Lens/search"
@@ -39,8 +39,8 @@ var commands = map[string]cmd.Cmd{
 		Blurb:       "Used to migrate teh datastore",
 		Description: "Performs a complete migration of the old datastore to new datastore",
 		Action: func(cfg config.TemporalConfig, args map[string]string) {
-			im, err := rtfs.Initialize(
-				"", fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port))
+			im, err := rtfs.NewManager(fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port),
+				nil, 5*time.Minute)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -57,19 +57,6 @@ var commands = map[string]cmd.Cmd{
 			}
 		},
 	},
-}
-
-func hanldeScanner(scanner *bufio.Scanner) (string, error) {
-	// grab a single line of input
-	scanned := scanner.Scan()
-	// check to see if false
-	if !scanned {
-		// make sure that the false is due to finished reading, and not an error
-		if scanner.Err() != nil {
-			return "", scanner.Err()
-		}
-	}
-	return scanner.Text(), nil
 }
 
 func main() {
