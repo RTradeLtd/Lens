@@ -2,6 +2,7 @@ package planetary_test
 
 import (
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -17,6 +18,10 @@ const (
 )
 
 func TestPlanetaryExtractor(t *testing.T) {
+	if os.Getenv("TEST") != "integration" {
+		t.Skip("skipping integration test", t.Name())
+	}
+
 	cfg, err := config.LoadConfig(defaultConfig)
 	if err != nil {
 		t.Fatal(err)
