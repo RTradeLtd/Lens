@@ -172,12 +172,10 @@ func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResp
 	// iterate over the meta data summary
 	for _, v := range meta.Summary {
 		// check to see if a keyword with this name already exists
-		has, err := s.ss.Has(v)
-		if err != nil {
+		if has, err := s.ss.Has(v); err != nil {
 			return nil, err
-		}
-		// if the keyword does not exist, create the keyword object
-		if !has {
+		} else if !has {
+			// if the keyword does not exist, create the keyword object
 			keyObj := models.Keyword{
 				Name:            v,
 				LensIdentifiers: []uuid.UUID{id},
@@ -191,20 +189,22 @@ func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResp
 			}
 			continue
 		}
+
 		// keyword exists, get the keyword object from the datastore
 		keywordBytes, err := s.ss.Get(v)
 		if err != nil {
 			return nil, err
 		}
-		// create a keyword object
-		keyword := models.Keyword{}
+
 		// unmarshal into the keyword object
+		var keyword = models.Keyword{}
 		if err = json.Unmarshal(keywordBytes, &keyword); err != nil {
 			return nil, err
 		}
-		detected := false
-		// this should never be reached, but it is here for additional checks and balances
+
+		var detected = false
 		for _, v := range keyword.LensIdentifiers {
+			// this should never be reached, but it is here for additional checks and balances
 			if v == id {
 				detected = true
 				break
@@ -214,13 +214,15 @@ func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResp
 			// this object has already  been indexed for the particular keyword, so we can skip
 			continue
 		}
+
 		// update the lens identifiers in the keyword object
 		keyword.LensIdentifiers = append(keyword.LensIdentifiers, id)
-		// TODO: add field ot model of  content hashes that are mapped in the keyword obj
+		// TODO: add field to model of content hashes that are mapped in the keyword obj
 		keywordMarshaled, err := json.Marshal(keyword)
 		if err != nil {
 			return nil, err
 		}
+
 		// put (aka, update) the keyword object
 		if err = s.ss.Put(v, keywordMarshaled); err != nil {
 			return nil, err
@@ -240,21 +242,18 @@ func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResp
 	if err != nil {
 		return nil, err
 	}
-	resp := &IndexOperationResponse{
+	return &IndexOperationResponse{
 		// this is the hash of the ipld object
 		ContentHash: hash,
 		LensID:      id,
-	}
-	return resp, nil
+	}, nil
 }
 
 // SearchByKeyName is used to search for an object by key name
 func (s *Service) SearchByKeyName(keyname string) ([]byte, error) {
-	has, err := s.ss.Has(keyname)
-	if err != nil {
+	if has, err := s.ss.Has(keyname); err != nil {
 		return nil, err
-	}
-	if !has {
+	} else if !has {
 		return nil, errors.New("keyname does not exist")
 	}
 	return s.ss.Get(keyname)
