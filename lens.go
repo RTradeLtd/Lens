@@ -126,21 +126,20 @@ func (s *Service) Magnify(contentHash string) (string, *models.MetaData, error) 
 		}
 		meta = s.ta.Summarize(buf.String(), 0.25)
 	default:
-		if parsed2[0] == "text" {
+		switch parsed2[0] {
+		case "text":
 			category = "document"
 			meta = s.ta.Summarize(string(contents), 0.25)
-			break
-		}
-		if parsed2[0] == "image" {
+		case "image":
 			category = "image"
 			keyword, err := s.ia.ClassifyImage(contents)
 			if err != nil {
 				return "", nil, err
 			}
 			meta = []string{keyword}
-			break
+		default:
+			return "", nil, errors.New("unsupported content type for indexing")
 		}
-		return "", nil, errors.New("unsupported content type for indexing")
 	}
 	// clear the stored text so we can parse new text later
 	s.ta.Clear()
@@ -261,6 +260,7 @@ func (s *Service) SearchByKeyName(keyname string) ([]byte, error) {
 	return s.ss.Get(keyname)
 }
 
+// KeywordSearch is used to search by keyword
 func (s *Service) KeywordSearch(keywords []string) ([]models.Object, error) {
 	return s.ss.KeywordSearch(keywords)
 }
