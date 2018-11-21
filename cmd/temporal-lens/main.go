@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
 	"log"
 	"os"
@@ -58,19 +57,6 @@ var commands = map[string]cmd.Cmd{
 			}
 		},
 	},
-}
-
-func hanldeScanner(scanner *bufio.Scanner) (string, error) {
-	// grab a single line of input
-	scanned := scanner.Scan()
-	// check to see if false
-	if !scanned {
-		// make sure that the false is due to finished reading, and not an error
-		if scanner.Err() != nil {
-			return "", scanner.Err()
-		}
-	}
-	return scanner.Text(), nil
 }
 
 func main() {
