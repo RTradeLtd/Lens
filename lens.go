@@ -122,24 +122,19 @@ func (s *Service) Magnify(contentHash string) (string, *models.MetaData, error) 
 	switch parsed[0] {
 	case "application/pdf":
 		category = "pdf"
-		if err = ioutil.WriteFile("/tmp/"+contentHash, contents, 0642); err != nil {
-			return "", nil, err
-		}
-		file, reader, err := pdf.Open("/tmp/" + contentHash)
+		reader, err := pdf.NewReader(bytes.NewReader(contents), int64(len(contents)))
 		if err != nil {
 			return "", nil, err
 		}
-		defer file.Close()
-		var buf bytes.Buffer
 		b, err := reader.GetPlainText()
 		if err != nil {
 			return "", nil, err
 		}
+		var buf bytes.Buffer
 		if _, err := buf.ReadFrom(b); err != nil {
 			return "", nil, err
 		}
-		contentsString := buf.String()
-		meta = s.ta.Summarize(contentsString, 0.25)
+		meta = s.ta.Summarize(buf.String(), 0.25)
 	default:
 		if parsed2[0] == "text" {
 			category = "document"
