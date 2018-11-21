@@ -62,8 +62,8 @@ func NewAnalyzer(opts *ConfigOpts) (*Analyzer, error) {
 }
 
 // ClassifyImage is used to run an image against the Inception v5 pre-trained model
-func (a *Analyzer) ClassifyImage(imagePath string) (string, error) {
-	tensor, err := makeTensorFromImage(imagePath)
+func (a *Analyzer) ClassifyImage(content []byte) (string, error) {
+	tensor, err := makeTensorFromImage(content)
 	if err != nil {
 		return "", err
 	}
@@ -109,13 +109,9 @@ func (a *Analyzer) classify(probabilities []float32, labelsFile string) (string,
 }
 
 // Convert the image in filename to a Tensor suitable as input to the Inception model.
-func makeTensorFromImage(filename string) (*tf.Tensor, error) {
-	bytes, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, err
-	}
+func makeTensorFromImage(content []byte) (*tf.Tensor, error) {
 	// DecodeJpeg uses a scalar String-valued tensor as input.
-	tensor, err := tf.NewTensor(string(bytes))
+	tensor, err := tf.NewTensor(string(content))
 	if err != nil {
 		return nil, err
 	}

@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
@@ -89,76 +88,58 @@ func NewService(opts *ConfigOpts, cfg *config.TemporalConfig) (*Service, error) 
 // and returned the summarized meta-data. Returned parameters are in the format of:
 // content type, meta-data, error
 func (s *Service) Magnify(contentHash string) (string, *models.MetaData, error) {
-	has, err := s.ss.Has(contentHash)
-	if err != nil {
+	if has, err := s.ss.Has(contentHash); err != nil {
 		return "", nil, err
-	}
-	if has {
+	} else if has {
 		return "", nil, errors.New("this object has already been indexed")
 	}
+
 	contents, err := s.px.ExtractContents(contentHash)
 	if err != nil {
 		return "", nil, err
 	}
 	contentType := http.DetectContentType(contents)
+
 	// it will be in the format of `<content-type>; charset=...`
 	// we use strings.FieldsFunc to seperate the string, and to be able to exmaine the content type
-	parsed := strings.FieldsFunc(contentType, func(r rune) bool {
-		if r == ';' {
-			return true
-		}
-		return false
-	})
-	parsed2 := strings.FieldsFunc(contentType, func(r rune) bool {
-		if r == '/' {
-			return true
-		}
-		return false
-	})
+	parsed := strings.FieldsFunc(contentType, func(r rune) bool { return (r == ';') })
+	parsed2 := strings.FieldsFunc(contentType, func(r rune) bool { return (r == '/') })
 	var (
 		meta     []string
 		category string
 	)
+
 	switch parsed[0] {
 	case "application/pdf":
 		category = "pdf"
-		if err = ioutil.WriteFile("/tmp/"+contentHash, contents, 0642); err != nil {
-			return "", nil, err
-		}
-		file, reader, err := pdf.Open("/tmp/" + contentHash)
+		reader, err := pdf.NewReader(bytes.NewReader(contents), int64(len(contents)))
 		if err != nil {
 			return "", nil, err
 		}
-		defer file.Close()
-		var buf bytes.Buffer
 		b, err := reader.GetPlainText()
 		if err != nil {
 			return "", nil, err
 		}
+		var buf bytes.Buffer
 		if _, err := buf.ReadFrom(b); err != nil {
 			return "", nil, err
 		}
-		contentsString := buf.String()
-		meta = s.ta.Summarize(contentsString, 0.25)
+		meta = s.ta.Summarize(buf.String(), 0.25)
 	default:
-		if parsed2[0] == "text" {
+		switch parsed2[0] {
+		case "text":
 			category = "document"
 			meta = s.ta.Summarize(string(contents), 0.25)
-			break
-		}
-		if parsed2[0] == "image" {
+		case "image":
 			category = "image"
-			if err = ioutil.WriteFile("/tmp/"+contentHash, contents, 0642); err != nil {
-				return "", nil, err
-			}
-			keyword, err := s.ia.ClassifyImage("/tmp/" + contentHash)
+			keyword, err := s.ia.ClassifyImage(contents)
 			if err != nil {
 				return "", nil, err
 			}
 			meta = []string{keyword}
-			break
+		default:
+			return "", nil, errors.New("unsupported content type for indexing")
 		}
-		return "", nil, errors.New("unsupported content type for indexing")
 	}
 	// clear the stored text so we can parse new text later
 	s.ta.Clear()
@@ -191,12 +172,10 @@ func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResp
 	// iterate over the meta data summary
 	for _, v := range meta.Summary {
 		// check to see if a keyword with this name already exists
-		has, err := s.ss.Has(v)
-		if err != nil {
+		if has, err := s.ss.Has(v); err != nil {
 			return nil, err
-		}
-		// if the keyword does not exist, create the keyword object
-		if !has {
+		} else if !has {
+			// if the keyword does not exist, create the keyword object
 			keyObj := models.Keyword{
 				Name:            v,
 				LensIdentifiers: []uuid.UUID{id},
@@ -210,20 +189,22 @@ func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResp
 			}
 			continue
 		}
+
 		// keyword exists, get the keyword object from the datastore
 		keywordBytes, err := s.ss.Get(v)
 		if err != nil {
 			return nil, err
 		}
-		// create a keyword object
-		keyword := models.Keyword{}
+
 		// unmarshal into the keyword object
+		var keyword = models.Keyword{}
 		if err = json.Unmarshal(keywordBytes, &keyword); err != nil {
 			return nil, err
 		}
-		detected := false
-		// this should never be reached, but it is here for additional checks and balances
+
+		var detected = false
 		for _, v := range keyword.LensIdentifiers {
+			// this should never be reached, but it is here for additional checks and balances
 			if v == id {
 				detected = true
 				break
@@ -233,13 +214,15 @@ func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResp
 			// this object has already  been indexed for the particular keyword, so we can skip
 			continue
 		}
+
 		// update the lens identifiers in the keyword object
 		keyword.LensIdentifiers = append(keyword.LensIdentifiers, id)
-		// TODO: add field ot model of  content hashes that are mapped in the keyword obj
+		// TODO: add field to model of content hashes that are mapped in the keyword obj
 		keywordMarshaled, err := json.Marshal(keyword)
 		if err != nil {
 			return nil, err
 		}
+
 		// put (aka, update) the keyword object
 		if err = s.ss.Put(v, keywordMarshaled); err != nil {
 			return nil, err
@@ -259,26 +242,24 @@ func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResp
 	if err != nil {
 		return nil, err
 	}
-	resp := &IndexOperationResponse{
+	return &IndexOperationResponse{
 		// this is the hash of the ipld object
 		ContentHash: hash,
 		LensID:      id,
-	}
-	return resp, nil
+	}, nil
 }
 
 // SearchByKeyName is used to search for an object by key name
 func (s *Service) SearchByKeyName(keyname string) ([]byte, error) {
-	has, err := s.ss.Has(keyname)
-	if err != nil {
+	if has, err := s.ss.Has(keyname); err != nil {
 		return nil, err
-	}
-	if !has {
+	} else if !has {
 		return nil, errors.New("keyname does not exist")
 	}
 	return s.ss.Get(keyname)
 }
 
+// KeywordSearch is used to search by keyword
 func (s *Service) KeywordSearch(keywords []string) ([]models.Object, error) {
 	return s.ss.KeywordSearch(keywords)
 }
