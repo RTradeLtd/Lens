@@ -23,13 +23,14 @@ func TestAnalyzer_Parse(t *testing.T) {
 	}
 
 	// disable for now
-	_, err = os.Open("../../test/assets/sample.pdf")
+	pdf, err := os.Open("../../test/assets/sample.pdf")
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	type args struct {
-		asset io.Reader
+		asset    io.Reader
+		filetype string
 	}
 	tests := []struct {
 		name         string
@@ -37,15 +38,15 @@ func TestAnalyzer_Parse(t *testing.T) {
 		wantContents string
 		wantErr      bool
 	}{
-		{"nil asset", args{nil}, "", true},
-		{"text png asset", args{png}, "TECHNOLOGIES LTD", false},
-		// {"pdf asset", args{pdf}, "TECHNOLOGIES LTD", false},
+		{"nil asset", args{nil, ""}, "", true},
+		{"text png asset", args{png, ""}, "TECHNOLOGIES LTD", false},
+		{"pdf asset", args{pdf, "pdf"}, "TECHNOLOGIES LTD", false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			a := NewAnalyzer("")
 
-			gotContents, err := a.Parse(tt.args.asset)
+			gotContents, err := a.Parse(tt.args.asset, tt.args.filetype)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Analyzer.Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return
