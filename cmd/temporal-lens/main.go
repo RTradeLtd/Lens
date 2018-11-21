@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"time"
 
 	"github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/Lens/search"
@@ -39,8 +40,8 @@ var commands = map[string]cmd.Cmd{
 		Blurb:       "Used to migrate teh datastore",
 		Description: "Performs a complete migration of the old datastore to new datastore",
 		Action: func(cfg config.TemporalConfig, args map[string]string) {
-			im, err := rtfs.Initialize(
-				"", fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port))
+			im, err := rtfs.NewManager(fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port),
+				nil, 5*time.Minute)
 			if err != nil {
 				log.Fatal(err)
 			}

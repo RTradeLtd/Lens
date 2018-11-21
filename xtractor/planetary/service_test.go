@@ -3,9 +3,11 @@ package planetary_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/RTradeLtd/Lens/xtractor/planetary"
 	"github.com/RTradeLtd/config"
+	"github.com/RTradeLtd/rtfs"
 )
 
 const (
@@ -19,7 +21,12 @@ func TestPlanetaryExtractor(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	px, err := planetary.NewPlanetaryExtractor(cfg)
+	ipfsAPI := fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port)
+	manager, err := rtfs.NewManager(ipfsAPI, nil, 1*time.Minute)
+	if err != nil {
+		t.Fatal(err)
+	}
+	px, err := planetary.NewPlanetaryExtractor(manager)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -28,7 +35,7 @@ func TestPlanetaryExtractor(t *testing.T) {
 		t.Fatal(err)
 	}
 	fmt.Printf("%+v\n", out)
-	cidObj, err := px.DecodeStringToCID(testHash)
+	cidObj, err := planetary.DecodeStringToCID(testHash)
 	if err != nil {
 		t.Fatal(err)
 	}

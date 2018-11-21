@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -169,17 +168,12 @@ func (s *Service) MigrateEntries(entries []query.Entry, im *rtfs.IpfsManager, mi
 				// don't hard fail
 				continue
 			}
-			reader, err := im.Shell.Cat(obj.Name)
+			bytes, err := im.Cat(obj.Name)
 			if err != nil {
 				fmt.Println("failed to get content from ipfs ", err)
 				continue
 			}
-			dataBytes, err := ioutil.ReadAll(reader)
-			if err != nil {
-				fmt.Println("failed to get bytes from reader ", err)
-				continue
-			}
-			contentType := http.DetectContentType(dataBytes)
+			contentType := http.DetectContentType(bytes)
 			split := strings.Split(contentType, ";")
 			// update the content type
 			obj.MetaData.MimeType = split[0]
@@ -225,7 +219,7 @@ func (s *Service) Has(keyName string) (bool, error) {
 }
 
 // KeywordSearch retrieves a slice of content hashes that were indexed with these keywords
-func (s *Service) KeywordSearch(keywords []string) (*[]models.Object, error) {
+func (s *Service) KeywordSearch(keywords []string) ([]models.Object, error) {
 	// ids are a list of id's for which this keyword matched
 	ids := []uuid.UUID{}
 	// usedIDs represetn lens identifiers we've already searched
@@ -287,7 +281,7 @@ func (s *Service) KeywordSearch(keywords []string) (*[]models.Object, error) {
 		}
 		objects = append(objects, object)
 	}
-	return &objects, nil
+	return objects, nil
 }
 
 // FilterOpts is used to configure an advanced search

@@ -3,6 +3,7 @@ package search_test
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	"github.com/RTradeLtd/Lens/search"
 	"github.com/RTradeLtd/config"
@@ -19,7 +20,10 @@ func TestService(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	im, err := rtfs.Initialize("", fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port))
+	im, err := rtfs.NewManager(
+		fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port),
+		nil,
+		1*time.Minute)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -62,7 +66,7 @@ func TestService(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(*objects) == 0 {
+	if len(objects) == 0 {
 		t.Fatal("no hashes recovered")
 	}
 	t.Log("hashes recovered")

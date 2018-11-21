@@ -1,14 +1,12 @@
 // These are high-level integration tests for the entire Lens service.
-package lens_test
+package lens
 
 import (
 	"encoding/json"
-	"io/ioutil"
 	"net/http"
 	"os"
 	"testing"
 
-	"github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/Lens/models"
 	"github.com/RTradeLtd/config"
 )
@@ -31,7 +29,7 @@ func TestContentTypeDetect(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	service, err := lens.NewService(&lens.ConfigOpts{
+	service, err := NewService(&ConfigOpts{
 		UseChainAlgorithm: true, DataStorePath: "tmp/badgerds-lens",
 	}, cfg)
 	if err != nil {
@@ -54,7 +52,7 @@ func TestContentTypeDetect(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Logf("retrieving %s", tt.args.contentHash)
-			contents, err := service.PX.ExtractContents(tt.args.contentHash)
+			contents, err := service.px.ExtractContents(tt.args.contentHash)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("New() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -79,8 +77,8 @@ func TestLens(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	opts := &lens.ConfigOpts{UseChainAlgorithm: true, DataStorePath: "/tmp/badgerds-lens"}
-	service, err := lens.NewService(opts, cfg)
+	opts := &ConfigOpts{UseChainAlgorithm: true, DataStorePath: "/tmp/badgerds-lens"}
+	service, err := NewService(opts, cfg)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,7 +94,7 @@ func TestLens(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	keywordBytes, err := service.SS.Get(metadata.Summary[0])
+	keywordBytes, err := service.ss.Get(metadata.Summary[0])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -112,22 +110,17 @@ func TestLens(t *testing.T) {
 	t.Log("hash of indexed object ", resp)
 
 	var out models.Object
-	if err = service.PX.Manager.Shell.DagGet(resp.ContentHash, &out); err != nil {
+	if err = service.im.DagGet(resp.ContentHash, &out); err != nil {
 		t.Fatal(err)
 	}
 	t.Log("showing ipld lens object")
 	t.Logf("%+v\n", out)
 	t.Log("retrieving content that was indexed")
-	reader, err := service.PX.Manager.Shell.Cat(out.Name)
+	content, err := service.im.Cat(out.Name)
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer reader.Close()
-	contentBytes, err := ioutil.ReadAll(reader)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Log(string(contentBytes))
+	t.Log(string(content))
 	contentType, metadata, err = service.Magnify(testHashPdf)
 	if err != nil {
 		t.Fatal(err)

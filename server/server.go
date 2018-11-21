@@ -103,16 +103,16 @@ func (as *APIServer) Index(ctx context.Context, req *pbreq.Index) (*pbresp.Index
 // Search is used to submit a simple search request against the lens index
 func (as *APIServer) Search(ctx context.Context, req *pbreq.Search) (*pbresp.Results, error) {
 	fmt.Println("receiving search request")
-	objects, err := as.LS.SS.KeywordSearch(req.Keywords)
+	objects, err := as.LS.KeywordSearch(req.Keywords)
 	if err != nil {
 		return nil, err
 	}
 	hashes := []string{}
-	for _, v := range *objects {
+	for _, v := range objects {
 		hashes = append(hashes, v.Name)
 	}
 	var objs []*pbresp.Object
-	for _, v := range *objects {
+	for _, v := range objects {
 		objs = append(objs, &pbresp.Object{
 			Name:     v.Name,
 			MimeType: v.MetaData.MimeType,

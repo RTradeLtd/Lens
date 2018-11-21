@@ -4,11 +4,14 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/RTradeLtd/Lens/analyzer/images"
+	"github.com/RTradeLtd/rtfs"
 
 	"github.com/RTradeLtd/Lens/analyzer/text"
 	"github.com/RTradeLtd/Lens/models"
@@ -22,10 +25,12 @@ import (
 
 // Service contains the various components of Lens
 type Service struct {
-	TA *text.Analyzer
-	IA *images.Analyzer
-	PX *planetary.Extractor
-	SS *search.Service
+	im rtfs.Manager
+
+	ta *text.Analyzer
+	ia *images.Analyzer
+	px *planetary.Extractor
+	ss *search.Service
 }
 
 // ConfigOpts are options used to configure the lens service
@@ -50,10 +55,19 @@ type IndexOperationResponse struct {
 // NewService is used to generate our Lens service
 func NewService(opts *ConfigOpts, cfg *config.TemporalConfig) (*Service, error) {
 	ta := text.NewTextAnalyzer(opts.UseChainAlgorithm)
-	px, err := planetary.NewPlanetaryExtractor(cfg)
+
+	// instantiate ipfs connection
+	ipfsAPI := fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port)
+	manager, err := rtfs.NewManager(ipfsAPI, nil, 1*time.Minute)
 	if err != nil {
 		return nil, err
 	}
+	px, err := planetary.NewPlanetaryExtractor(manager)
+	if err != nil {
+		return nil, err
+	}
+
+	// instantiate service
 	ss, err := search.NewService(opts.DataStorePath)
 	if err != nil {
 		return nil, err
@@ -64,10 +78,10 @@ func NewService(opts *ConfigOpts, cfg *config.TemporalConfig) (*Service, error) 
 		return nil, err
 	}
 	return &Service{
-		TA: ta,
-		IA: ia,
-		PX: px,
-		SS: ss,
+		ta: ta,
+		ia: ia,
+		px: px,
+		ss: ss,
 	}, nil
 }
 
@@ -75,14 +89,14 @@ func NewService(opts *ConfigOpts, cfg *config.TemporalConfig) (*Service, error) 
 // and returned the summarized meta-data. Returned parameters are in the format of:
 // content type, meta-data, error
 func (s *Service) Magnify(contentHash string) (string, *models.MetaData, error) {
-	has, err := s.SS.Has(contentHash)
+	has, err := s.ss.Has(contentHash)
 	if err != nil {
 		return "", nil, err
 	}
 	if has {
 		return "", nil, errors.New("this object has already been indexed")
 	}
-	contents, err := s.PX.ExtractContents(contentHash)
+	contents, err := s.px.ExtractContents(contentHash)
 	if err != nil {
 		return "", nil, err
 	}
@@ -125,11 +139,11 @@ func (s *Service) Magnify(contentHash string) (string, *models.MetaData, error) 
 			return "", nil, err
 		}
 		contentsString := buf.String()
-		meta = s.TA.Summarize(contentsString, 0.25)
+		meta = s.ta.Summarize(contentsString, 0.25)
 	default:
 		if parsed2[0] == "text" {
 			category = "document"
-			meta = s.TA.Summarize(string(contents), 0.25)
+			meta = s.ta.Summarize(string(contents), 0.25)
 			break
 		}
 		if parsed2[0] == "image" {
@@ -137,7 +151,7 @@ func (s *Service) Magnify(contentHash string) (string, *models.MetaData, error) 
 			if err = ioutil.WriteFile("/tmp/"+contentHash, contents, 0642); err != nil {
 				return "", nil, err
 			}
-			keyword, err := s.IA.ClassifyImage("/tmp/" + contentHash)
+			keyword, err := s.ia.ClassifyImage("/tmp/" + contentHash)
 			if err != nil {
 				return "", nil, err
 			}
@@ -147,7 +161,7 @@ func (s *Service) Magnify(contentHash string) (string, *models.MetaData, error) 
 		return "", nil, errors.New("unsupported content type for indexing")
 	}
 	// clear the stored text so we can parse new text later
-	s.TA.Clear()
+	s.ta.Clear()
 	metadata := &models.MetaData{
 		Summary:  utils.Unique(meta),
 		MimeType: contentType,
@@ -177,7 +191,7 @@ func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResp
 	// iterate over the meta data summary
 	for _, v := range meta.Summary {
 		// check to see if a keyword with this name already exists
-		has, err := s.SS.Has(v)
+		has, err := s.ss.Has(v)
 		if err != nil {
 			return nil, err
 		}
@@ -191,13 +205,13 @@ func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResp
 			if err != nil {
 				return nil, err
 			}
-			if err = s.SS.Put(v, keyObjMarshaled); err != nil {
+			if err = s.ss.Put(v, keyObjMarshaled); err != nil {
 				return nil, err
 			}
 			continue
 		}
 		// keyword exists, get the keyword object from the datastore
-		keywordBytes, err := s.SS.Get(v)
+		keywordBytes, err := s.ss.Get(v)
 		if err != nil {
 			return nil, err
 		}
@@ -227,20 +241,21 @@ func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResp
 			return nil, err
 		}
 		// put (aka, update) the keyword object
-		if err = s.SS.Put(v, keywordMarshaled); err != nil {
+		if err = s.ss.Put(v, keywordMarshaled); err != nil {
 			return nil, err
 		}
 	}
 	// store the name (aka, content hash) of the object so we can avoid duplicate processing in the future
-	if err = s.SS.Put(name, []byte(id.String())); err != nil {
+	if err = s.ss.Put(name, []byte(id.String())); err != nil {
 		return nil, err
 	}
 	// store a "mapping" of the lens uuid to its corresponding lens object
-	if err = s.SS.Put(id.String(), marshaled); err != nil {
+	if err = s.ss.Put(id.String(), marshaled); err != nil {
 		return nil, err
 	}
+
 	// store the lens object in iPFS
-	hash, err := s.PX.Manager.Shell.DagPut(marshaled, "json", "cbor")
+	hash, err := s.im.DagPut(marshaled, "json", "cbor")
 	if err != nil {
 		return nil, err
 	}
@@ -254,12 +269,16 @@ func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResp
 
 // SearchByKeyName is used to search for an object by key name
 func (s *Service) SearchByKeyName(keyname string) ([]byte, error) {
-	has, err := s.SS.Has(keyname)
+	has, err := s.ss.Has(keyname)
 	if err != nil {
 		return nil, err
 	}
 	if !has {
 		return nil, errors.New("keyname does not exist")
 	}
-	return s.SS.Get(keyname)
+	return s.ss.Get(keyname)
+}
+
+func (s *Service) KeywordSearch(keywords []string) ([]models.Object, error) {
+	return s.ss.KeywordSearch(keywords)
 }
