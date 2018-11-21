@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	testImg = "test.jpg"
+	testImg = "../../test/assets/image.jpg"
 )
 
 func TestTendorize(t *testing.T) {
