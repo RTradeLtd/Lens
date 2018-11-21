@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
@@ -134,10 +133,7 @@ func (s *Service) Magnify(contentHash string) (string, *models.MetaData, error) 
 		}
 		if parsed2[0] == "image" {
 			category = "image"
-			if err = ioutil.WriteFile("/tmp/"+contentHash, contents, 0642); err != nil {
-				return "", nil, err
-			}
-			keyword, err := s.ia.ClassifyImage("/tmp/" + contentHash)
+			keyword, err := s.ia.ClassifyImage(contents)
 			if err != nil {
 				return "", nil, err
 			}

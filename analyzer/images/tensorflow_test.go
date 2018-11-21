@@ -2,6 +2,7 @@ package images_test
 
 import (
 	"fmt"
+	"io/ioutil"
 	"testing"
 
 	"github.com/RTradeLtd/Lens/analyzer/images"
@@ -19,7 +20,13 @@ func TestTendorize(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	guess, err := analyzer.ClassifyImage(testImg)
+
+	b, err := ioutil.ReadFile(testImg)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	guess, err := analyzer.ClassifyImage(b)
 	if err != nil {
 		t.Fatal(err)
 	}
