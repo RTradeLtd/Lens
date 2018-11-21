@@ -1,10 +1,10 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/RTradeLtd/Lens"
@@ -17,11 +17,9 @@ import (
 
 var (
 	// Version denotes the tag of this build
-	Version  string
-	dsPath   = "/data/lens/badgerds-lens"
-	certFile = filepath.Join(os.Getenv("HOME"), "/certificates/api.pem")
-	keyFile  = filepath.Join(os.Getenv("HOME"), "/certificates/api.key")
-	tCfg     config.TemporalConfig
+	Version string
+	dsPath  = flag.String("datastore", "/data/lens/badgerds-lens",
+		"path to Badger datastore")
 )
 
 var commands = map[string]cmd.Cmd{
@@ -29,7 +27,7 @@ var commands = map[string]cmd.Cmd{
 		Blurb:       "start Lens server",
 		Description: "Start the Lens meta data extraction service, which includes the API",
 		Action: func(cfg config.TemporalConfig, args map[string]string) {
-			lensOpts := lens.ConfigOpts{UseChainAlgorithm: true, DataStorePath: dsPath}
+			lensOpts := lens.ConfigOpts{UseChainAlgorithm: true, DataStorePath: *dsPath}
 			if err := server.NewAPIServer(cfg.Endpoints.Lens.URL, "tcp", &lensOpts, &cfg); err != nil {
 				log.Fatal(err)
 			}
@@ -44,7 +42,7 @@ var commands = map[string]cmd.Cmd{
 			if err != nil {
 				log.Fatal(err)
 			}
-			s, err := search.NewService(dsPath)
+			s, err := search.NewService(*dsPath)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -69,7 +67,8 @@ func main() {
 	})
 
 	// run no-config commands, exit if command was run
-	if exit := temporal.PreRun(os.Args[1:]); exit == cmd.CodeOK {
+	flag.Parse()
+	if exit := temporal.PreRun(flag.Args()); exit == cmd.CodeOK {
 		os.Exit(0)
 	}
 
