@@ -383,6 +383,14 @@
   version = "v1.0.2"
 
 [[projects]]
+  digest = "1:6411dc2c8891eb05c1d0599abf571e81f72cbc97ebd223b44d45712f4f1799c2"
+  name = "github.com/otiai10/gosseract"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "b026a6fd291f00736db60738f4e83a79d26359cb"
+  version = "v2.2.0"
+
+[[projects]]
   digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
   name = "github.com/pkg/errors"
   packages = ["."]
@@ -561,6 +569,7 @@
     "github.com/ipfs/go-datastore/query",
     "github.com/ipfs/go-ds-badger",
     "github.com/ledongthuc/pdf",
+    "github.com/otiai10/gosseract",
     "github.com/tensorflow/tensorflow/tensorflow/go",
     "github.com/tensorflow/tensorflow/tensorflow/go/op",
     "golang.org/x/net/context",
