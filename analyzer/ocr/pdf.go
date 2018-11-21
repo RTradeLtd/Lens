@@ -1,6 +1,10 @@
 package ocr
 
-import "gopkg.in/gographics/imagick.v2/imagick"
+import (
+	"fmt"
+
+	"gopkg.in/gographics/imagick.v3/imagick"
+)
 
 func pdfToImage(content []byte) ([]byte, error) {
 	imagick.Initialize()
@@ -9,23 +13,19 @@ func pdfToImage(content []byte) ([]byte, error) {
 	defer mw.Destroy()
 
 	if err := mw.SetResolution(600, 600); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to set resolution: %s", err.Error())
 	}
 
 	if err := mw.ReadImageBlob(content); err != nil {
-		return nil, err
-	}
-
-	if err := mw.SetImageAlphaChannel(imagick.ALPHA_CHANNEL_FLATTEN); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read content: %s", err.Error())
 	}
 
 	if err := mw.SetCompressionQuality(75); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to set compression quality: %s", err.Error())
 	}
 
-	if err := mw.SetFormat("jpg"); err != nil {
-		return nil, err
+	if err := mw.SetFormat("png"); err != nil {
+		return nil, fmt.Errorf("failed to convert to image: %s", err.Error())
 	}
 
 	return mw.GetImageBlob(), nil

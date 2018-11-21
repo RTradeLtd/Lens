@@ -546,6 +546,17 @@
   revision = "8dea3dc473e90c8179e519d91302d0597c0ca1d1"
   version = "v1.15.0"
 
+[[projects]]
+  digest = "1:3261a88df0ef9f1cfaa7cdd7f95bb6e86c8b45dbe76a17a0a43dcfc00e72d621"
+  name = "gopkg.in/gographics/imagick.v3"
+  packages = [
+    "imagick",
+    "imagick/types",
+  ]
+  pruneopts = "UT"
+  revision = "e5c95c340c8d9bf140ca670563906805b655d9d9"
+  version = "v3.2.0"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
@@ -575,6 +586,7 @@
     "golang.org/x/net/context",
     "google.golang.org/grpc",
     "google.golang.org/grpc/credentials",
+    "gopkg.in/gographics/imagick.v3/imagick",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
