@@ -89,36 +89,27 @@ func NewService(opts *ConfigOpts, cfg *config.TemporalConfig) (*Service, error) 
 // and returned the summarized meta-data. Returned parameters are in the format of:
 // content type, meta-data, error
 func (s *Service) Magnify(contentHash string) (string, *models.MetaData, error) {
-	has, err := s.ss.Has(contentHash)
-	if err != nil {
+	if has, err := s.ss.Has(contentHash); err != nil {
 		return "", nil, err
-	}
-	if has {
+	} else if has {
 		return "", nil, errors.New("this object has already been indexed")
 	}
+
 	contents, err := s.px.ExtractContents(contentHash)
 	if err != nil {
 		return "", nil, err
 	}
 	contentType := http.DetectContentType(contents)
+
 	// it will be in the format of `<content-type>; charset=...`
 	// we use strings.FieldsFunc to seperate the string, and to be able to exmaine the content type
-	parsed := strings.FieldsFunc(contentType, func(r rune) bool {
-		if r == ';' {
-			return true
-		}
-		return false
-	})
-	parsed2 := strings.FieldsFunc(contentType, func(r rune) bool {
-		if r == '/' {
-			return true
-		}
-		return false
-	})
+	parsed := strings.FieldsFunc(contentType, func(r rune) bool { return (r == ';') })
+	parsed2 := strings.FieldsFunc(contentType, func(r rune) bool { return (r == '/') })
 	var (
 		meta     []string
 		category string
 	)
+
 	switch parsed[0] {
 	case "application/pdf":
 		category = "pdf"
