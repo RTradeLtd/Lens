@@ -3,8 +3,6 @@ package search
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
-	"log"
 	"net/http"
 	"strings"
 
@@ -36,7 +34,7 @@ func NewService(dsPath string) (*Service, error) {
 func (s *Service) GetEntries() ([]query.Entry, error) {
 	resp, err := s.DS.Query(query.Query{})
 	if err != nil {
-		log.Fatal(err)
+		return nil, err
 	}
 	return resp.Rest()
 }
@@ -51,79 +49,72 @@ func (s *Service) MigrateEntries(entries []query.Entry, im *rtfs.IpfsManager, mi
 	// extract id's to mgirate
 	for _, v := range entries {
 		split := strings.Split(v.Key, "/")
-		_, err := uuid.FromString(split[1])
-		if err != nil {
-			// make sure we don't process ipfs hashes
+		if _, err := uuid.FromString(split[1]); err != nil {
+			if split == nil || len(split) < 2 || len(split[1]) == 0 {
+				continue
+			}
+
 			if split[1][0] == 'Q' {
 				continue
 			}
-			keywordBytes, err := s.Get(split[1])
+			b, err := s.Get(split[1])
 			if err != nil {
 				continue
 			}
-			if err = json.Unmarshal(keywordBytes, &keyword); err != nil {
+			if err = json.Unmarshal(b, &keyword); err != nil {
 				continue
 			}
 			for _, v := range keyword.LensIdentifiers {
-				// we have to use split[1] as the `name` field was improperly set to an ipfs hash
+				// we have to use split[1] as the `name` field was improperly set to an
+				// ipfs hash
 				keywords[split[1]] = append(keywords[split[1]], v)
 				ids = append(ids, v)
 			}
 			continue
 		}
-		//ids = append(ids, id)
 	}
-	fmt.Println(keywords)
 	// rebuild our keywords and properly migrate them
 	for name, identifiers := range keywords {
 		key := models.Keyword{
 			Name:            name,
 			LensIdentifiers: identifiers,
 		}
-		// marshal the keyword
-		keyBytes, err := json.Marshal(&key)
+		b, err := json.Marshal(&key)
 		if err != nil {
-			// dont hard fail
 			continue
 		}
-		if err = s.Put(name, keyBytes); err != nil {
+		if err = s.Put(name, b); err != nil {
 			continue
 		}
+
 		for _, id := range identifiers {
-			// get the data it refers to
 			bytes, err := s.Get(id.String())
 			if err != nil {
-				// dont hard fail
 				continue
 			}
-			// if we can't unmarshal into new object, then it's al "old" object and refers to the content hash
+			// if we can't unmarshal into new object, then it's an "old" object and
+			// refers to the content hash
 			var obj models.Object
 			if err = json.Unmarshal(bytes, &obj); err == nil {
-				// get the new object
 				bytes, err = s.Get(id.String())
 				if err != nil {
-					// dont hard fail
 					continue
 				}
 				if err = json.Unmarshal(bytes, &obj); err != nil {
-					// dont hard fail
 					continue
 				}
 				obj.MetaData.Summary = append(obj.MetaData.Summary, name)
-				// marshal the object
 				bytes, err = json.Marshal(&obj)
 				if err != nil {
-					// dont hard fail
 					continue
 				}
 				// update the new object
 				if err = s.Put(id.String(), bytes); err != nil {
-					// dont hard fail
-					fmt.Println("error migrating lens object ", err)
 					continue
 				}
 				continue
 			}
+
 			// format the meta-data
 			meta := models.MetaData{
 				Summary: []string{name},
@@ -131,68 +122,57 @@ func (s *Service) MigrateEntries(entries []query.Entry, im *rtfs.IpfsManager, mi
 			obj.LensID = id
 			obj.MetaData = meta
 			obj.Name = string(bytes)
-			// marshal the new object
+
+			// store the new object
 			bytes, err = json.Marshal(&obj)
 			if err != nil {
-				// don't hard fail
-				fmt.Println("error marshaling new object ", err)
 				continue
 			}
-			// store the new object
 			if err = s.Put(id.String(), bytes); err != nil {
-				fmt.Println("failed to store new object ", err)
 				continue
 			}
 		}
 	}
+
 	if migrateContent && im != nil {
 		processedIds := make(map[string]bool)
 		// update the category
 		for _, id := range ids {
 			if processedIds[id.String()] {
-				fmt.Println("id already processed ", id)
 				continue
 			}
 			processedIds[id.String()] = true
 			// getthe data from IPFs so we can sniff its mime-type
 			// grab the object from the database
-			objBytes, err := s.Get(id.String())
+			b, err := s.Get(id.String())
 			if err != nil {
-				// don't hard fail
-				fmt.Println("failed to get lens object ", err)
 				continue
 			}
 			var obj models.Object
-			if err = json.Unmarshal(objBytes, &obj); err != nil {
-				fmt.Println("failed to unmarshal lens object ", err)
-				// don't hard fail
+			if err = json.Unmarshal(b, &obj); err != nil {
 				continue
 			}
 			bytes, err := im.Cat(obj.Name)
 			if err != nil {
-				fmt.Println("failed to get content from ipfs ", err)
 				continue
 			}
-			contentType := http.DetectContentType(bytes)
-			split := strings.Split(contentType, ";")
+
 			// update the content type
-			obj.MetaData.MimeType = split[0]
-			if contentType == "application/pdf" {
-				obj.MetaData.Category = "pdf"
-			} else {
-				split := strings.Split(contentType, "/")
+			contentType := http.DetectContentType(bytes)
+			if split := strings.Split(contentType, ";"); split != nil && len(split) > 0 {
+				obj.MetaData.MimeType = split[0]
 				obj.MetaData.Category = split[0]
 			}
-			// marshal the newly update object
-			objBytes, err = json.Marshal(&obj)
+			if contentType == "application/pdf" {
+				obj.MetaData.Category = "pdf"
+			}
+
+			// update object
+			b, err = json.Marshal(&obj)
 			if err != nil {
-				// dont hard fail
-				fmt.Println("failed to marshal updated object ", err)
 				continue
 			}
-			fmt.Printf("%+v\n", obj)
-			if err = s.Put(id.String(), objBytes); err != nil {
-				fmt.Println("failed to store updated object ", err)
+			if err = s.Put(id.String(), b); err != nil {
 				continue
 			}
 		}
@@ -220,67 +200,60 @@ func (s *Service) Has(keyName string) (bool, error) {
 
 // KeywordSearch retrieves a slice of content hashes that were indexed with these keywords
 func (s *Service) KeywordSearch(keywords []string) ([]models.Object, error) {
-	// ids are a list of id's for which this keyword matched
-	ids := []uuid.UUID{}
-	// usedIDs represetn lens identifiers we've already searched
-	usedIDs := make(map[uuid.UUID]bool)
-	fmt.Println("searching through keywords")
-	// search through all keywords
+	var (
+		matches = make([]uuid.UUID, 0)
+		visited = make(map[uuid.UUID]bool)
+	)
+
 	for _, v := range keywords {
-		// check if we have content for this keyword
-		has, err := s.Has(v)
-		if err != nil {
+		if has, err := s.Has(v); err != nil {
 			return nil, err
-		}
-		// if we don't skip it
-		if !has {
+		} else if !has {
 			continue
 		}
-		fmt.Println("valid keyword")
+
 		// get the keyword object from the datastore
 		resp, err := s.Get(v)
 		if err != nil {
 			return nil, err
 		}
-		// prepare  messsage to unmarshal the data into
-		k := models.Keyword{}
-		// unmarshal into keyword object
+		var k = models.Keyword{}
 		if err = json.Unmarshal(resp, &k); err != nil {
 			return nil, err
 		}
-		fmt.Printf("%+v\n", k)
-		// search through all the identifiers
+
+		// search through all the identifiers for matches
 		for _, id := range k.LensIdentifiers {
-			// if the id is not nil, and we haven't seen this id already
-			if id != uuid.Nil && !usedIDs[id] {
-				// add it to the list of IDs to process
-				ids = append(ids, id)
-				usedIDs[id] = true
+			if id != uuid.Nil && !visited[id] {
+				matches = append(matches, id)
+				visited[id] = true
 			}
 		}
 	}
+
 	var (
 		objects []models.Object
 		object  models.Object
 	)
-	fmt.Println("searching for ids")
-	for _, v := range ids {
-		has, err := s.Has(v.String())
-		if err != nil {
+	for _, v := range matches {
+		if has, err := s.Has(v.String()); err != nil {
 			return nil, err
-		}
-		if !has {
+		} else if !has {
 			return nil, errors.New("no entry with lens id found")
 		}
-		objectBytes, err := s.Get(v.String())
+
+		// retrieve object
+		b, err := s.Get(v.String())
 		if err != nil {
 			return nil, err
 		}
-		if err = json.Unmarshal(objectBytes, &object); err != nil {
+		if err = json.Unmarshal(b, &object); err != nil {
 			return nil, err
 		}
+
 		objects = append(objects, object)
 	}
+
 	return objects, nil
 }
 
@@ -292,75 +265,66 @@ type FilterOpts struct {
 }
 
 // AdvancedSearch is used to perform an advanced search against the lens index
-func (s *Service) AdvancedSearch(opts *FilterOpts) (*[]models.Object, error) {
-	var (
-		idsToSearch []string
-		category    models.Category
-		obj         models.Object
-	)
-
+func (s *Service) AdvancedSearch(opts *FilterOpts) ([]models.Object, error) {
 	// search through categories, and get a list of IDs to search for
+	var (
+		query    []string
+		category models.Category
+		obj      models.Object
+	)
 	for _, v := range opts.Categories {
-		has, err := s.Has(v)
+		if has, err := s.Has(v); err != nil || !has {
+			continue
+		}
+
+		// retrieve category
+		b, err := s.Get(v)
 		if err != nil {
-			// dont hard fail
 			continue
 		}
-		if !has {
-			// dont hard fail
+		if err = json.Unmarshal(b, &category); err != nil {
 			continue
 		}
-		categoryBytes, err := s.Get(v)
-		if err != nil {
-			// dont hard fail
-			continue
-		}
-		if err = json.Unmarshal(categoryBytes, &category); err != nil {
-			// dont hard fail
-			continue
-		}
+
 		for _, id := range category.Identifiers {
-			idsToSearch = append(idsToSearch, id.String())
+			query = append(query, id.String())
 		}
 	}
+
 	var (
-		matchedObjects []models.Object
-		matched        = make(map[uuid.UUID]bool)
+		matched = make([]models.Object, 0)
+		visited = make(map[uuid.UUID]bool)
 	)
-	for _, v := range idsToSearch {
+	for _, v := range query {
 		id, err := uuid.FromString(v)
 		if err != nil {
-			// dont hard fail
 			continue
 		}
-		has, err := s.Has(id.String())
+		if has, err := s.Has(id.String()); err != nil || !has {
+			continue
+		}
+
+		// retrieve object matching query
+		b, err := s.Get(id.String())
 		if err != nil {
-			// dont hard fail
 			continue
 		}
-		if !has {
-			// dont hard fail
+		if err = json.Unmarshal(b, &obj); err != nil {
 			continue
 		}
-		objBytes, err := s.Get(id.String())
-		if err != nil {
-			// dont hard fail
-			continue
-		}
-		if err = json.Unmarshal(objBytes, &obj); err != nil {
-			// dont hard fail
-			continue
-		}
+
+		// check if object contains keyword
 		for _, keyword := range opts.Keywords {
 			for i := 0; i < opts.SearchDepth; i++ {
 				if keyword == obj.MetaData.Summary[i] {
-					if matched[id] {
+					if visited[id] {
 						continue
 					}
-					matchedObjects = append(matchedObjects, obj)
+					matched = append(matched, obj)
 				}
 			}
 		}
 	}
-	return nil, nil
+
+	return matched, nil
 }

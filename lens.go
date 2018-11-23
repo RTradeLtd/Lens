@@ -153,97 +153,40 @@ func (s *Service) Magnify(contentHash string) (string, *models.MetaData, error) 
 
 // Store is used to store our collected meta data in a formatted object
 func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResponse, error) {
-	// generate a uuid for the lens object
 	id, err := uuid.NewV4()
 	if err != nil {
 		return nil, err
 	}
-	// create the lens object
-	obj := models.Object{
-		LensID:   id,
-		Name:     name,
-		MetaData: *meta,
-	}
-	// mrshal the lens object
-	marshaled, err := json.Marshal(&obj)
-	if err != nil {
-		return nil, err
-	}
-	// iterate over the meta data summary
-	for _, v := range meta.Summary {
-		// check to see if a keyword with this name already exists
-		if has, err := s.ss.Has(v); err != nil {
-			return nil, err
-		} else if !has {
-			// if the keyword does not exist, create the keyword object
-			keyObj := models.Keyword{
-				Name:            v,
-				LensIdentifiers: []uuid.UUID{id},
-			}
-			keyObjMarshaled, err := json.Marshal(&keyObj)
-			if err != nil {
-				return nil, err
-			}
-			if err = s.ss.Put(v, keyObjMarshaled); err != nil {
-				return nil, err
-			}
-			continue
-		}
 
-		// keyword exists, get the keyword object from the datastore
-		keywordBytes, err := s.ss.Get(v)
-		if err != nil {
-			return nil, err
-		}
-
-		// unmarshal into the keyword object
-		var keyword = models.Keyword{}
-		if err = json.Unmarshal(keywordBytes, &keyword); err != nil {
-			return nil, err
-		}
-
-		var detected = false
-		for _, v := range keyword.LensIdentifiers {
-			// this should never be reached, but it is here for additional checks and balances
-			if v == id {
-				detected = true
-				break
-			}
-		}
-		if detected {
-			// this object has already  been indexed for the particular keyword, so we can skip
-			continue
-		}
-
-		// update the lens identifiers in the keyword object
-		keyword.LensIdentifiers = append(keyword.LensIdentifiers, id)
-		// TODO: add field to model of content hashes that are mapped in the keyword obj
-		keywordMarshaled, err := json.Marshal(keyword)
-		if err != nil {
-			return nil, err
-		}
-
-		// put (aka, update) the keyword object
-		if err = s.ss.Put(v, keywordMarshaled); err != nil {
+	// iterate over the meta data summary, and create keywords if they don't exist
+	for _, keyword := range meta.Summary {
+		if err := s.updateKeyword(keyword, id); err != nil {
 			return nil, err
 		}
 	}
+
 	// store the name (aka, content hash) of the object so we can avoid duplicate processing in the future
 	if err = s.ss.Put(name, []byte(id.String())); err != nil {
 		return nil, err
 	}
+
 	// store a "mapping" of the lens uuid to its corresponding lens object
-	if err = s.ss.Put(id.String(), marshaled); err != nil {
+	object, err := json.Marshal(&models.Object{
+		LensID:   id,
+		Name:     name,
+		MetaData: *meta,
+	})
+	if err = s.ss.Put(id.String(), object); err != nil {
 		return nil, err
 	}
 
 	// store the lens object in iPFS
-	hash, err := s.im.DagPut(marshaled, "json", "cbor")
+	hash, err := s.im.DagPut(object, "json", "cbor")
 	if err != nil {
 		return nil, err
 	}
+
 	return &IndexOperationResponse{
-		// this is the hash of the ipld object
 		ContentHash: hash,
 		LensID:      id,
 	}, nil
@@ -262,4 +205,46 @@ func (s *Service) SearchByKeyName(keyname string) ([]byte, error) {
 // KeywordSearch is used to search by keyword
 func (s *Service) KeywordSearch(keywords []string) ([]models.Object, error) {
 	return s.ss.KeywordSearch(keywords)
+}
+
+func (s *Service) updateKeyword(keyword string, objectID uuid.UUID) error {
+	if has, err := s.ss.Has(keyword); err != nil {
+		return err
+	} else if !has {
+		var key = models.Keyword{
+			Name:            keyword,
+			LensIdentifiers: []uuid.UUID{objectID},
+		}
+		kb, err := json.Marshal(&key)
+		if err != nil {
+			return err
+		}
+		return s.ss.Put(keyword, kb)
+	}
+
+	// keyword exists, get the keyword object from the datastore
+	kb, err := s.ss.Get(keyword)
+	if err != nil {
+		return err
+	}
+	var k = models.Keyword{}
+	if err = json.Unmarshal(kb, &k); err != nil {
+		return err
+	}
+
+	// ensure keyword does not already know about the identifier
+	for _, id := range k.LensIdentifiers {
+		if id == objectID {
+			continue
+		}
+	}
+
+	// update the lens identifiers in the keyword object
+	k.LensIdentifiers = append(k.LensIdentifiers, objectID)
+	// TODO: add field to model of content hashes that are mapped in the keyword obj
+	kb, err = json.Marshal(k)
+	if err != nil {
+		return err
+	}
+	return s.ss.Put(keyword, kb)
 }
