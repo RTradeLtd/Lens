@@ -1,10 +1,10 @@
 package ocr
 
 import (
-	"io"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/otiai10/gosseract"
 )
@@ -19,41 +19,50 @@ func TestNewAnalyzer(t *testing.T) {
 func TestAnalyzer_Parse(t *testing.T) {
 	png, err := os.Open("../../test/assets/text.png")
 	if err != nil {
-		t.Fatal(err)
+		t.Error(err)
+		return
 	}
-
-	// disable for now
-	pdf, err := os.Open("../../test/assets/sample.pdf")
-	if err != nil {
-		t.Fatal(err)
-	}
+	defer png.Close()
 
 	type args struct {
-		asset    io.Reader
-		filetype string
+		assetpath string
+		filetype  string
 	}
 	tests := []struct {
 		name         string
 		args         args
-		wantContents string
+		wantContents []string
 		wantErr      bool
 	}{
-		{"nil asset", args{nil, ""}, "", true},
-		{"text png asset", args{png, ""}, "TECHNOLOGIES LTD", false},
-		{"pdf asset", args{pdf, "pdf"}, "TECHNOLOGIES LTD", false},
+		{"nil asset", args{"", ""}, nil, true},
+		{"not an image", args{"../../test/assets/text.pdf", "png"}, nil, true},
+		{"text png asset", args{"../../test/assets/text.png", ""}, []string{"TECHNOLOGIES LTD"}, false},
+		{"pdf asset that uses to-text", args{"../../test/assets/text.pdf", "pdf"}, []string{"A Simple PDF File", "...continued from page 1"}, false},
+		{"pdf asset that uses OCR", args{"../../test/assets/scan.pdf", "pdf"},
+			[]string{"Dear Pete", "Probably you have"}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			a := NewAnalyzer("")
+			f, _ := os.Open(tt.args.assetpath)
+			if f != nil {
+				defer f.Close()
+			}
 
-			gotContents, err := a.Parse(tt.args.asset, tt.args.filetype)
+			var a = NewAnalyzer("")
+			var start = time.Now()
+			gotContents, err := a.Parse(f, tt.args.filetype)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Analyzer.Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
+			t.Log("time lapsed", time.Since(start))
 
-			if !strings.Contains(gotContents, tt.wantContents) {
-				t.Errorf("Analyzer.Parse() = %v, want %v", gotContents, tt.wantContents)
+			if tt.wantContents != nil {
+				for _, c := range tt.wantContents {
+					if !strings.Contains(gotContents, c) {
+						t.Errorf("Analyzer.Parse() = '%v', want '%v'", gotContents, c)
+					}
+				}
 			}
 		})
 	}

@@ -10,6 +10,9 @@ deps:
 	# Update standard dependencies
 	dep ensure -v
 
+	# Install gofitz
+	go get -u github.com/gen2brain/go-fitz
+
 	# Install tensorflow
 	sh setup/scripts/tensorflow_install.sh
 	@echo "===================          done           ==================="

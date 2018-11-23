@@ -1,11 +1,14 @@
 package ocr
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
+	"image/jpeg"
 	"io"
 	"io/ioutil"
 
+	fitz "github.com/gen2brain/go-fitz"
 	"github.com/otiai10/gosseract"
 )
 
@@ -33,22 +36,53 @@ func (a *Analyzer) Parse(asset io.Reader, assetType string) (contents string, er
 		return "", fmt.Errorf("failed to read asset: %s", err.Error())
 	}
 
-	// preprocessing
 	switch assetType {
 	case "pdf":
-		if b, err = pdfToImage(b); err != nil {
-			return "", fmt.Errorf("failed to convert PDF: %s", err.Error())
-		}
+		return a.pdfToText(b, 10)
 	default:
+		return a.imageToText(b)
+	}
+}
+
+func (a *Analyzer) pdfToText(content []byte, threshold int) (string, error) {
+	doc, err := fitz.NewFromMemory(content)
+	if err != nil {
+		return "", err
+	}
+	defer doc.Close()
+
+	var text string
+	for i := 0; i < doc.NumPage(); i++ {
+		// try pulling text
+		if page, _ := doc.Text(i); len(page) > threshold {
+			text += " " + page
+			continue
+		}
+
+		// if text is unsatisfactory, perform OCR on image
+		if image, _ := doc.Image(i); image != nil {
+			var img = new(bytes.Buffer)
+			jpeg.Encode(img, image, &jpeg.Options{Quality: 50})
+			if img.Bytes() == nil || len(img.Bytes()) == 0 {
+				continue
+			}
+			if page, _ := a.imageToText(img.Bytes()); page != "" {
+				text += " " + page
+			}
+		}
 	}
 
+	return text, nil
+}
+
+func (a *Analyzer) imageToText(asset []byte) (contents string, err error) {
 	t, err := a.newTesseractClient()
 	if err != nil {
 		return "", err
 	}
 	defer t.Close()
 
-	if err = t.SetImageFromBytes(b); err != nil {
+	if err = t.SetImageFromBytes(asset); err != nil {
 		return "", fmt.Errorf("failed to set image: %s", err.Error())
 	}
 
