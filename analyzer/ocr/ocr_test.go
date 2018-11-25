@@ -17,13 +17,6 @@ func TestNewAnalyzer(t *testing.T) {
 }
 
 func TestAnalyzer_Parse(t *testing.T) {
-	png, err := os.Open("../../test/assets/text.png")
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	defer png.Close()
-
 	type args struct {
 		assetpath string
 		filetype  string

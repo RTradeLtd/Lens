@@ -14,12 +14,12 @@ import (
 
 // Analyzer is the OCR analysis class
 type Analyzer struct {
-	config string
+	configPath string
 }
 
 // NewAnalyzer creates a new OCR analyzer
-func NewAnalyzer(config string) *Analyzer {
-	return &Analyzer{config}
+func NewAnalyzer(configPath string) *Analyzer {
+	return &Analyzer{configPath}
 }
 
 // Version reports the version of Tesseract
@@ -94,10 +94,10 @@ func (a *Analyzer) imageToText(asset []byte) (contents string, err error) {
 
 func (a *Analyzer) newTesseractClient() (*gosseract.Client, error) {
 	t := gosseract.NewClient()
-	if a.config != "" {
-		if err := t.SetConfigFile(a.config); err != nil {
+	if a.configPath != "" {
+		if err := t.SetConfigFile(a.configPath); err != nil {
 			return nil, fmt.Errorf("failed to set tesseract configuration file at '%s': %s",
-				a.config, err.Error())
+				a.configPath, err.Error())
 		}
 	}
 	return t, nil

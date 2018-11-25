@@ -28,7 +28,7 @@ var commands = map[string]cmd.Cmd{
 		Description: "Start the Lens meta data extraction service, which includes the API",
 		Action: func(cfg config.TemporalConfig, args map[string]string) {
 			lensOpts := lens.ConfigOpts{UseChainAlgorithm: true, DataStorePath: *dsPath}
-			if err := server.NewAPIServer(cfg.Endpoints.Lens.URL, "tcp", &lensOpts, &cfg); err != nil {
+			if err := server.Run(cfg.Endpoints.Lens.URL, "tcp", lensOpts, cfg); err != nil {
 				log.Fatal(err)
 			}
 		},

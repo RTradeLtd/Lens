@@ -248,14 +248,6 @@
   revision = "b497e2f366b8624394fb2e89c10ab607bebdde0b"
 
 [[projects]]
-  branch = "master"
-  digest = "1:8786c31474f1c8373fbe391bc4f3c7e84972769061fb2c6ff62db5f0db7a9c89"
-  name = "github.com/ledongthuc/pdf"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "c92ee462a9fc3c928c7ef8372b42400da65096e5"
-
-[[projects]]
   digest = "1:19f2d2506cc0f9a233c9c0753e8c3fd5afa88afb43ff7b795cbba3629d0e96b5"
   name = "github.com/libp2p/go-flow-metrics"
   packages = ["."]
@@ -564,6 +556,7 @@
     "github.com/DavidBelicza/TextRank/rank",
     "github.com/RTradeLtd/cmd",
     "github.com/RTradeLtd/config",
+    "github.com/RTradeLtd/go-ipfs-api",
     "github.com/RTradeLtd/grpc/lens",
     "github.com/RTradeLtd/grpc/lens/request",
     "github.com/RTradeLtd/grpc/lens/response",
@@ -576,7 +569,6 @@
     "github.com/ipfs/go-datastore",
     "github.com/ipfs/go-datastore/query",
     "github.com/ipfs/go-ds-badger",
-    "github.com/ledongthuc/pdf",
     "github.com/otiai10/gosseract",
     "github.com/tensorflow/tensorflow/tensorflow/go",
     "github.com/tensorflow/tensorflow/tensorflow/go/op",

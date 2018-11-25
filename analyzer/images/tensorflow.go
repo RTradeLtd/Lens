@@ -15,15 +15,20 @@ import (
 	"github.com/tensorflow/tensorflow/tensorflow/go/op"
 )
 
+// TensorflowAnalyzer represents a wrapper around a Tensorflow-based analyzer
+type TensorflowAnalyzer interface {
+	Classify(content []byte) (string, error)
+}
+
 // All credits for this go to the developers of the example in the following link
 // https://godoc.org/github.com/tensorflow/tensorflow/tensorflow/go
 // This is simply a modified version, intended to be run as a analyzer method by the Lens service
 
 // Analyzer is used to analyze images
 type Analyzer struct {
-	Session    *tf.Session
-	Graph      *tf.Graph
-	LabelsFile string
+	session    *tf.Session
+	graph      *tf.Graph
+	labelsFile string
 }
 
 // ConfigOpts is used to configure our image analyzer
@@ -32,7 +37,7 @@ type ConfigOpts struct {
 }
 
 // NewAnalyzer is used to analyze an image and classify it
-func NewAnalyzer(opts *ConfigOpts) (*Analyzer, error) {
+func NewAnalyzer(opts ConfigOpts) (*Analyzer, error) {
 	// load a seralized graph definition
 	modelFile, labelsFile, err := modelFiles(opts.ModelLocation)
 	if err != nil {
@@ -55,24 +60,24 @@ func NewAnalyzer(opts *ConfigOpts) (*Analyzer, error) {
 	// defer session closure
 	// defer session.Close()
 	return &Analyzer{
-		Session:    session,
-		LabelsFile: labelsFile,
-		Graph:      graph,
+		session:    session,
+		labelsFile: labelsFile,
+		graph:      graph,
 	}, nil
 }
 
-// ClassifyImage is used to run an image against the Inception v5 pre-trained model
-func (a *Analyzer) ClassifyImage(content []byte) (string, error) {
+// Classify is used to run an image against the Inception v5 pre-trained model
+func (a *Analyzer) Classify(content []byte) (string, error) {
 	tensor, err := makeTensorFromImage(content)
 	if err != nil {
 		return "", err
 	}
-	output, err := a.Session.Run(
+	output, err := a.session.Run(
 		map[tf.Output]*tf.Tensor{
-			a.Graph.Operation("input").Output(0): tensor,
+			a.graph.Operation("input").Output(0): tensor,
 		},
 		[]tf.Output{
-			a.Graph.Operation("output").Output(0),
+			a.graph.Operation("output").Output(0),
 		},
 		nil,
 	)
@@ -80,7 +85,7 @@ func (a *Analyzer) ClassifyImage(content []byte) (string, error) {
 		return "", err
 	}
 	probabilities := output[0].Value().([][]float32)[0]
-	return a.classify(probabilities, a.LabelsFile)
+	return a.classify(probabilities, a.labelsFile)
 }
 
 func (a *Analyzer) classify(probabilities []float32, labelsFile string) (string, error) {

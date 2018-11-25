@@ -4,9 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"net"
+	"time"
 
 	"github.com/RTradeLtd/Lens"
+	"github.com/RTradeLtd/Lens/analyzer/images"
 	"github.com/RTradeLtd/config"
+	"github.com/RTradeLtd/rtfs"
 
 	pb "github.com/RTradeLtd/grpc/lens"
 	pbreq "github.com/RTradeLtd/grpc/lens/request"
@@ -25,13 +28,36 @@ type APIServer struct {
 	LS *lens.Service
 }
 
-// NewAPIServer is used to create our API server
-func NewAPIServer(listenAddr, protocol string, opts *lens.ConfigOpts, cfg *config.TemporalConfig) error {
+// Run is used to create our API server
+func Run(listenAddr, protocol string, opts lens.ConfigOpts, cfg config.TemporalConfig) error {
+	// instantiate ipfs connection
+	ipfsAPI := fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port)
+	manager, err := rtfs.NewManager(ipfsAPI, nil, 1*time.Minute)
+	if err != nil {
+		return fmt.Errorf("failed to instantiate ipfs manager: %s", err.Error())
+	}
+
+	// instantiate tensorflow wrappers
+	ia, err := images.NewAnalyzer(images.ConfigOpts{
+		ModelLocation: opts.ModelsPath,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to instantiate image analyzer: %s", err.Error())
+	}
+
+	// create our lens service
+	service, err := lens.NewService(opts, cfg, manager, ia)
+	if err != nil {
+		return err
+	}
+	var s = &APIServer{LS: service}
+
 	// create connection we will listen on
 	lis, err := net.Listen(protocol, listenAddr)
 	if err != nil {
 		return err
 	}
+
 	// setup authentication interceptor
 	unaryIntercept, streamInterceptor := middleware.NewServerInterceptors(cfg.Endpoints.Lens.AuthKey)
 	// setup server options
@@ -43,6 +69,7 @@ func NewAPIServer(listenAddr, protocol string, opts *lens.ConfigOpts, cfg *confi
 			streamInterceptor,
 			grpc_ctxtags.StreamServerInterceptor(grpc_ctxtags.WithFieldExtractor(grpc_ctxtags.CodeGenRequestFieldExtractor))),
 	}
+
 	// setup tls configuration
 	if cfg.Lens.TLS.CertPath != "" {
 		creds, err := credentials.NewServerTLSFromFile(
@@ -53,20 +80,10 @@ func NewAPIServer(listenAddr, protocol string, opts *lens.ConfigOpts, cfg *confi
 		}
 		serverOpts = append(serverOpts, grpc.Creds(creds))
 	}
+
 	// create a grpc server
 	gServer := grpc.NewServer(serverOpts...)
-
-	// create our lens service
-	serice, err := lens.NewService(opts, cfg)
-	if err != nil {
-		return err
-	}
-	aServer := &APIServer{
-		LS: serice,
-	}
-	// register our gRPC API server, and our service
-	pb.RegisterIndexerAPIServer(gServer, aServer)
-	// serve the connection
+	pb.RegisterIndexerAPIServer(gServer, s)
 	if err = gServer.Serve(lis); err != nil {
 		return err
 	}
@@ -75,43 +92,38 @@ func NewAPIServer(listenAddr, protocol string, opts *lens.ConfigOpts, cfg *confi
 
 // Index is used to submit a request for something to be indexed by lens
 func (as *APIServer) Index(ctx context.Context, req *pbreq.Index) (*pbresp.Index, error) {
-	fmt.Println("new index request received")
 	switch req.GetDataType() {
 	case "ipld":
 		break
 	default:
 		return nil, errors.New("invalid data type")
 	}
-	objectID := req.GetObjectIdentifier()
-	_, metaData, err := as.LS.Magnify(objectID)
+
+	var objectID = req.GetObjectIdentifier()
+	metaData, err := as.LS.Magnify(objectID)
 	if err != nil {
 		return nil, err
 	}
+
 	indexResponse, err := as.LS.Store(metaData, objectID)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(metaData.Summary)
-	resp := &pbresp.Index{
+
+	return &pbresp.Index{
 		Id:       indexResponse.LensID.String(),
 		Keywords: metaData.Summary,
-	}
-	fmt.Println("finished processing index")
-	return resp, nil
+	}, nil
 }
 
 // Search is used to submit a simple search request against the lens index
 func (as *APIServer) Search(ctx context.Context, req *pbreq.Search) (*pbresp.Results, error) {
-	fmt.Println("receiving search request")
 	objects, err := as.LS.KeywordSearch(req.Keywords)
 	if err != nil {
 		return nil, err
 	}
-	hashes := []string{}
-	for _, v := range objects {
-		hashes = append(hashes, v.Name)
-	}
-	var objs []*pbresp.Object
+
+	var objs = make([]*pbresp.Object, len(objects))
 	for _, v := range objects {
 		objs = append(objs, &pbresp.Object{
 			Name:     v.Name,
@@ -119,9 +131,8 @@ func (as *APIServer) Search(ctx context.Context, req *pbreq.Search) (*pbresp.Res
 			Category: v.MetaData.Category,
 		})
 	}
-	resp := &pbresp.Results{
+
+	return &pbresp.Results{
 		Objects: objs,
-	}
-	fmt.Println("finished processing search request")
-	return resp, nil
+	}, nil
 }

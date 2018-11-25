@@ -10,8 +10,11 @@ deps:
 	# Update standard dependencies
 	dep ensure -v
 
-	# Install gofitz
+	# Install gofitz, used for PDF ops
 	go get -u github.com/gen2brain/go-fitz
+
+	# Install counterfeiter, used for mock generation
+	go get -u github.com/maxbrunsfeld/counterfeiter
 
 	# Install tensorflow
 	sh setup/scripts/tensorflow_install.sh
@@ -49,3 +52,11 @@ testenv:
 check:
 	go vet ./...
 	go test -run xxxx ./...
+
+# Generate mocks
+.PHONY: mocks
+mocks:
+	counterfeiter -o ./mocks/manager.mock.go \
+		./vendor/github.com/RTradeLtd/rtfs/rtfs.i.go Manager
+	counterfeiter -o ./mocks/images.mock.go \
+		./analyzer/images/tensorflow.go TensorflowAnalyzer
