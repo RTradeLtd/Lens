@@ -17,7 +17,7 @@ deps:
 	go get -u github.com/maxbrunsfeld/counterfeiter
 
 	# Install tensorflow
-	sh setup/scripts/tensorflow_install.sh
+	bash setup/scripts/tensorflow_install.sh
 	@echo "===================          done           ==================="
 
 # Build lens cli
