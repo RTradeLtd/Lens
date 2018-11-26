@@ -4,6 +4,8 @@ go:
 services:
   - docker
 sudo: required
+env:
+  - LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
 
 install:
   # tensorflow
