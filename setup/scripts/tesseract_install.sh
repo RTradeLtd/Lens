@@ -6,5 +6,6 @@ set -e
 if [[ "$OSTYPE" == "darwin"* ]]; then
   brew install tesseract
 else
-  sudo apt install tesseract-ocr
+  sudo apt-get -qq update
+  sudo apt-get install -y tesseract-ocr
 fi
