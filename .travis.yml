@@ -5,12 +5,12 @@ services:
   - docker
 sudo: required
 env:
-  - LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
+  - TF_VERSION=linux-x86_64-1.12.0
 
 install:
   # tensorflow
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-  - curl -L "https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-linux-x86_64-1.12.0.tar.gz" | sudo tar -C /usr/local -xz
+  - curl -L "https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-${TF_VERSION}.tar.gz" | sudo tar -C /usr/local -xz
   - sudo ldconfig
   # tesseract
   - bash setup/scripts/tesseract_install.sh
