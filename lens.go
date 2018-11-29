@@ -120,7 +120,7 @@ func (s *Service) Magnify(hash string) (metadata *models.MetaData, err error) {
 	switch parsed[0] {
 	case "application/pdf":
 		category = "pdf"
-		text, err := s.oc.Parse(contents, "pdf")
+		text, err := s.oc.Analyze(hash, contents, "pdf")
 		if err != nil {
 			return nil, err
 		}
@@ -137,7 +137,7 @@ func (s *Service) Magnify(hash string) (metadata *models.MetaData, err error) {
 			meta = s.ta.Summarize(string(contents), 0.25)
 		case "image":
 			category = "image"
-			keyword, err := s.images.Classify(contents)
+			keyword, err := s.images.Analyze(hash, contents)
 			if err != nil {
 				return nil, err
 			}

@@ -26,7 +26,7 @@ func TestTendorize(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	guess, err := analyzer.Classify(b)
+	guess, err := analyzer.Analyze("test", b)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -27,8 +27,8 @@ func NewAnalyzer(configPath string, logger *zap.SugaredLogger) *Analyzer {
 // Version reports the version of Tesseract
 func (a *Analyzer) Version() string { return gosseract.Version() }
 
-// Parse executes OCR on text
-func (a *Analyzer) Parse(content []byte, assetType string) (contents string, err error) {
+// Analyze executes OCR on text
+func (a *Analyzer) Analyze(jobID string, content []byte, assetType string) (contents string, err error) {
 	if content == nil {
 		return "", errors.New("invalid asset provided")
 	}

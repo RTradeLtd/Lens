@@ -238,9 +238,9 @@ func TestService_Magnify(t *testing.T) {
 			s.ss.Put("existing", []byte("asdfasdf"))
 			ipfs.CatStub = mocks.StubIpfsCat(tt.returns.catAssetPath)
 			if tt.returns.tensorErr {
-				tensor.ClassifyReturns("", errors.New("oh no"))
+				tensor.AnalyzeReturns("", errors.New("oh no"))
 			} else {
-				tensor.ClassifyReturns("test", nil)
+				tensor.AnalyzeReturns("test", nil)
 			}
 
 			// test

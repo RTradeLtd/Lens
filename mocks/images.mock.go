@@ -8,16 +8,17 @@ import (
 )
 
 type FakeTensorflowAnalyzer struct {
-	ClassifyStub        func([]byte) (string, error)
-	classifyMutex       sync.RWMutex
-	classifyArgsForCall []struct {
-		arg1 []byte
+	AnalyzeStub        func(string, []byte) (string, error)
+	analyzeMutex       sync.RWMutex
+	analyzeArgsForCall []struct {
+		arg1 string
+		arg2 []byte
 	}
-	classifyReturns struct {
+	analyzeReturns struct {
 		result1 string
 		result2 error
 	}
-	classifyReturnsOnCall map[int]struct {
+	analyzeReturnsOnCall map[int]struct {
 		result1 string
 		result2 error
 	}
@@ -25,69 +26,70 @@ type FakeTensorflowAnalyzer struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeTensorflowAnalyzer) Classify(arg1 []byte) (string, error) {
-	var arg1Copy []byte
-	if arg1 != nil {
-		arg1Copy = make([]byte, len(arg1))
-		copy(arg1Copy, arg1)
+func (fake *FakeTensorflowAnalyzer) Analyze(arg1 string, arg2 []byte) (string, error) {
+	var arg2Copy []byte
+	if arg2 != nil {
+		arg2Copy = make([]byte, len(arg2))
+		copy(arg2Copy, arg2)
 	}
-	fake.classifyMutex.Lock()
-	ret, specificReturn := fake.classifyReturnsOnCall[len(fake.classifyArgsForCall)]
-	fake.classifyArgsForCall = append(fake.classifyArgsForCall, struct {
-		arg1 []byte
-	}{arg1Copy})
-	fake.recordInvocation("Classify", []interface{}{arg1Copy})
-	fake.classifyMutex.Unlock()
-	if fake.ClassifyStub != nil {
-		return fake.ClassifyStub(arg1)
+	fake.analyzeMutex.Lock()
+	ret, specificReturn := fake.analyzeReturnsOnCall[len(fake.analyzeArgsForCall)]
+	fake.analyzeArgsForCall = append(fake.analyzeArgsForCall, struct {
+		arg1 string
+		arg2 []byte
+	}{arg1, arg2Copy})
+	fake.recordInvocation("Analyze", []interface{}{arg1, arg2Copy})
+	fake.analyzeMutex.Unlock()
+	if fake.AnalyzeStub != nil {
+		return fake.AnalyzeStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
 	}
-	fakeReturns := fake.classifyReturns
+	fakeReturns := fake.analyzeReturns
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeTensorflowAnalyzer) ClassifyCallCount() int {
-	fake.classifyMutex.RLock()
-	defer fake.classifyMutex.RUnlock()
-	return len(fake.classifyArgsForCall)
+func (fake *FakeTensorflowAnalyzer) AnalyzeCallCount() int {
+	fake.analyzeMutex.RLock()
+	defer fake.analyzeMutex.RUnlock()
+	return len(fake.analyzeArgsForCall)
 }
 
-func (fake *FakeTensorflowAnalyzer) ClassifyCalls(stub func([]byte) (string, error)) {
-	fake.classifyMutex.Lock()
-	defer fake.classifyMutex.Unlock()
-	fake.ClassifyStub = stub
+func (fake *FakeTensorflowAnalyzer) AnalyzeCalls(stub func(string, []byte) (string, error)) {
+	fake.analyzeMutex.Lock()
+	defer fake.analyzeMutex.Unlock()
+	fake.AnalyzeStub = stub
 }
 
-func (fake *FakeTensorflowAnalyzer) ClassifyArgsForCall(i int) []byte {
-	fake.classifyMutex.RLock()
-	defer fake.classifyMutex.RUnlock()
-	argsForCall := fake.classifyArgsForCall[i]
-	return argsForCall.arg1
+func (fake *FakeTensorflowAnalyzer) AnalyzeArgsForCall(i int) (string, []byte) {
+	fake.analyzeMutex.RLock()
+	defer fake.analyzeMutex.RUnlock()
+	argsForCall := fake.analyzeArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeTensorflowAnalyzer) ClassifyReturns(result1 string, result2 error) {
-	fake.classifyMutex.Lock()
-	defer fake.classifyMutex.Unlock()
-	fake.ClassifyStub = nil
-	fake.classifyReturns = struct {
+func (fake *FakeTensorflowAnalyzer) AnalyzeReturns(result1 string, result2 error) {
+	fake.analyzeMutex.Lock()
+	defer fake.analyzeMutex.Unlock()
+	fake.AnalyzeStub = nil
+	fake.analyzeReturns = struct {
 		result1 string
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeTensorflowAnalyzer) ClassifyReturnsOnCall(i int, result1 string, result2 error) {
-	fake.classifyMutex.Lock()
-	defer fake.classifyMutex.Unlock()
-	fake.ClassifyStub = nil
-	if fake.classifyReturnsOnCall == nil {
-		fake.classifyReturnsOnCall = make(map[int]struct {
+func (fake *FakeTensorflowAnalyzer) AnalyzeReturnsOnCall(i int, result1 string, result2 error) {
+	fake.analyzeMutex.Lock()
+	defer fake.analyzeMutex.Unlock()
+	fake.AnalyzeStub = nil
+	if fake.analyzeReturnsOnCall == nil {
+		fake.analyzeReturnsOnCall = make(map[int]struct {
 			result1 string
 			result2 error
 		})
 	}
-	fake.classifyReturnsOnCall[i] = struct {
+	fake.analyzeReturnsOnCall[i] = struct {
 		result1 string
 		result2 error
 	}{result1, result2}
@@ -96,8 +98,8 @@ func (fake *FakeTensorflowAnalyzer) ClassifyReturnsOnCall(i int, result1 string,
 func (fake *FakeTensorflowAnalyzer) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
-	fake.classifyMutex.RLock()
-	defer fake.classifyMutex.RUnlock()
+	fake.analyzeMutex.RLock()
+	defer fake.analyzeMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

@@ -19,7 +19,7 @@ import (
 
 // TensorflowAnalyzer represents a wrapper around a Tensorflow-based analyzer
 type TensorflowAnalyzer interface {
-	Classify(content []byte) (string, error)
+	Analyze(jobID string, content []byte) (category string, err error)
 }
 
 // All credits for this go to the developers of the example in the following link
@@ -70,8 +70,8 @@ func NewAnalyzer(opts ConfigOpts, logger *zap.SugaredLogger) (*Analyzer, error) 
 	}, nil
 }
 
-// Classify is used to run an image against the Inception v5 pre-trained model
-func (a *Analyzer) Classify(content []byte) (string, error) {
+// Analyze is used to run an image against the Inception v5 pre-trained model
+func (a *Analyzer) Analyze(jobID string, content []byte) (string, error) {
 	tensor, err := makeTensorFromImage(content)
 	if err != nil {
 		return "", err
