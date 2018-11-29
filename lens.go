@@ -1,7 +1,6 @@
 package lens
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -121,7 +120,7 @@ func (s *Service) Magnify(hash string) (metadata *models.MetaData, err error) {
 	switch parsed[0] {
 	case "application/pdf":
 		category = "pdf"
-		text, err := s.oc.Parse(bytes.NewReader(contents), "pdf")
+		text, err := s.oc.Parse(contents, "pdf")
 		if err != nil {
 			return nil, err
 		}

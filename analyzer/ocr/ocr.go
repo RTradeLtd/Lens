@@ -5,8 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"image/jpeg"
-	"io"
-	"io/ioutil"
 
 	"go.uber.org/zap"
 
@@ -30,21 +28,16 @@ func NewAnalyzer(configPath string, logger *zap.SugaredLogger) *Analyzer {
 func (a *Analyzer) Version() string { return gosseract.Version() }
 
 // Parse executes OCR on text
-func (a *Analyzer) Parse(asset io.Reader, assetType string) (contents string, err error) {
-	if asset == nil {
+func (a *Analyzer) Parse(content []byte, assetType string) (contents string, err error) {
+	if content == nil {
 		return "", errors.New("invalid asset provided")
-	}
-
-	b, err := ioutil.ReadAll(asset)
-	if err != nil {
-		return "", fmt.Errorf("failed to read asset: %s", err.Error())
 	}
 
 	switch assetType {
 	case "pdf":
-		return a.pdfToText(b, 10)
+		return a.pdfToText(content, 10)
 	default:
-		return a.imageToText(b)
+		return a.imageToText(content)
 	}
 }
 

@@ -1,6 +1,7 @@
 package ocr
 
 import (
+	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -48,12 +49,13 @@ func TestAnalyzer_Parse(t *testing.T) {
 			if f != nil {
 				defer f.Close()
 			}
+			b, _ := ioutil.ReadAll(f)
 
 			var l, _ = logs.NewLogger("", true)
 			var a = NewAnalyzer("", l)
 
 			var start = time.Now()
-			gotContents, err := a.Parse(f, tt.args.filetype)
+			gotContents, err := a.Parse(b, tt.args.filetype)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Analyzer.Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return
