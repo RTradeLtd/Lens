@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"image/jpeg"
+	"image/png"
 	"time"
 
 	"github.com/RTradeLtd/Lens/logs"
@@ -76,7 +76,7 @@ func (a *Analyzer) pdfToText(jobID string, content []byte, threshold int) (strin
 		if image, _ := doc.Image(i); image != nil {
 			ocrPages++
 			var img = new(bytes.Buffer)
-			if err := jpeg.Encode(img, image, &jpeg.Options{Quality: 50}); err != nil {
+			if err := png.Encode(img, image); err != nil {
 				l.Warnw("failed to convert document page to image",
 					"page", i, "error", err)
 				return "", fmt.Errorf("failed to analyze page %d of document", i)
