@@ -6,6 +6,8 @@ import (
 	"net"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/Lens/analyzer/images"
 	"github.com/RTradeLtd/config"
@@ -25,19 +27,31 @@ import (
 
 // APIServer is the Lens API server
 type APIServer struct {
-	LS *lens.Service
+	lens *lens.Service
+
+	l *zap.SugaredLogger
 }
 
 // Run is used to create our API server
-func Run(listenAddr, protocol string, opts lens.ConfigOpts, cfg config.TemporalConfig) error {
+func Run(
+	ctx context.Context,
+	addr string,
+	opts lens.ConfigOpts,
+	cfg config.TemporalConfig,
+	logger *zap.SugaredLogger,
+) error {
 	// instantiate ipfs connection
 	ipfsAPI := fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port)
+	logger.Infow("instantiating IPFS connection",
+		"ipfs.api", ipfsAPI)
 	manager, err := rtfs.NewManager(ipfsAPI, nil, 1*time.Minute)
 	if err != nil {
 		return fmt.Errorf("failed to instantiate ipfs manager: %s", err.Error())
 	}
 
 	// instantiate tensorflow wrappers
+	logger.Infow("instantiating tensorflow wrappers",
+		"tensorflow.models", opts.ModelsPath)
 	ia, err := images.NewAnalyzer(images.ConfigOpts{
 		ModelLocation: opts.ModelsPath,
 	})
@@ -46,14 +60,14 @@ func Run(listenAddr, protocol string, opts lens.ConfigOpts, cfg config.TemporalC
 	}
 
 	// create our lens service
+	logger.Info("instantiating lens service")
 	service, err := lens.NewService(opts, cfg, manager, ia)
 	if err != nil {
 		return err
 	}
-	var s = &APIServer{LS: service}
 
 	// create connection we will listen on
-	lis, err := net.Listen(protocol, listenAddr)
+	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
@@ -72,6 +86,9 @@ func Run(listenAddr, protocol string, opts lens.ConfigOpts, cfg config.TemporalC
 
 	// setup tls configuration
 	if cfg.Lens.TLS.CertPath != "" {
+		logger.Infow("setting up TLS",
+			"cert", cfg.TLS.CertPath,
+			"key", cfg.TLS.KeyPath)
 		creds, err := credentials.NewServerTLSFromFile(
 			cfg.Endpoints.Lens.TLS.CertPath,
 			cfg.Endpoints.Lens.TLS.KeyFile)
@@ -79,12 +96,36 @@ func Run(listenAddr, protocol string, opts lens.ConfigOpts, cfg config.TemporalC
 			return err
 		}
 		serverOpts = append(serverOpts, grpc.Creds(creds))
+	} else {
+		logger.Warn("no TLS configuration found")
 	}
 
 	// create a grpc server
+	var s = &APIServer{
+		lens: service,
+		l:    logger,
+	}
 	gServer := grpc.NewServer(serverOpts...)
 	pb.RegisterIndexerAPIServer(gServer, s)
+
+	// interrupt server gracefully if context is cancelled
+	go func() {
+		for {
+			select {
+			case <-ctx.Done():
+				logger.Info("shutting down server")
+				gServer.GracefulStop()
+				return
+			}
+		}
+	}()
+
+	// spin up server
+	logger.Infow("spinning up server",
+		"address", addr)
 	if err = gServer.Serve(lis); err != nil {
+		logger.Warn("shutting down server",
+			"error", err)
 		return err
 	}
 	return nil
@@ -100,12 +141,12 @@ func (as *APIServer) Index(ctx context.Context, req *pbreq.Index) (*pbresp.Index
 	}
 
 	var objectID = req.GetObjectIdentifier()
-	metaData, err := as.LS.Magnify(objectID)
+	metaData, err := as.lens.Magnify(objectID)
 	if err != nil {
 		return nil, err
 	}
 
-	indexResponse, err := as.LS.Store(metaData, objectID)
+	indexResponse, err := as.lens.Store(metaData, objectID)
 	if err != nil {
 		return nil, err
 	}
@@ -118,7 +159,7 @@ func (as *APIServer) Index(ctx context.Context, req *pbreq.Index) (*pbresp.Index
 
 // Search is used to submit a simple search request against the lens index
 func (as *APIServer) Search(ctx context.Context, req *pbreq.Search) (*pbresp.Results, error) {
-	objects, err := as.LS.KeywordSearch(req.Keywords)
+	objects, err := as.lens.KeywordSearch(req.Keywords)
 	if err != nil {
 		return nil, err
 	}
