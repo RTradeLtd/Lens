@@ -34,7 +34,11 @@ func TestAnalyzer_Analyze(t *testing.T) {
 		{"nil asset", args{"", ""}, nil, true},
 		{"not an image", args{"../../test/assets/text.pdf", "png"}, nil, true},
 		{"text png asset", args{"../../test/assets/text.png", ""},
-			[]string{"TECHNOLOGIES LTD"},
+			[]string{
+				// "TECHNOLOGIES", // this text is sometimes not recognized during OCR
+				"NORTH AMERICAS",
+				"LEADING BLOCKCHAIN SOLUTIONS COMPANY",
+			},
 			false},
 		{"pdf asset that uses to-text", args{"../../test/assets/text.pdf", "pdf"},
 			[]string{"A Simple PDF File", "...continued from page 1"},
