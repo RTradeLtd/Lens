@@ -97,8 +97,8 @@ func (a *Analyzer) pdfToText(jobID string, content []byte, threshold int) (strin
 	l.Infow("PDF to text conversion complete",
 		"duration", time.Since(start),
 		"converted.length", len(text),
-		"converted.with.text_extract", textPages,
-		"converted.with.ocr", ocrPages)
+		"converted.pages.text_extract", textPages,
+		"converted.pages.ocr", ocrPages)
 
 	return text, nil
 }
