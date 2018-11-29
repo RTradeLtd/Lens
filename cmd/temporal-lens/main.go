@@ -64,7 +64,7 @@ var commands = map[string]cmd.Cmd{
 					DataStorePath:     *dsPath,
 				},
 				cfg,
-				l,
+				l.Named("server"),
 			); err != nil {
 				log.Fatal(err)
 			}

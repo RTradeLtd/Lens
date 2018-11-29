@@ -54,14 +54,14 @@ func Run(
 		"tensorflow.models", opts.ModelsPath)
 	ia, err := images.NewAnalyzer(images.ConfigOpts{
 		ModelLocation: opts.ModelsPath,
-	})
+	}, logger.Named("analyzer").Named("images"))
 	if err != nil {
 		return fmt.Errorf("failed to instantiate image analyzer: %s", err.Error())
 	}
 
 	// create our lens service
 	logger.Info("instantiating lens service")
-	service, err := lens.NewService(opts, cfg, manager, ia)
+	service, err := lens.NewService(opts, cfg, manager, ia, logger)
 	if err != nil {
 		return err
 	}

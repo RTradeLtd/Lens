@@ -8,6 +8,8 @@ import (
 	"io"
 	"io/ioutil"
 
+	"go.uber.org/zap"
+
 	fitz "github.com/gen2brain/go-fitz"
 	"github.com/otiai10/gosseract"
 )
@@ -15,11 +17,13 @@ import (
 // Analyzer is the OCR analysis class
 type Analyzer struct {
 	configPath string
+
+	l *zap.SugaredLogger
 }
 
 // NewAnalyzer creates a new OCR analyzer
-func NewAnalyzer(configPath string) *Analyzer {
-	return &Analyzer{configPath}
+func NewAnalyzer(configPath string, logger *zap.SugaredLogger) *Analyzer {
+	return &Analyzer{configPath, logger}
 }
 
 // Version reports the version of Tesseract

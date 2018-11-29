@@ -6,11 +6,14 @@ import (
 	"testing"
 	"time"
 
+	"github.com/RTradeLtd/Lens/logs"
+
 	"github.com/otiai10/gosseract"
 )
 
 func TestNewAnalyzer(t *testing.T) {
-	a := NewAnalyzer("")
+	var l, _ = logs.NewLogger("", true)
+	var a = NewAnalyzer("", l)
 	if a.Version() != gosseract.Version() {
 		t.Errorf("expected version %s, got %s", gosseract.Version(), a.Version())
 	}
@@ -46,7 +49,9 @@ func TestAnalyzer_Parse(t *testing.T) {
 				defer f.Close()
 			}
 
-			var a = NewAnalyzer("")
+			var l, _ = logs.NewLogger("", true)
+			var a = NewAnalyzer("", l)
+
 			var start = time.Now()
 			gotContents, err := a.Parse(f, tt.args.filetype)
 			if (err != nil) != tt.wantErr {

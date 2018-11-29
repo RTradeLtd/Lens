@@ -10,6 +10,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/RTradeLtd/Lens/logs"
+
 	"github.com/RTradeLtd/Lens/analyzer/images"
 	"github.com/RTradeLtd/Lens/mocks"
 
@@ -41,15 +43,17 @@ func TestContentTypeDetect_Integration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	var l, _ = logs.NewLogger("", false)
 	ia, err := images.NewAnalyzer(images.ConfigOpts{
 		ModelLocation: "tmp",
-	})
+	}, l)
 	if err != nil {
 		t.Fatal(err)
 	}
 	service, err := NewService(ConfigOpts{
 		UseChainAlgorithm: true, DataStorePath: "tmp/badgerds-lens",
-	}, *cfg, manager, ia)
+	}, *cfg, manager, ia, l)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -101,16 +105,18 @@ func TestLens_Integration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
+	var l, _ = logs.NewLogger("", false)
 	ia, err := images.NewAnalyzer(images.ConfigOpts{
 		ModelLocation: "tmp",
-	})
+	}, l)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	service, err := NewService(ConfigOpts{
 		UseChainAlgorithm: true, DataStorePath: "/tmp/badgerds-lens",
-	}, *cfg, manager, ia)
+	}, *cfg, manager, ia, l)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -218,10 +224,10 @@ func TestService_Magnify(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var ipfs = &mocks.FakeManager{}
 			var tensor = &mocks.FakeTensorflowAnalyzer{}
+			var l, _ = logs.NewLogger("", false)
 			s, err := NewService(ConfigOpts{
 				DataStorePath: "tmp",
-			}, config.TemporalConfig{},
-				ipfs, tensor)
+			}, config.TemporalConfig{}, ipfs, tensor, l)
 			if err != nil {
 				t.Error(err)
 				return

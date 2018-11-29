@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strings"
 
+	"go.uber.org/zap"
+
 	"github.com/RTradeLtd/Lens/analyzer/images"
 	"github.com/RTradeLtd/Lens/analyzer/ocr"
 	"github.com/RTradeLtd/rtfs"
@@ -56,7 +58,8 @@ type IndexOperationResponse struct {
 // NewService is used to generate our Lens service
 func NewService(opts ConfigOpts, cfg config.TemporalConfig,
 	rm rtfs.Manager,
-	ia images.TensorflowAnalyzer) (*Service, error) {
+	ia images.TensorflowAnalyzer,
+	logger *zap.SugaredLogger) (*Service, error) {
 	// instantiate utility classes
 	px, err := planetary.NewPlanetaryExtractor(rm)
 	if err != nil {
@@ -71,7 +74,7 @@ func NewService(opts ConfigOpts, cfg config.TemporalConfig,
 
 	return &Service{
 		ta:     text.NewTextAnalyzer(opts.UseChainAlgorithm),
-		oc:     ocr.NewAnalyzer(opts.TesseractConfigPath),
+		oc:     ocr.NewAnalyzer(opts.TesseractConfigPath, logger.Named("ocr")),
 		images: ia,
 		px:     px,
 		ss:     ss,

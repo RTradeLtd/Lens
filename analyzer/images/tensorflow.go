@@ -11,6 +11,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"go.uber.org/zap"
+
 	tf "github.com/tensorflow/tensorflow/tensorflow/go"
 	"github.com/tensorflow/tensorflow/tensorflow/go/op"
 )
@@ -29,6 +31,8 @@ type Analyzer struct {
 	session    *tf.Session
 	graph      *tf.Graph
 	labelsFile string
+
+	l *zap.SugaredLogger
 }
 
 // ConfigOpts is used to configure our image analyzer
@@ -37,7 +41,7 @@ type ConfigOpts struct {
 }
 
 // NewAnalyzer is used to analyze an image and classify it
-func NewAnalyzer(opts ConfigOpts) (*Analyzer, error) {
+func NewAnalyzer(opts ConfigOpts, logger *zap.SugaredLogger) (*Analyzer, error) {
 	// load a seralized graph definition
 	modelFile, labelsFile, err := modelFiles(opts.ModelLocation)
 	if err != nil {
