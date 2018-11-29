@@ -110,22 +110,22 @@ func (a *Analyzer) imageToText(jobID string, asset []byte) (contents string, err
 
 	t, err := a.newTesseractClient()
 	if err != nil {
-		l.Error("failed to init tesseract client", "error", err)
+		l.Errorw("failed to init tesseract client", "error", err)
 		return "", errors.New("failed to start analysis engine")
 	}
 	defer t.Close()
 
 	if err = t.SetImageFromBytes(asset); err != nil {
-		l.Warn("failed to set image from asset", "error", err)
+		l.Warnw("failed to set image from asset", "error", err)
 		return "", errors.New("failed to analyze image")
 	}
 
 	if contents, err = t.Text(); err != nil {
-		l.Warn("failed to convert image to text", "error", err)
+		l.Warnw("failed to convert image to text", "error", err)
 		err = errors.New("failed to convert image to text")
 	}
 
-	l.Info("converted image to text",
+	l.Infow("converted image to text",
 		"duration", time.Since(start),
 		"converted.length", len(contents))
 
