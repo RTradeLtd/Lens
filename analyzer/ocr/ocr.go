@@ -122,7 +122,7 @@ func (a *Analyzer) imageToText(jobID string, asset []byte) (contents string, err
 
 	if contents, err = t.Text(); err != nil {
 		l.Warnw("failed to convert image to text", "error", err)
-		err = errors.New("failed to convert image to text")
+		return "", errors.New("failed to convert image to text")
 	}
 
 	l.Infow("converted image to text",
