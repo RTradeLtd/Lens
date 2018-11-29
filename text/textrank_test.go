@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/RTradeLtd/Lens/analyzer/text"
+	"github.com/RTradeLtd/Lens/text"
 )
 
 const (

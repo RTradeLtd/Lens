@@ -13,9 +13,9 @@ import (
 	"github.com/RTradeLtd/Lens/analyzer/ocr"
 	"github.com/RTradeLtd/rtfs"
 
-	"github.com/RTradeLtd/Lens/analyzer/text"
 	"github.com/RTradeLtd/Lens/models"
 	"github.com/RTradeLtd/Lens/search"
+	"github.com/RTradeLtd/Lens/text"
 	"github.com/RTradeLtd/Lens/utils"
 	"github.com/RTradeLtd/Lens/xtractor/planetary"
 	"github.com/RTradeLtd/config"
