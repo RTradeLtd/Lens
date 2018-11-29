@@ -7,6 +7,12 @@ lens:
 .PHONY: deps
 deps:
 	@echo "=================== generating dependencies ==================="
+	# Install tensorflow
+	bash setup/scripts/tensorflow_install.sh
+
+	# Install tesseract
+	bash setup/scripts/tesseract_install.sh
+
 	# Update standard dependencies
 	dep ensure -v
 
@@ -15,9 +21,6 @@ deps:
 
 	# Install counterfeiter, used for mock generation
 	go get -u github.com/maxbrunsfeld/counterfeiter
-
-	# Install tensorflow
-	bash setup/scripts/tensorflow_install.sh
 	@echo "===================          done           ==================="
 
 # Build lens cli
