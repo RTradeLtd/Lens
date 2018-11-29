@@ -1,11 +1,17 @@
 #LENSVERSION=`git describe --tags`
 LENSVERSION="testing"
+DIST=$(shell uname)
+ifeq ($(DIST), Linux) 
+GOFITZCMD=$(shell go get -u -tags gcc7 github.com/gen2brain/go-fitz)
+else
+GOFITZCMD$(shell go get -u github.com/gen2brain/go-fitz)
+endif
 
 lens:
 	@make cli
 
 .PHONY: deps
-deps:
+deps: 
 	@echo "=================== generating dependencies ==================="
 	# Install tensorflow
 	bash setup/scripts/tensorflow_install.sh
@@ -16,8 +22,8 @@ deps:
 	# Update standard dependencies
 	dep ensure -v
 
-	# Install gofitz, used for PDF ops
-	go get -u github.com/gen2brain/go-fitz
+	# install gofitz
+	@$(GOFITZCMD)
 
 	# Install counterfeiter, used for mock generation
 	go get -u github.com/maxbrunsfeld/counterfeiter
