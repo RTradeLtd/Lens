@@ -1,13 +1,17 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/RTradeLtd/Lens"
+	"github.com/RTradeLtd/Lens/logs"
 	"github.com/RTradeLtd/Lens/search"
 	"github.com/RTradeLtd/Lens/server"
 	"github.com/RTradeLtd/cmd"
@@ -20,6 +24,10 @@ var (
 	Version string
 	dsPath  = flag.String("datastore", "/data/lens/badgerds-lens",
 		"path to Badger datastore")
+	logPath = flag.String("logpath", "",
+		"path to write logs to - leave blank for stdout")
+	devMode = flag.Bool("dev", false,
+		"enable dev mode")
 )
 
 var commands = map[string]cmd.Cmd{
@@ -27,8 +35,37 @@ var commands = map[string]cmd.Cmd{
 		Blurb:       "start Lens server",
 		Description: "Start the Lens meta data extraction service, which includes the API",
 		Action: func(cfg config.TemporalConfig, args map[string]string) {
-			lensOpts := lens.ConfigOpts{UseChainAlgorithm: true, DataStorePath: *dsPath}
-			if err := server.Run(cfg.Endpoints.Lens.URL, "tcp", lensOpts, cfg); err != nil {
+			l, err := logs.NewLogger(*logPath, *devMode)
+			if err != nil {
+				log.Fatal("failed to instantiate logger:", err.Error())
+			}
+			defer l.Sync()
+
+			l = l.With("version", Version)
+			if *logPath != "" {
+				println("logger initialized - output will be written to", *logPath)
+			}
+
+			// handle graceful shutdown
+			ctx, cancel := context.WithCancel(context.Background())
+			signals := make(chan os.Signal)
+			signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
+			go func() {
+				<-signals
+				cancel()
+			}()
+
+			// let's goooo
+			if err := server.Run(
+				ctx,
+				cfg.Endpoints.Lens.URL,
+				lens.ConfigOpts{
+					UseChainAlgorithm: true,
+					DataStorePath:     *dsPath,
+				},
+				cfg,
+				l.Named("server"),
+			); err != nil {
 				log.Fatal(err)
 			}
 		},

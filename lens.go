@@ -1,20 +1,21 @@
 package lens
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
+	"go.uber.org/zap"
+
 	"github.com/RTradeLtd/Lens/analyzer/images"
 	"github.com/RTradeLtd/Lens/analyzer/ocr"
 	"github.com/RTradeLtd/rtfs"
 
-	"github.com/RTradeLtd/Lens/analyzer/text"
 	"github.com/RTradeLtd/Lens/models"
 	"github.com/RTradeLtd/Lens/search"
+	"github.com/RTradeLtd/Lens/text"
 	"github.com/RTradeLtd/Lens/utils"
 	"github.com/RTradeLtd/Lens/xtractor/planetary"
 	"github.com/RTradeLtd/config"
@@ -56,7 +57,8 @@ type IndexOperationResponse struct {
 // NewService is used to generate our Lens service
 func NewService(opts ConfigOpts, cfg config.TemporalConfig,
 	rm rtfs.Manager,
-	ia images.TensorflowAnalyzer) (*Service, error) {
+	ia images.TensorflowAnalyzer,
+	logger *zap.SugaredLogger) (*Service, error) {
 	// instantiate utility classes
 	px, err := planetary.NewPlanetaryExtractor(rm)
 	if err != nil {
@@ -71,7 +73,7 @@ func NewService(opts ConfigOpts, cfg config.TemporalConfig,
 
 	return &Service{
 		ta:     text.NewTextAnalyzer(opts.UseChainAlgorithm),
-		oc:     ocr.NewAnalyzer(opts.TesseractConfigPath),
+		oc:     ocr.NewAnalyzer(opts.TesseractConfigPath, logger.Named("ocr")),
 		images: ia,
 		px:     px,
 		ss:     ss,
@@ -118,7 +120,7 @@ func (s *Service) Magnify(hash string) (metadata *models.MetaData, err error) {
 	switch parsed[0] {
 	case "application/pdf":
 		category = "pdf"
-		text, err := s.oc.Parse(bytes.NewReader(contents), "pdf")
+		text, err := s.oc.Analyze(hash, contents, "pdf")
 		if err != nil {
 			return nil, err
 		}
@@ -135,7 +137,7 @@ func (s *Service) Magnify(hash string) (metadata *models.MetaData, err error) {
 			meta = s.ta.Summarize(string(contents), 0.25)
 		case "image":
 			category = "image"
-			keyword, err := s.images.Classify(contents)
+			keyword, err := s.images.Analyze(hash, contents)
 			if err != nil {
 				return nil, err
 			}

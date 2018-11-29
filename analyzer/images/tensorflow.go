@@ -11,13 +11,15 @@ import (
 	"os"
 	"path/filepath"
 
+	"go.uber.org/zap"
+
 	tf "github.com/tensorflow/tensorflow/tensorflow/go"
 	"github.com/tensorflow/tensorflow/tensorflow/go/op"
 )
 
 // TensorflowAnalyzer represents a wrapper around a Tensorflow-based analyzer
 type TensorflowAnalyzer interface {
-	Classify(content []byte) (string, error)
+	Analyze(jobID string, content []byte) (category string, err error)
 }
 
 // All credits for this go to the developers of the example in the following link
@@ -29,6 +31,8 @@ type Analyzer struct {
 	session    *tf.Session
 	graph      *tf.Graph
 	labelsFile string
+
+	l *zap.SugaredLogger
 }
 
 // ConfigOpts is used to configure our image analyzer
@@ -37,7 +41,7 @@ type ConfigOpts struct {
 }
 
 // NewAnalyzer is used to analyze an image and classify it
-func NewAnalyzer(opts ConfigOpts) (*Analyzer, error) {
+func NewAnalyzer(opts ConfigOpts, logger *zap.SugaredLogger) (*Analyzer, error) {
 	// load a seralized graph definition
 	modelFile, labelsFile, err := modelFiles(opts.ModelLocation)
 	if err != nil {
@@ -66,8 +70,8 @@ func NewAnalyzer(opts ConfigOpts) (*Analyzer, error) {
 	}, nil
 }
 
-// Classify is used to run an image against the Inception v5 pre-trained model
-func (a *Analyzer) Classify(content []byte) (string, error) {
+// Analyze is used to run an image against the Inception v5 pre-trained model
+func (a *Analyzer) Analyze(jobID string, content []byte) (string, error) {
 	tensor, err := makeTensorFromImage(content)
 	if err != nil {
 		return "", err

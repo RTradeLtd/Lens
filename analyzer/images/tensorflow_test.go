@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/RTradeLtd/Lens/analyzer/images"
+	"github.com/RTradeLtd/Lens/logs"
 )
 
 const (
@@ -12,9 +13,10 @@ const (
 )
 
 func TestTendorize(t *testing.T) {
+	var l, _ = logs.NewLogger("", true)
 	analyzer, err := images.NewAnalyzer(images.ConfigOpts{
 		ModelLocation: "models",
-	})
+	}, l)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -24,7 +26,7 @@ func TestTendorize(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	guess, err := analyzer.Classify(b)
+	guess, err := analyzer.Analyze("test", b)
 	if err != nil {
 		t.Fatal(err)
 	}

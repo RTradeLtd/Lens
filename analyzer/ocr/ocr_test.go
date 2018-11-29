@@ -1,22 +1,26 @@
 package ocr
 
 import (
+	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/RTradeLtd/Lens/logs"
+
 	"github.com/otiai10/gosseract"
 )
 
 func TestNewAnalyzer(t *testing.T) {
-	a := NewAnalyzer("")
+	var l, _ = logs.NewLogger("", true)
+	var a = NewAnalyzer("", l)
 	if a.Version() != gosseract.Version() {
 		t.Errorf("expected version %s, got %s", gosseract.Version(), a.Version())
 	}
 }
 
-func TestAnalyzer_Parse(t *testing.T) {
+func TestAnalyzer_Analyze(t *testing.T) {
 	type args struct {
 		assetpath string
 		filetype  string
@@ -45,10 +49,13 @@ func TestAnalyzer_Parse(t *testing.T) {
 			if f != nil {
 				defer f.Close()
 			}
+			b, _ := ioutil.ReadAll(f)
 
-			var a = NewAnalyzer("")
+			var l, _ = logs.NewLogger("", true)
+			var a = NewAnalyzer("", l)
+
 			var start = time.Now()
-			gotContents, err := a.Parse(f, tt.args.filetype)
+			gotContents, err := a.Analyze(t.Name(), b, tt.args.filetype)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Analyzer.Parse() error = %v, wantErr %v", err, tt.wantErr)
 				return
