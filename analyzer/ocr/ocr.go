@@ -32,7 +32,7 @@ func (a *Analyzer) Version() string { return gosseract.Version() }
 
 // Analyze executes OCR on text
 func (a *Analyzer) Analyze(jobID string, content []byte, assetType string) (contents string, err error) {
-	if content == nil {
+	if len(content) < 1 {
 		return "", errors.New("invalid asset provided")
 	}
 
