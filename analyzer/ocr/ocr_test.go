@@ -29,10 +29,15 @@ func TestAnalyzer_Parse(t *testing.T) {
 	}{
 		{"nil asset", args{"", ""}, nil, true},
 		{"not an image", args{"../../test/assets/text.pdf", "png"}, nil, true},
-		{"text png asset", args{"../../test/assets/text.png", ""}, []string{"TECHNOLOGIES LTD"}, false},
-		{"pdf asset that uses to-text", args{"../../test/assets/text.pdf", "pdf"}, []string{"A Simple PDF File", "...continued from page 1"}, false},
+		{"text png asset", args{"../../test/assets/text.png", ""},
+			[]string{"TECHNOLOGIES LTD"},
+			false},
+		{"pdf asset that uses to-text", args{"../../test/assets/text.pdf", "pdf"},
+			[]string{"A Simple PDF File", "...continued from page 1"},
+			false},
 		{"pdf asset that uses OCR", args{"../../test/assets/scan.pdf", "pdf"},
-			[]string{"Dear Pete", "Probably you have"}, false},
+			[]string{"Dear Pete", "Probably you have"},
+			false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
