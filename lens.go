@@ -77,6 +77,7 @@ func NewService(opts *ConfigOpts, cfg *config.TemporalConfig) (*Service, error) 
 		return nil, err
 	}
 	return &Service{
+		im: manager,
 		ta: ta,
 		ia: ia,
 		px: px,
