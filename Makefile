@@ -2,9 +2,13 @@
 LENSVERSION="testing"
 DIST=$(shell uname)
 ifeq ($(DIST), Linux) 
-GOFITZCMD=$(shell go get -u -tags gcc7 github.com/gen2brain/go-fitz)
+GOFITZCMD=go get -u -v -tags gcc7 github.com/gen2brain/go-fitz
+GOVET=go vet -tags gcc7 ./...
+GOTEST=go test -tags gcc7 -run xxxx ./...
 else
-GOFITZCMD$(shell go get -u github.com/gen2brain/go-fitz)
+GOFITZCMD=go get -u github.com/gen2brain/go-fitz
+GOVET=go vet ./...
+GOTEST=go test -run xxxx ./...
 endif
 
 lens:
@@ -23,7 +27,7 @@ deps:
 	dep ensure -v
 
 	# install gofitz
-	@$(GOFITZCMD)
+	$(GOFITZCMD)
 
 	# Install counterfeiter, used for mock generation
 	go get -u github.com/maxbrunsfeld/counterfeiter
@@ -59,8 +63,8 @@ testenv:
 # Run simple checks
 .PHONY: check
 check:
-	go vet ./...
-	go test -run xxxx ./...
+	$(GOVET)
+	$(GOTEST)
 
 # Generate mocks
 .PHONY: mocks
