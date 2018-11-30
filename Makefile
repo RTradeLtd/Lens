@@ -5,10 +5,12 @@ ifeq ($(DIST), Linux)
 GOFITZCMD=go get -u -v -tags gcc7 github.com/gen2brain/go-fitz
 GOVET=go vet -tags gcc7 ./...
 GOTEST=go test -tags gcc7 -run xxxx ./...
+BUILD=go build -tags gcc7 -ldflags "-X main.Version=$(LENSVERSION)" ./cmd/temporal-lens
 else
 GOFITZCMD=go get -u github.com/gen2brain/go-fitz
 GOVET=go vet ./...
 GOTEST=go test -run xxxx ./...
+BUILD=go build -ldflags "-X main.Version=$(LENSVERSION)" ./cmd/temporal-lens
 endif
 
 lens:
@@ -38,7 +40,7 @@ deps:
 cli:
 	@echo "====================  building Lens CLI  ======================"
 	rm -f temporal-lens
-	go build -ldflags "-X main.Version=$(LENSVERSION)" ./cmd/temporal-lens
+	$(BUILD)
 	@echo "===================          done           ==================="
 
 # protoc -I protobuf service.proto --go_out=plugins=grpc:protobuf
