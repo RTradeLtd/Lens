@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"net/http"
 	"os"
 	"testing"
 	"time"
@@ -27,68 +26,6 @@ const (
 	testHashJpg      = "QmNWaM9vM4LUs8ZUHThAqC3hCHeQF8fYdJhLjJMwzJmzYS"
 	defaultConfig    = "test/config.json"
 )
-
-func TestContentTypeDetect_Integration(t *testing.T) {
-	if os.Getenv("TEST") != "integration" {
-		t.Skip("skipping integration test", t.Name())
-	}
-
-	// set up client and lens
-	cfg, err := config.LoadConfig(defaultConfig)
-	if err != nil {
-		t.Fatal(err)
-	}
-	ipfsAPI := fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port)
-	manager, err := rtfs.NewManager(ipfsAPI, nil, 1*time.Minute)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	var l, _ = logs.NewLogger("", false)
-	ia, err := images.NewAnalyzer(images.ConfigOpts{
-		ModelLocation: "tmp",
-	}, l)
-	if err != nil {
-		t.Fatal(err)
-	}
-	service, err := NewService(ConfigOpts{
-		UseChainAlgorithm: true, DataStorePath: "tmp/badgerds-lens",
-	}, *cfg, manager, ia, l)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	type args struct {
-		contentHash string
-	}
-	tests := []struct {
-		name     string
-		args     args
-		wantErr  bool
-		wantType string
-	}{
-		{"pdf", args{testHashPdf}, false, "pdf"},
-		{"markdown", args{testHashMarkdown}, false, "markdown"},
-		{"jpg", args{testHashJpg}, false, "jpg"},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			t.Logf("retrieving %s", tt.args.contentHash)
-			contents, err := service.px.ExtractContents(tt.args.contentHash)
-			if (err != nil) != tt.wantErr {
-				t.Errorf("New() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-
-			// check content type
-			contentType := http.DetectContentType(contents)
-			t.Logf("content type: %s", contentType)
-			if contentType != tt.wantType {
-				t.Errorf("wanted %s, got %s", tt.wantType, contentType)
-			}
-		})
-	}
-}
 
 func TestLens_Integration(t *testing.T) {
 	if os.Getenv("TEST") != "integration" {
