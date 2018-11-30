@@ -1,16 +1,10 @@
 #LENSVERSION=`git describe --tags`
 LENSVERSION="testing"
+
+GOFLAGS=
 DIST=$(shell uname)
 ifeq ($(DIST), Linux) 
-GOFITZCMD=go get -u -v -tags gcc7 github.com/gen2brain/go-fitz
-GOVET=go vet -tags gcc7 ./...
-GOTEST=go test -tags gcc7 -run xxxx ./...
-BUILD=go build -tags gcc7 -ldflags "-X main.Version=$(LENSVERSION)" ./cmd/temporal-lens
-else
-GOFITZCMD=go get -u github.com/gen2brain/go-fitz
-GOVET=go vet ./...
-GOTEST=go test -run xxxx ./...
-BUILD=go build -ldflags "-X main.Version=$(LENSVERSION)" ./cmd/temporal-lens
+GOFLAGS=-tags gcc7
 endif
 
 lens:
@@ -29,7 +23,7 @@ deps:
 	dep ensure -v
 
 	# install gofitz
-	$(GOFITZCMD)
+	go get -u $(GOFLAGS) github.com/gen2brain/go-fitz
 
 	# Install counterfeiter, used for mock generation
 	go get -u github.com/maxbrunsfeld/counterfeiter
@@ -40,7 +34,7 @@ deps:
 cli:
 	@echo "====================  building Lens CLI  ======================"
 	rm -f temporal-lens
-	$(BUILD)
+	go build $(GOFLAGS) -ldflags "-X main.Version=$(LENSVERSION)" ./cmd/temporal-lens
 	@echo "===================          done           ==================="
 
 # protoc -I protobuf service.proto --go_out=plugins=grpc:protobuf
@@ -65,8 +59,8 @@ testenv:
 # Run simple checks
 .PHONY: check
 check:
-	$(GOVET)
-	$(GOTEST)
+	go vet $(GOFLAGS) ./...
+	go test $(GOFLAGS) -run xxxx ./...
 
 # Generate mocks
 .PHONY: mocks
