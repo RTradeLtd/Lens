@@ -48,7 +48,9 @@ func (a *Analyzer) pdfToText(jobID string, content []byte, threshold int) (strin
 	var l = logs.NewProcessLogger(a.l, "pdf_to_text",
 		"job_id", jobID,
 		"threshold", threshold)
+
 	var start = time.Now()
+	defer func() { l.Infow("conversion ended", "duration", time.Since(start)) }()
 
 	doc, err := fitz.NewFromMemory(content)
 	if err != nil {
@@ -94,8 +96,7 @@ func (a *Analyzer) pdfToText(jobID string, content []byte, threshold int) (strin
 		}
 	}
 
-	l.Infow("PDF to text conversion complete",
-		"duration", time.Since(start),
+	l.Infow("PDF converted to text",
 		"converted.length", len(text),
 		"converted.pages.text_extract", textPages,
 		"converted.pages.ocr", ocrPages)
@@ -106,7 +107,9 @@ func (a *Analyzer) pdfToText(jobID string, content []byte, threshold int) (strin
 func (a *Analyzer) imageToText(jobID string, asset []byte) (contents string, err error) {
 	var l = logs.NewProcessLogger(a.l, "image_to_text",
 		"job_id", jobID)
+
 	var start = time.Now()
+	defer func() { l.Infow("conversion ended", "duration", time.Since(start)) }()
 
 	t, err := a.newTesseractClient()
 	if err != nil {
@@ -125,8 +128,7 @@ func (a *Analyzer) imageToText(jobID string, asset []byte) (contents string, err
 		return "", errors.New("failed to convert image to text")
 	}
 
-	l.Infow("converted image to text",
-		"duration", time.Since(start),
+	l.Infow("image converted to text",
 		"converted.length", len(contents))
 
 	return
