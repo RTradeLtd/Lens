@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -196,7 +195,6 @@ func modelFiles(dir string) (modelfile, labelsfile string, err error) {
 	if filesExist(model, labels) == nil {
 		return model, labels, nil
 	}
-	log.Println("Did not find model in", dir, "downloading from", URL)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return "", "", err
 	}
@@ -245,7 +243,6 @@ func unzip(dir, zipfile string) error {
 		if err != nil {
 			return err
 		}
-		log.Println("Extracting", f.Name)
 		dst, err := os.OpenFile(filepath.Join(dir, f.Name), os.O_WRONLY|os.O_CREATE, 0644)
 		if err != nil {
 			return err
