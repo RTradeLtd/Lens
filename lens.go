@@ -1,7 +1,6 @@
 package lens
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,34 +8,43 @@ import (
 	"strings"
 	"time"
 
+	"github.com/RTradeLtd/Lens/logs"
+
+	"go.uber.org/zap"
+
 	"github.com/RTradeLtd/Lens/analyzer/images"
+	"github.com/RTradeLtd/Lens/analyzer/ocr"
 	"github.com/RTradeLtd/rtfs"
 
-	"github.com/RTradeLtd/Lens/analyzer/text"
 	"github.com/RTradeLtd/Lens/models"
 	"github.com/RTradeLtd/Lens/search"
+	"github.com/RTradeLtd/Lens/text"
 	"github.com/RTradeLtd/Lens/utils"
 	"github.com/RTradeLtd/Lens/xtractor/planetary"
 	"github.com/RTradeLtd/config"
 	"github.com/gofrs/uuid"
-	"github.com/ledongthuc/pdf"
 )
 
 // Service contains the various components of Lens
 type Service struct {
-	im rtfs.Manager
+	ipfs   rtfs.Manager
+	images images.TensorflowAnalyzer
 
+	oc *ocr.Analyzer
 	ta *text.Analyzer
-	ia *images.Analyzer
 	px *planetary.Extractor
 	ss *search.Service
+
+	l *zap.SugaredLogger
 }
 
 // ConfigOpts are options used to configure the lens service
 type ConfigOpts struct {
-	UseChainAlgorithm bool
-	DataStorePath     string
-	API               APIOpts
+	UseChainAlgorithm   bool
+	DataStorePath       string
+	ModelsPath          string
+	TesseractConfigPath string
+	API                 APIOpts
 }
 
 // APIOpts defines options for the lens API
@@ -52,16 +60,12 @@ type IndexOperationResponse struct {
 }
 
 // NewService is used to generate our Lens service
-func NewService(opts *ConfigOpts, cfg *config.TemporalConfig) (*Service, error) {
-	ta := text.NewTextAnalyzer(opts.UseChainAlgorithm)
-
-	// instantiate ipfs connection
-	ipfsAPI := fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port)
-	manager, err := rtfs.NewManager(ipfsAPI, nil, 1*time.Minute)
-	if err != nil {
-		return nil, err
-	}
-	px, err := planetary.NewPlanetaryExtractor(manager)
+func NewService(opts ConfigOpts, cfg config.TemporalConfig,
+	rm rtfs.Manager,
+	ia images.TensorflowAnalyzer,
+	logger *zap.SugaredLogger) (*Service, error) {
+	// instantiate utility classes
+	px, err := planetary.NewPlanetaryExtractor(rm)
 	if err != nil {
 		return nil, err
 	}
@@ -71,85 +75,113 @@ func NewService(opts *ConfigOpts, cfg *config.TemporalConfig) (*Service, error) 
 	if err != nil {
 		return nil, err
 	}
-	imagesOpts := &images.ConfigOpts{ModelLocation: "/tmp"}
-	ia, err := images.NewAnalyzer(imagesOpts)
-	if err != nil {
-		return nil, err
-	}
+
 	return &Service{
-		im: manager,
-		ta: ta,
-		ia: ia,
+		ipfs:   rm,
+		images: ia,
+
 		px: px,
 		ss: ss,
+		ta: text.NewTextAnalyzer(opts.UseChainAlgorithm),
+		oc: ocr.NewAnalyzer(opts.TesseractConfigPath, logger.Named("ocr")),
+
+		l: logger.Named("service"),
 	}, nil
+}
+
+// Close releases resources held by the service
+func (s *Service) Close() error {
+	return s.ss.Close()
 }
 
 // Magnify is used to examine a given content hash, determine if it's parsable
 // and returned the summarized meta-data. Returned parameters are in the format of:
 // content type, meta-data, error
-func (s *Service) Magnify(contentHash string) (string, *models.MetaData, error) {
-	if has, err := s.ss.Has(contentHash); err != nil {
-		return "", nil, err
+func (s *Service) Magnify(hash string) (metadata *models.MetaData, err error) {
+	if has, err := s.ss.Has(hash); err != nil {
+		return nil, err
 	} else if has {
-		return "", nil, errors.New("this object has already been indexed")
+		return nil, errors.New("this object has already been indexed")
 	}
 
-	contents, err := s.px.ExtractContents(contentHash)
+	var l = logs.NewProcessLogger(s.l, "magnify",
+		"hash", hash)
+
+	var start = time.Now()
+	defer func() { l.Infow("magnification ended", "duration", time.Since(start)) }()
+
+	// retrieve object and detect content type
+	contents, err := s.px.ExtractContents(hash)
 	if err != nil {
-		return "", nil, err
+		return nil, fmt.Errorf("failed to find content for hash '%s'", hash)
 	}
 	contentType := http.DetectContentType(contents)
+	if contentType == "" {
+		return nil, fmt.Errorf("unknown content type for document '%s'", hash)
+	}
+	l.Infow("object retrieved and content type detected",
+		"content_type", contentType)
 
-	// it will be in the format of `<content-type>; charset=...`
-	// we use strings.FieldsFunc to seperate the string, and to be able to exmaine the content type
-	parsed := strings.FieldsFunc(contentType, func(r rune) bool { return (r == ';') })
-	parsed2 := strings.FieldsFunc(contentType, func(r rune) bool { return (r == '/') })
 	var (
 		meta     []string
 		category string
 	)
 
+	// it will be in the format of `<content-type>; charset=...`
+	// we use strings.FieldsFunc to seperate the string, and to be able to exmaine the content type
+	var parsed = strings.FieldsFunc(contentType, func(r rune) bool { return (r == ';') })
+	if parsed == nil || len(parsed) == 0 {
+		err = fmt.Errorf("invalid content type '%s'", contentType)
+		return
+	}
 	switch parsed[0] {
 	case "application/pdf":
 		category = "pdf"
-		reader, err := pdf.NewReader(bytes.NewReader(contents), int64(len(contents)))
+		text, err := s.oc.Analyze(hash, contents, "pdf")
 		if err != nil {
-			return "", nil, err
+			return nil, err
 		}
-		b, err := reader.GetPlainText()
-		if err != nil {
-			return "", nil, err
-		}
-		var buf bytes.Buffer
-		if _, err := buf.ReadFrom(b); err != nil {
-			return "", nil, err
-		}
-		meta = s.ta.Summarize(buf.String(), 0.25)
+		meta = s.ta.Summarize(text, 0.25)
 	default:
+		var parsed2 = strings.FieldsFunc(contentType, func(r rune) bool { return (r == '/') })
+		if parsed2 == nil || len(parsed2) == 0 {
+			return nil, fmt.Errorf("invalid content type '%s'", contentType)
+		}
 		switch parsed2[0] {
 		case "text":
 			category = "document"
 			meta = s.ta.Summarize(string(contents), 0.25)
 		case "image":
 			category = "image"
-			keyword, err := s.ia.ClassifyImage(contents)
+
+			// categorize
+			keyword, err := s.images.Analyze(hash, contents)
 			if err != nil {
-				return "", nil, err
+				l.Warnw("failed to categorize image", "error", err)
+				return nil, errors.New("failed to categorize image")
 			}
-			meta = []string{keyword}
+
+			// grab any text in image
+			text, err := s.oc.Analyze(hash, contents, "image")
+			if err != nil {
+				l.Warnw("failed to OCR image", "error", err)
+				meta = []string{keyword}
+			} else {
+				meta = append(s.ta.Summarize(text, 0.1), keyword)
+			}
 		default:
-			return "", nil, errors.New("unsupported content type for indexing")
+			return nil, errors.New("unsupported content type for indexing")
 		}
 	}
+
 	// clear the stored text so we can parse new text later
 	s.ta.Clear()
-	metadata := &models.MetaData{
+
+	return &models.MetaData{
 		Summary:  utils.Unique(meta),
 		MimeType: contentType,
 		Category: category,
-	}
-	return parsed[0], metadata, nil
+	}, nil
 }
 
 // Store is used to store our collected meta data in a formatted object
@@ -182,7 +214,7 @@ func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResp
 	}
 
 	// store the lens object in iPFS
-	hash, err := s.im.DagPut(object, "json", "cbor")
+	hash, err := s.ipfs.DagPut(object, "json", "cbor")
 	if err != nil {
 		return nil, err
 	}

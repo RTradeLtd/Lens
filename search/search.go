@@ -16,7 +16,7 @@ import (
 
 // Service is our searcher service
 type Service struct {
-	DS *badger.Datastore
+	ds *badger.Datastore
 }
 
 // NewService is used to generate our new searcher service
@@ -26,13 +26,16 @@ func NewService(dsPath string) (*Service, error) {
 		return nil, err
 	}
 	return &Service{
-		DS: ds,
+		ds: ds,
 	}, nil
 }
 
+// Close shuts down the service datastore
+func (s *Service) Close() error { return s.ds.Close() }
+
 // GetEntries is used to get all known entries
 func (s *Service) GetEntries() ([]query.Entry, error) {
-	resp, err := s.DS.Query(query.Query{})
+	resp, err := s.ds.Query(query.Query{})
 	if err != nil {
 		return nil, err
 	}
@@ -182,20 +185,17 @@ func (s *Service) MigrateEntries(entries []query.Entry, im *rtfs.IpfsManager, mi
 
 // Put is used to store something in badgerds
 func (s *Service) Put(keyName string, data []byte) error {
-	k := ds.NewKey(keyName)
-	return s.DS.Put(k, data)
+	return s.ds.Put(ds.NewKey(keyName), data)
 }
 
 // Get is used to retrieve something from badgerds by key name
 func (s *Service) Get(keyName string) ([]byte, error) {
-	k := ds.NewKey(keyName)
-	return s.DS.Get(k)
+	return s.ds.Get(ds.NewKey(keyName))
 }
 
 // Has is used to check if our database has a key matching this name
 func (s *Service) Has(keyName string) (bool, error) {
-	k := ds.NewKey(keyName)
-	return s.DS.Has(k)
+	return s.ds.Has(ds.NewKey(keyName))
 }
 
 // KeywordSearch retrieves a slice of content hashes that were indexed with these keywords

@@ -39,7 +39,6 @@ func TestPlanetaryExtractor(t *testing.T) {
 	if err = px.ExtractObject(testHash, &out); err != nil {
 		t.Fatal(err)
 	}
-	fmt.Printf("%+v\n", out)
 	cidObj, err := planetary.DecodeStringToCID(testHash)
 	if err != nil {
 		t.Fatal(err)
@@ -48,15 +47,12 @@ func TestPlanetaryExtractor(t *testing.T) {
 	if cidObj.Prefix().Codec != expectedCodecUint {
 		t.Fatal("unexpected codec returned")
 	}
-	fmt.Println("code is ", cidObj.Prefix().Codec)
-	marshaled, err := cidObj.MarshalJSON()
+	_, err = cidObj.MarshalJSON()
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println(string(marshaled))
-	contents, err := px.ExtractContents(testHash)
+	_, err = px.ExtractContents(testHash)
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println(string(contents))
 }

@@ -1,17 +1,32 @@
 #LENSVERSION=`git describe --tags`
 LENSVERSION="testing"
 
+GOFLAGS=
+DIST=$(shell uname)
+ifeq ($(DIST), Linux) 
+GOFLAGS=-tags gcc7
+endif
+
 lens:
 	@make cli
 
 .PHONY: deps
-deps:
+deps: 
 	@echo "=================== generating dependencies ==================="
+	# Install tensorflow
+	bash setup/scripts/tensorflow_install.sh
+
+	# Install tesseract
+	bash setup/scripts/tesseract_install.sh
+
 	# Update standard dependencies
 	dep ensure -v
 
-	# Install tensorflow
-	sh setup/scripts/tensorflow_install.sh
+	# install gofitz
+	go get -u $(GOFLAGS) github.com/gen2brain/go-fitz
+
+	# Install counterfeiter, used for mock generation
+	go get -u github.com/maxbrunsfeld/counterfeiter
 	@echo "===================          done           ==================="
 
 # Build lens cli
@@ -19,7 +34,7 @@ deps:
 cli:
 	@echo "====================  building Lens CLI  ======================"
 	rm -f temporal-lens
-	go build -ldflags "-X main.Version=$(LENSVERSION)" ./cmd/temporal-lens
+	go build $(GOFLAGS) -ldflags "-X main.Version=$(LENSVERSION)" ./cmd/temporal-lens
 	@echo "===================          done           ==================="
 
 # protoc -I protobuf service.proto --go_out=plugins=grpc:protobuf
@@ -44,5 +59,13 @@ testenv:
 # Run simple checks
 .PHONY: check
 check:
-	go vet ./...
-	go test -run xxxx ./...
+	go vet $(GOFLAGS) ./...
+	go test $(GOFLAGS) -run xxxx ./...
+
+# Generate mocks
+.PHONY: mocks
+mocks:
+	counterfeiter -o ./mocks/manager.mock.go \
+		./vendor/github.com/RTradeLtd/rtfs/rtfs.i.go Manager
+	counterfeiter -o ./mocks/images.mock.go \
+		./analyzer/images/tensorflow.go TensorflowAnalyzer

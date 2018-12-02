@@ -1,22 +1,22 @@
 package images_test
 
 import (
-	"fmt"
 	"io/ioutil"
 	"testing"
 
 	"github.com/RTradeLtd/Lens/analyzer/images"
+	"github.com/RTradeLtd/Lens/logs"
 )
 
 const (
-	testImg = "test.jpg"
+	testImg = "../../test/assets/image.jpg"
 )
 
 func TestTendorize(t *testing.T) {
-	opts := &images.ConfigOpts{
+	var l, _ = logs.NewLogger("", true)
+	analyzer, err := images.NewAnalyzer(images.ConfigOpts{
 		ModelLocation: "models",
-	}
-	analyzer, err := images.NewAnalyzer(opts)
+	}, l)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -26,9 +26,9 @@ func TestTendorize(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	guess, err := analyzer.ClassifyImage(b)
+	guess, err := analyzer.Analyze("test", b)
 	if err != nil {
 		t.Fatal(err)
 	}
-	fmt.Println(guess)
+	t.Log(guess)
 }

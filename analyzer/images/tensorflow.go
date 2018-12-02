@@ -6,14 +6,20 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
 
+	"go.uber.org/zap"
+
 	tf "github.com/tensorflow/tensorflow/tensorflow/go"
 	"github.com/tensorflow/tensorflow/tensorflow/go/op"
 )
+
+// TensorflowAnalyzer represents a wrapper around a Tensorflow-based analyzer
+type TensorflowAnalyzer interface {
+	Analyze(jobID string, content []byte) (category string, err error)
+}
 
 // All credits for this go to the developers of the example in the following link
 // https://godoc.org/github.com/tensorflow/tensorflow/tensorflow/go
@@ -21,9 +27,11 @@ import (
 
 // Analyzer is used to analyze images
 type Analyzer struct {
-	Session    *tf.Session
-	Graph      *tf.Graph
-	LabelsFile string
+	session    *tf.Session
+	graph      *tf.Graph
+	labelsFile string
+
+	l *zap.SugaredLogger
 }
 
 // ConfigOpts is used to configure our image analyzer
@@ -32,7 +40,7 @@ type ConfigOpts struct {
 }
 
 // NewAnalyzer is used to analyze an image and classify it
-func NewAnalyzer(opts *ConfigOpts) (*Analyzer, error) {
+func NewAnalyzer(opts ConfigOpts, logger *zap.SugaredLogger) (*Analyzer, error) {
 	// load a seralized graph definition
 	modelFile, labelsFile, err := modelFiles(opts.ModelLocation)
 	if err != nil {
@@ -55,24 +63,24 @@ func NewAnalyzer(opts *ConfigOpts) (*Analyzer, error) {
 	// defer session closure
 	// defer session.Close()
 	return &Analyzer{
-		Session:    session,
-		LabelsFile: labelsFile,
-		Graph:      graph,
+		session:    session,
+		labelsFile: labelsFile,
+		graph:      graph,
 	}, nil
 }
 
-// ClassifyImage is used to run an image against the Inception v5 pre-trained model
-func (a *Analyzer) ClassifyImage(content []byte) (string, error) {
+// Analyze is used to run an image against the Inception v5 pre-trained model
+func (a *Analyzer) Analyze(jobID string, content []byte) (string, error) {
 	tensor, err := makeTensorFromImage(content)
 	if err != nil {
 		return "", err
 	}
-	output, err := a.Session.Run(
+	output, err := a.session.Run(
 		map[tf.Output]*tf.Tensor{
-			a.Graph.Operation("input").Output(0): tensor,
+			a.graph.Operation("input").Output(0): tensor,
 		},
 		[]tf.Output{
-			a.Graph.Operation("output").Output(0),
+			a.graph.Operation("output").Output(0),
 		},
 		nil,
 	)
@@ -80,7 +88,7 @@ func (a *Analyzer) ClassifyImage(content []byte) (string, error) {
 		return "", err
 	}
 	probabilities := output[0].Value().([][]float32)[0]
-	return a.classify(probabilities, a.LabelsFile)
+	return a.classify(probabilities, a.labelsFile)
 }
 
 func (a *Analyzer) classify(probabilities []float32, labelsFile string) (string, error) {
@@ -187,7 +195,6 @@ func modelFiles(dir string) (modelfile, labelsfile string, err error) {
 	if filesExist(model, labels) == nil {
 		return model, labels, nil
 	}
-	log.Println("Did not find model in", dir, "downloading from", URL)
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return "", "", err
 	}
@@ -236,7 +243,6 @@ func unzip(dir, zipfile string) error {
 		if err != nil {
 			return err
 		}
-		log.Println("Extracting", f.Name)
 		dst, err := os.OpenFile(filepath.Join(dir, f.Name), os.O_WRONLY|os.O_CREATE, 0644)
 		if err != nil {
 			return err
