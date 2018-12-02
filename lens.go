@@ -72,11 +72,13 @@ func NewService(opts ConfigOpts, cfg config.TemporalConfig,
 	}
 
 	return &Service{
-		ta:     text.NewTextAnalyzer(opts.UseChainAlgorithm),
-		oc:     ocr.NewAnalyzer(opts.TesseractConfigPath, logger.Named("ocr")),
+		ipfs:   rm,
 		images: ia,
-		px:     px,
-		ss:     ss,
+
+		px: px,
+		ss: ss,
+		ta: text.NewTextAnalyzer(opts.UseChainAlgorithm),
+		oc: ocr.NewAnalyzer(opts.TesseractConfigPath, logger.Named("ocr")),
 	}, nil
 }
 
