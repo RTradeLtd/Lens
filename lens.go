@@ -104,11 +104,11 @@ func (s *Service) Magnify(hash string) (metadata *models.MetaData, err error) {
 		return nil, errors.New("this object has already been indexed")
 	}
 
-	var logger = logs.NewProcessLogger(s.l, "magnify",
+	var l = logs.NewProcessLogger(s.l, "magnify",
 		"hash", hash)
 
 	var start = time.Now()
-	defer func() { logger.Infow("magnification ended", "duration", time.Since(start)) }()
+	defer func() { l.Infow("magnification ended", "duration", time.Since(start)) }()
 
 	// retrieve object and detect content type
 	contents, err := s.px.ExtractContents(hash)
@@ -119,7 +119,7 @@ func (s *Service) Magnify(hash string) (metadata *models.MetaData, err error) {
 	if contentType == "" {
 		return nil, fmt.Errorf("unknown content type for document '%s'", hash)
 	}
-	logger.Infow("object retrieved and content type detected",
+	l.Infow("object retrieved and content type detected",
 		"content_type", contentType)
 
 	var (
@@ -157,14 +157,14 @@ func (s *Service) Magnify(hash string) (metadata *models.MetaData, err error) {
 			// categorize
 			keyword, err := s.images.Analyze(hash, contents)
 			if err != nil {
-				logger.Warnw("failed to categorize image", "error", err)
+				l.Warnw("failed to categorize image", "error", err)
 				return nil, errors.New("failed to categorize image")
 			}
 
 			// grab any text in image
 			text, err := s.oc.Analyze(hash, contents, "image")
 			if err != nil {
-				logger.Warnw("failed to OCR image", "error", err)
+				l.Warnw("failed to OCR image", "error", err)
 				meta = []string{keyword}
 			} else {
 				meta = append(s.ta.Summarize(text, 0.1), keyword)
