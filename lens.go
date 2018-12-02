@@ -31,6 +31,8 @@ type Service struct {
 	ta *text.Analyzer
 	px *planetary.Extractor
 	ss *search.Service
+
+	l *zap.SugaredLogger
 }
 
 // ConfigOpts are options used to configure the lens service
@@ -79,6 +81,8 @@ func NewService(opts ConfigOpts, cfg config.TemporalConfig,
 		ss: ss,
 		ta: text.NewTextAnalyzer(opts.UseChainAlgorithm),
 		oc: ocr.NewAnalyzer(opts.TesseractConfigPath, logger.Named("ocr")),
+
+		l: logger.Named("service"),
 	}, nil
 }
 
