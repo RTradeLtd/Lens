@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/RTradeLtd/Lens/logs"
 
@@ -106,15 +107,20 @@ func (s *Service) Magnify(hash string) (metadata *models.MetaData, err error) {
 	var logger = logs.NewProcessLogger(s.l, "magnify",
 		"hash", hash)
 
+	var start = time.Now()
+	defer func() { logger.Infow("magnification ended", "duration", time.Since(start)) }()
+
 	// retrieve object and detect content type
 	contents, err := s.px.ExtractContents(hash)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to find content for hash '%s'", hash)
 	}
 	contentType := http.DetectContentType(contents)
 	if contentType == "" {
 		return nil, fmt.Errorf("unknown content type for document '%s'", hash)
 	}
+	logger.Infow("object retrieved and content type detected",
+		"content_type", contentType)
 
 	var (
 		meta     []string
@@ -139,8 +145,7 @@ func (s *Service) Magnify(hash string) (metadata *models.MetaData, err error) {
 	default:
 		var parsed2 = strings.FieldsFunc(contentType, func(r rune) bool { return (r == '/') })
 		if parsed2 == nil || len(parsed2) == 0 {
-			err = fmt.Errorf("invalid content type '%s'", contentType)
-			return
+			return nil, fmt.Errorf("invalid content type '%s'", contentType)
 		}
 		switch parsed2[0] {
 		case "text":
@@ -160,10 +165,10 @@ func (s *Service) Magnify(hash string) (metadata *models.MetaData, err error) {
 			text, err := s.oc.Analyze(hash, contents, "image")
 			if err != nil {
 				logger.Warnw("failed to OCR image", "error", err)
-				return nil, errors.New("failed to index image")
+				meta = []string{keyword}
+			} else {
+				meta = append(s.ta.Summarize(text, 0.1), keyword)
 			}
-
-			meta = append(s.ta.Summarize(text, 0.1), keyword)
 		default:
 			return nil, errors.New("unsupported content type for indexing")
 		}
