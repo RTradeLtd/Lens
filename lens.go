@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/RTradeLtd/Lens/logs"
+
 	"go.uber.org/zap"
 
 	"github.com/RTradeLtd/Lens/analyzer/images"
@@ -101,6 +103,9 @@ func (s *Service) Magnify(hash string) (metadata *models.MetaData, err error) {
 		return nil, errors.New("this object has already been indexed")
 	}
 
+	var logger = logs.NewProcessLogger(s.l, "magnify",
+		"hash", hash)
+
 	// retrieve object and detect content type
 	contents, err := s.px.ExtractContents(hash)
 	if err != nil {
@@ -143,11 +148,22 @@ func (s *Service) Magnify(hash string) (metadata *models.MetaData, err error) {
 			meta = s.ta.Summarize(string(contents), 0.25)
 		case "image":
 			category = "image"
+
+			// categorize
 			keyword, err := s.images.Analyze(hash, contents)
 			if err != nil {
-				return nil, err
+				logger.Warnw("failed to categorize image", "error", err)
+				return nil, errors.New("failed to categorize image")
 			}
-			meta = []string{keyword}
+
+			// grab any text in image
+			text, err := s.oc.Analyze(hash, contents, "image")
+			if err != nil {
+				logger.Warnw("failed to OCR image", "error", err)
+				return nil, errors.New("failed to index image")
+			}
+
+			meta = append(s.ta.Summarize(text, 0.1), keyword)
 		default:
 			return nil, errors.New("unsupported content type for indexing")
 		}
