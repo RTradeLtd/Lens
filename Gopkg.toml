@@ -10,7 +10,7 @@ ignored = ["github.com/gen2brain/go-fitz"]
 
 [[constraint]]
   name = "github.com/RTradeLtd/grpc"
-  version = "v1.0.5b"
+  branch = "lens/reindex"
 
 [[constraint]]
   name = "github.com/RTradeLtd/rtfs"

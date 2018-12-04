@@ -53,12 +53,6 @@ type APIOpts struct {
 	Port string
 }
 
-// IndexOperationResponse is the response from a successfuly lens indexing operation
-type IndexOperationResponse struct {
-	ContentHash string    `json:"lens_object_content_hash"`
-	LensID      uuid.UUID `json:"lens_id"`
-}
-
 // NewService is used to generate our Lens service
 func NewService(opts ConfigOpts, cfg config.TemporalConfig,
 	rm rtfs.Manager,
@@ -97,10 +91,10 @@ func (s *Service) Close() error {
 // Magnify is used to examine a given content hash, determine if it's parsable
 // and returned the summarized meta-data. Returned parameters are in the format of:
 // content type, meta-data, error
-func (s *Service) Magnify(hash string) (metadata *models.MetaData, err error) {
+func (s *Service) Magnify(hash string, reindex bool) (metadata *models.MetaData, err error) {
 	if has, err := s.ss.Has(hash); err != nil {
 		return nil, err
-	} else if has {
+	} else if has && !reindex {
 		return nil, errors.New("this object has already been indexed")
 	}
 
@@ -184,6 +178,12 @@ func (s *Service) Magnify(hash string) (metadata *models.MetaData, err error) {
 	}, nil
 }
 
+// IndexOperationResponse is the response from a successfuly lens indexing operation
+type IndexOperationResponse struct {
+	ContentHash string    `json:"lens_object_content_hash"`
+	LensID      uuid.UUID `json:"lens_id"`
+}
+
 // Store is used to store our collected meta data in a formatted object
 func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResponse, error) {
 	id, err := uuid.NewV4()
@@ -191,16 +191,22 @@ func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResp
 		return nil, err
 	}
 
+	// store the name (aka, content hash) of the object so we can avoid duplicate
+	// processing in the future
+	if err := s.ss.Put(name, id.Bytes()); err != nil {
+		return nil, err
+	}
+
+	return s.Update(meta, id, name)
+}
+
+// Update is used to update an object
+func (s *Service) Update(meta *models.MetaData, id uuid.UUID, name string) (*IndexOperationResponse, error) {
 	// iterate over the meta data summary, and create keywords if they don't exist
 	for _, keyword := range meta.Summary {
 		if err := s.updateKeyword(keyword, id); err != nil {
 			return nil, err
 		}
-	}
-
-	// store the name (aka, content hash) of the object so we can avoid duplicate processing in the future
-	if err = s.ss.Put(name, []byte(id.String())); err != nil {
-		return nil, err
 	}
 
 	// store a "mapping" of the lens uuid to its corresponding lens object
@@ -225,8 +231,8 @@ func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResp
 	}, nil
 }
 
-// SearchByKeyName is used to search for an object by key name
-func (s *Service) SearchByKeyName(keyname string) ([]byte, error) {
+// Get is used to search for an object identifier by key name
+func (s *Service) Get(keyname string) ([]byte, error) {
 	if has, err := s.ss.Has(keyname); err != nil {
 		return nil, err
 	} else if !has {

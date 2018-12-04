@@ -59,7 +59,7 @@ func TestLens_Integration(t *testing.T) {
 	}
 
 	// test hash examination
-	metadata, err := service.Magnify(testHash)
+	metadata, err := service.Magnify(testHash, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -77,7 +77,7 @@ func TestLens_Integration(t *testing.T) {
 	if err = json.Unmarshal(keywordBytes, &keyword); err != nil {
 		t.Fatal(err)
 	}
-	match, err := service.SearchByKeyName("protocols")
+	match, err := service.Get("protocols")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,7 +96,7 @@ func TestLens_Integration(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Log(string(content))
-	metadata, err = service.Magnify(testHashPdf)
+	metadata, err = service.Magnify(testHashPdf, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,7 +181,7 @@ func TestService_Magnify(t *testing.T) {
 			}
 
 			// test
-			meta, err := s.Magnify(tt.args.contentHash)
+			meta, err := s.Magnify(tt.args.contentHash, false)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.Magnify() error = %v, wantErr %v", err, tt.wantErr)
 				return

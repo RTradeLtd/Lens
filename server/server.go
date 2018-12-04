@@ -6,6 +6,7 @@ import (
 	"net"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"go.uber.org/zap"
 
 	"github.com/RTradeLtd/Lens"
@@ -133,26 +134,42 @@ func Run(
 
 // Index is used to submit a request for something to be indexed by lens
 func (as *APIServer) Index(ctx context.Context, req *pbreq.Index) (*pbresp.Index, error) {
-	switch req.GetDataType() {
+	switch req.GetType() {
 	case "ipld":
 		break
 	default:
 		return nil, errors.New("invalid data type")
 	}
 
-	var objectID = req.GetObjectIdentifier()
-	metaData, err := as.lens.Magnify(objectID)
+	var objectID = req.GetIdentifier()
+	var reindex = req.GetReindex()
+	metaData, err := as.lens.Magnify(objectID, reindex)
 	if err != nil {
 		return nil, err
 	}
 
-	indexResponse, err := as.lens.Store(metaData, objectID)
-	if err != nil {
-		return nil, err
+	var resp *lens.IndexOperationResponse
+	if !reindex {
+		if resp, err = as.lens.Store(metaData, objectID); err != nil {
+			return nil, err
+		}
+	} else {
+		b, err := as.lens.Get(objectID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to find ID for object '%s'", objectID)
+		}
+		id, err := uuid.FromBytes(b)
+		if err != nil {
+			return nil, fmt.Errorf("invalid uuid found for '%s' ('%s'): %s",
+				objectID, string(b), err.Error())
+		}
+		if resp, err = as.lens.Update(metaData, id, objectID); err != nil {
+			return nil, err
+		}
 	}
 
 	return &pbresp.Index{
-		Id:       indexResponse.LensID.String(),
+		Id:       resp.LensID.String(),
 		Keywords: metaData.Summary,
 	}, nil
 }
