@@ -148,7 +148,7 @@ func (as *APIServer) Index(ctx context.Context, req *pbreq.Index) (*pbresp.Index
 		return nil, err
 	}
 
-	var resp *lens.IndexOperationResponse
+	var resp *lens.Object
 	if !reindex {
 		if resp, err = as.lens.Store(metaData, objectID); err != nil {
 			return nil, err

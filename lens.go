@@ -178,14 +178,14 @@ func (s *Service) Magnify(hash string, reindex bool) (metadata *models.MetaData,
 	}, nil
 }
 
-// IndexOperationResponse is the response from a successfuly lens indexing operation
-type IndexOperationResponse struct {
+// Object is the response from a successfuly lens indexing operation
+type Object struct {
 	ContentHash string    `json:"lens_object_content_hash"`
 	LensID      uuid.UUID `json:"lens_id"`
 }
 
 // Store is used to store our collected meta data in a formatted object
-func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResponse, error) {
+func (s *Service) Store(meta *models.MetaData, name string) (*Object, error) {
 	id, err := uuid.NewV4()
 	if err != nil {
 		return nil, err
@@ -201,7 +201,11 @@ func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResp
 }
 
 // Update is used to update an object
-func (s *Service) Update(meta *models.MetaData, id uuid.UUID, name string) (*IndexOperationResponse, error) {
+func (s *Service) Update(meta *models.MetaData, id uuid.UUID, name string) (*Object, error) {
+	if meta == nil || len(id.Bytes()) < 1 || name == "" {
+		return nil, errors.New("invalid input")
+	}
+
 	// iterate over the meta data summary, and create keywords if they don't exist
 	for _, keyword := range meta.Summary {
 		if err := s.updateKeyword(keyword, id); err != nil {
@@ -225,7 +229,7 @@ func (s *Service) Update(meta *models.MetaData, id uuid.UUID, name string) (*Ind
 		return nil, err
 	}
 
-	return &IndexOperationResponse{
+	return &Object{
 		ContentHash: hash,
 		LensID:      id,
 	}, nil
