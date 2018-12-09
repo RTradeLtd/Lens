@@ -9,12 +9,11 @@ import (
 	"testing"
 	"time"
 
-	"github.com/RTradeLtd/Lens/logs"
-
 	"github.com/RTradeLtd/Lens/analyzer/images"
+	"github.com/RTradeLtd/Lens/logs"
 	"github.com/RTradeLtd/Lens/mocks"
-
 	"github.com/RTradeLtd/Lens/models"
+	"github.com/RTradeLtd/Lens/search"
 	"github.com/RTradeLtd/config"
 	"github.com/RTradeLtd/rtfs"
 )
@@ -51,9 +50,14 @@ func TestLens_Integration(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	searcher, err := search.NewService("/tmp/badgerds-lens")
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	service, err := NewService(ConfigOpts{
-		UseChainAlgorithm: true, DataStorePath: "/tmp/badgerds-lens",
-	}, *cfg, manager, ia, l)
+		UseChainAlgorithm: true,
+	}, *cfg, manager, ia, searcher, l)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -69,7 +73,7 @@ func TestLens_Integration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	keywordBytes, err := service.ss.Get(metadata.Summary[0])
+	keywordBytes, err := service.search.Get(metadata.Summary[0])
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -159,12 +163,16 @@ func TestService_Magnify(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			// setup
 			var ipfs = &mocks.FakeManager{}
 			var tensor = &mocks.FakeTensorflowAnalyzer{}
+			var searcher = &mocks.FakeSearcher{}
 			var l, _ = logs.NewLogger("", false)
-			s, err := NewService(ConfigOpts{
-				DataStorePath: "tmp",
-			}, config.TemporalConfig{}, ipfs, tensor, l)
+			s, err := NewService(ConfigOpts{}, config.TemporalConfig{},
+				ipfs,
+				tensor,
+				searcher,
+				l)
 			if err != nil {
 				t.Error(err)
 				return
@@ -172,7 +180,7 @@ func TestService_Magnify(t *testing.T) {
 			defer s.Close()
 
 			// set up mocks
-			s.ss.Put("existing", []byte("asdfasdf"))
+			s.search.Put("existing", []byte("asdfasdf"))
 			ipfs.CatStub = mocks.StubIpfsCat(tt.returns.catAssetPath)
 			if tt.returns.tensorErr {
 				tensor.AnalyzeReturns("", errors.New("oh no"))

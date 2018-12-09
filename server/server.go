@@ -11,6 +11,7 @@ import (
 
 	"github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/Lens/analyzer/images"
+	"github.com/RTradeLtd/Lens/search"
 	"github.com/RTradeLtd/config"
 	"github.com/RTradeLtd/rtfs"
 
@@ -60,9 +61,14 @@ func Run(
 		return fmt.Errorf("failed to instantiate image analyzer: %s", err.Error())
 	}
 
-	// create our lens service
+	// instantiate search service
+	logger.Infow("setting up search",
+		"search.datastore", opts.DataStorePath)
+	ss, err := search.NewService(opts.DataStorePath)
+
+	// instantiate Lens proper
 	logger.Info("instantiating lens service")
-	service, err := lens.NewService(opts, cfg, manager, ia, logger)
+	service, err := lens.NewService(opts, cfg, manager, ia, ss, logger)
 	if err != nil {
 		return err
 	}
