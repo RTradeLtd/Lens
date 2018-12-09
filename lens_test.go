@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"reflect"
 	"testing"
 	"time"
 
@@ -16,6 +17,7 @@ import (
 	"github.com/RTradeLtd/Lens/search"
 	"github.com/RTradeLtd/config"
 	"github.com/RTradeLtd/rtfs"
+	"github.com/gofrs/uuid"
 )
 
 const (
@@ -217,6 +219,83 @@ func TestService_Magnify(t *testing.T) {
 						t.Errorf("expected '%s' in summary", s)
 					}
 				}
+			}
+		})
+	}
+}
+
+func TestService_Update(t *testing.T) {
+	// generate uuid for testing
+	var id, _ = uuid.NewV4()
+
+	type args struct {
+		meta *models.MetaData
+		id   uuid.UUID
+		name string
+	}
+	tests := []struct {
+		name    string
+		args    args
+		want    *Object
+		wantErr bool
+	}{
+		{"bad input",
+			args{nil, uuid.UUID{}, ""},
+			nil,
+			true},
+		{"should attempt to update",
+			args{&models.MetaData{
+				Summary:  []string{"test"},
+				MimeType: "blah",
+				Category: "blah",
+			}, id, "test_object"},
+			nil,
+			false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// setup
+			var ipfs = &mocks.FakeManager{}
+			var tensor = &mocks.FakeTensorflowAnalyzer{}
+			var searcher = &mocks.FakeSearcher{}
+			var l, _ = logs.NewLogger("", false)
+			s, err := NewService(ConfigOpts{}, config.TemporalConfig{},
+				ipfs,
+				tensor,
+				searcher,
+				l)
+			if err != nil {
+				t.Error(err)
+				return
+			}
+			defer s.Close()
+
+			_, err = s.Update(tt.args.meta, tt.args.id, tt.args.name)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Service.Update() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			// check if correct data was attempted to be stored. skip if this is an
+			// error case
+			if tt.wantErr {
+				return
+			}
+			var o models.Object
+			var call = 1
+			key, val := searcher.PutArgsForCall(call)
+			t.Logf("input for call %d: '%s', '%s'", call, key, string(val))
+			if err := json.Unmarshal(val, &o); err != nil {
+				t.Errorf("unexpected input for searcher.Put call %d: %s", call, err.Error())
+				return
+			}
+			if !reflect.DeepEqual(&o.MetaData, tt.args.meta) {
+				t.Errorf("got = %v, wanted %v", o, tt.args.meta)
+				return
+			}
+			if tt.args.id != o.LensID {
+				t.Errorf("got = %v, wanted %v", o.LensID, tt.args.id)
+				return
 			}
 		})
 	}
