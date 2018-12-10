@@ -63,8 +63,7 @@
   revision = "62a112314f074fb704ebafbe6a95144396237bd2"
 
 [[projects]]
-  branch = "lens/reindex"
-  digest = "1:598b00cd1d3dbaa4af47db2c0a24bf5d36c8e23b0aaa333b638282da469ea3e2"
+  digest = "1:2199debc2c4db73040e8a640d8025b963c549ae608a35855c2e7e3583ae9974a"
   name = "github.com/RTradeLtd/grpc"
   packages = [
     "lens",
@@ -73,7 +72,8 @@
     "middleware",
   ]
   pruneopts = "UT"
-  revision = "69f588ceb16f7ff52bd36d6d80de79baf47cbc04"
+  revision = "1a4d769e38b5fbdfe8eecd3476042d3f85c9f733"
+  version = "v1.1.0"
 
 [[projects]]
   digest = "1:dde4bd07439fd961b0227570eb0aaae798bd29d4a18962a1956e58a0fd666935"
