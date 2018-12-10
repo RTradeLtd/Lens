@@ -10,6 +10,7 @@ import (
 	"github.com/RTradeLtd/Lens/logs"
 	"github.com/RTradeLtd/Lens/mocks"
 	"github.com/RTradeLtd/Lens/models"
+	"github.com/RTradeLtd/Lens/search"
 	"github.com/RTradeLtd/config"
 	"github.com/gofrs/uuid"
 )
@@ -68,8 +69,11 @@ func TestService_Magnify(t *testing.T) {
 			// setup
 			var ipfs = &mocks.FakeManager{}
 			var tensor = &mocks.FakeTensorflowAnalyzer{}
-			var searcher = &mocks.FakeSearcher{}
 			var l, _ = logs.NewLogger("", false)
+			searcher, err := search.NewService("/tmp/badgerds-lens")
+			if err != nil {
+				t.Fatal(err)
+			}
 			s, err := NewService(ConfigOpts{}, config.TemporalConfig{},
 				ipfs,
 				tensor,
