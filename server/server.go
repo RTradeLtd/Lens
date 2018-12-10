@@ -22,8 +22,8 @@ import (
 	"google.golang.org/grpc"
 )
 
-// APIServer is the Lens API server
-type APIServer struct {
+// API is the Lens API server
+type API struct {
 	lens *lens.Service
 
 	l *zap.SugaredLogger
@@ -85,7 +85,7 @@ func Run(
 	}
 
 	// create a grpc server
-	var s = &APIServer{
+	var s = &API{
 		lens: service,
 		l:    logger,
 	}
@@ -116,7 +116,7 @@ func Run(
 }
 
 // Index is used to submit a request for something to be indexed by lens
-func (as *APIServer) Index(ctx context.Context, req *pbreq.Index) (*pbresp.Index, error) {
+func (as *API) Index(ctx context.Context, req *pbreq.Index) (*pbresp.Index, error) {
 	switch req.GetType() {
 	case "ipld":
 		break
@@ -159,7 +159,7 @@ func (as *APIServer) Index(ctx context.Context, req *pbreq.Index) (*pbresp.Index
 }
 
 // Search is used to submit a simple search request against the lens index
-func (as *APIServer) Search(ctx context.Context, req *pbreq.Search) (*pbresp.Results, error) {
+func (as *API) Search(ctx context.Context, req *pbreq.Search) (*pbresp.Results, error) {
 	objects, err := as.lens.KeywordSearch(req.Keywords)
 	if err != nil {
 		return nil, err
