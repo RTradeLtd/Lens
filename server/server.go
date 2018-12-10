@@ -1,7 +1,6 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"time"
@@ -122,14 +121,15 @@ func (as *APIServer) Index(ctx context.Context, req *pbreq.Index) (*pbresp.Index
 	case "ipld":
 		break
 	default:
-		return nil, errors.New("invalid data type")
+		return nil, fmt.Errorf("invalid data type '%s'", req.GetType())
 	}
 
 	var name = req.GetIdentifier()
 	var reindex = req.GetReindex()
 	metaData, err := as.lens.Magnify(name, reindex)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to perform indexing for '%s': %s",
+			name, err.Error())
 	}
 
 	var resp *lens.Object
@@ -148,7 +148,7 @@ func (as *APIServer) Index(ctx context.Context, req *pbreq.Index) (*pbresp.Index
 				name, string(b), err.Error())
 		}
 		if resp, err = as.lens.Update(id, name, metaData); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to update object: %s", err.Error())
 		}
 	}
 

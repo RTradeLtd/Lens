@@ -197,14 +197,15 @@ func (s *Service) Store(name string, meta *models.MetaData) (*Object, error) {
 
 // Update is used to update an object
 func (s *Service) Update(id uuid.UUID, name string, meta *models.MetaData) (*Object, error) {
-	if meta == nil || len(id.Bytes()) < 1 || name == "" {
+	if meta == nil || len(id.String()) < 1 || name == "" {
 		return nil, errors.New("invalid input")
 	}
 
 	// iterate over the meta data summary, and create keywords if they don't exist
 	for _, keyword := range meta.Summary {
 		if err := s.updateKeyword(keyword, id); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to update keyword '%s' for '%s': %s",
+				keyword, id, err.Error())
 		}
 	}
 
@@ -215,13 +216,13 @@ func (s *Service) Update(id uuid.UUID, name string, meta *models.MetaData) (*Obj
 		MetaData: *meta,
 	})
 	if err = s.search.Put(id.String(), object); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to store '%s': '%s'", id.String(), err.Error())
 	}
 
 	// store the lens object in iPFS
 	hash, err := s.ipfs.DagPut(object, "json", "cbor")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to store '%s': %s", id.String(), err.Error())
 	}
 
 	return &Object{
