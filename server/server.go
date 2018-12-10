@@ -147,29 +147,29 @@ func (as *APIServer) Index(ctx context.Context, req *pbreq.Index) (*pbresp.Index
 		return nil, errors.New("invalid data type")
 	}
 
-	var objectID = req.GetIdentifier()
+	var name = req.GetIdentifier()
 	var reindex = req.GetReindex()
-	metaData, err := as.lens.Magnify(objectID, reindex)
+	metaData, err := as.lens.Magnify(name, reindex)
 	if err != nil {
 		return nil, err
 	}
 
 	var resp *lens.Object
 	if !reindex {
-		if resp, err = as.lens.Store(metaData, objectID); err != nil {
+		if resp, err = as.lens.Store(name, metaData); err != nil {
 			return nil, err
 		}
 	} else {
-		b, err := as.lens.Get(objectID)
+		b, err := as.lens.Get(name)
 		if err != nil {
-			return nil, fmt.Errorf("failed to find ID for object '%s'", objectID)
+			return nil, fmt.Errorf("failed to find ID for object '%s'", name)
 		}
 		id, err := uuid.FromBytes(b)
 		if err != nil {
 			return nil, fmt.Errorf("invalid uuid found for '%s' ('%s'): %s",
-				objectID, string(b), err.Error())
+				name, string(b), err.Error())
 		}
-		if resp, err = as.lens.Update(metaData, id, objectID); err != nil {
+		if resp, err = as.lens.Update(id, name, metaData); err != nil {
 			return nil, err
 		}
 	}

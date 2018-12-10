@@ -71,7 +71,7 @@ func TestLens_Integration(t *testing.T) {
 	}
 	t.Log("Content-Type", metadata.MimeType)
 	t.Log("meta data", metadata)
-	resp, err := service.Store(metadata, testHash)
+	resp, err := service.Store(testHash, metadata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -106,7 +106,7 @@ func TestLens_Integration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	resp, err = service.Store(metadata, testHashPdf)
+	resp, err = service.Store(testHashPdf, metadata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -270,7 +270,7 @@ func TestService_Update(t *testing.T) {
 			}
 			defer s.Close()
 
-			_, err = s.Update(tt.args.meta, tt.args.id, tt.args.name)
+			_, err = s.Update(tt.args.id, tt.args.name, tt.args.meta)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Service.Update() error = %v, wantErr %v", err, tt.wantErr)
 				return

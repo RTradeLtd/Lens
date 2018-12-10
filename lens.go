@@ -180,7 +180,7 @@ type Object struct {
 }
 
 // Store is used to store our collected meta data in a formatted object
-func (s *Service) Store(meta *models.MetaData, name string) (*Object, error) {
+func (s *Service) Store(name string, meta *models.MetaData) (*Object, error) {
 	id, err := uuid.NewV4()
 	if err != nil {
 		return nil, err
@@ -192,11 +192,11 @@ func (s *Service) Store(meta *models.MetaData, name string) (*Object, error) {
 		return nil, err
 	}
 
-	return s.Update(meta, id, name)
+	return s.Update(id, name, meta)
 }
 
 // Update is used to update an object
-func (s *Service) Update(meta *models.MetaData, id uuid.UUID, name string) (*Object, error) {
+func (s *Service) Update(id uuid.UUID, name string, meta *models.MetaData) (*Object, error) {
 	if meta == nil || len(id.Bytes()) < 1 || name == "" {
 		return nil, errors.New("invalid input")
 	}
