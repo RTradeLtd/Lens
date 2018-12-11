@@ -54,9 +54,12 @@ testenv:
 	@echo "===================   preparing test env    ==================="
 	docker-compose -f test/docker-compose.yml up -d
 	sleep $(WAIT)
+	@echo "===================          done           ==================="
+
+.PHONY: testenv-integration
+testenv-integration: testenv
 	@echo Connecting testenv IPFS node to RTrade IPFS node for test assets
 	ipfs --api=/ip4/127.0.0.1/tcp/5001 swarm connect /ip4/172.218.49.115/tcp/5002/ipfs/Qmf964tiE9JaxqntDsSBGasD4aaofPQtfYZyMSJJkRrVTQ
-	@echo "===================          done           ==================="
 
 # Run simple checks
 .PHONY: check
