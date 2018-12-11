@@ -51,6 +51,7 @@ func TestLens_Integration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer searcher.Close()
 
 	service, err := NewService(ConfigOpts{
 		UseChainAlgorithm: true,

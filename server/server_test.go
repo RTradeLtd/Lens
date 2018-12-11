@@ -102,7 +102,6 @@ func TestAPIServer_Index(t *testing.T) {
 				t.Error(err)
 				return
 			}
-			defer ls.Close()
 			as := &API{
 				lens: ls,
 				l:    l,

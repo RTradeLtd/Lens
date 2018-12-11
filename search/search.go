@@ -145,7 +145,7 @@ func (s *Service) MigrateEntries(entries []query.Entry, im *rtfs.IpfsManager, mi
 				continue
 			}
 			processedIds[id.String()] = true
-			// getthe data from IPFs so we can sniff its mime-type
+			// get the data from IPFs so we can sniff its mime-type
 			// grab the object from the database
 			b, err := s.Get(id.String())
 			if err != nil {

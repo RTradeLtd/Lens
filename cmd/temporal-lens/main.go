@@ -83,6 +83,7 @@ var commands = map[string]cmd.Cmd{
 			if err != nil {
 				log.Fatal(err)
 			}
+			defer s.Close()
 			entriesToMigrate, err := s.GetEntries()
 			if err != nil {
 				log.Fatal(err)

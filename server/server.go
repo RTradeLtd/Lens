@@ -60,6 +60,10 @@ func Run(
 	logger.Infow("setting up search",
 		"search.datastore", opts.DataStorePath)
 	ss, err := search.NewService(opts.DataStorePath)
+	if err != nil {
+		return fmt.Errorf("failed to instantiate search service: %s", err.Error())
+	}
+	defer ss.Close()
 
 	// instantiate Lens proper
 	logger.Info("instantiating lens service")

@@ -31,6 +31,7 @@ func TestService(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer s.Close()
 	entries, err := s.GetEntries()
 	if err != nil {
 		t.Fatal(err)

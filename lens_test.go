@@ -83,7 +83,6 @@ func TestService_Magnify(t *testing.T) {
 				t.Error(err)
 				return
 			}
-			defer s.Close()
 
 			// set up mocks
 			s.search.Put("existing", []byte("asdfasdf"))
@@ -172,7 +171,6 @@ func TestService_Update(t *testing.T) {
 				t.Error(err)
 				return
 			}
-			defer s.Close()
 
 			_, err = s.Update(tt.args.id, tt.args.name, tt.args.meta)
 			if (err != nil) != tt.wantErr {

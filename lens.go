@@ -78,11 +78,6 @@ func NewService(opts ConfigOpts, cfg config.TemporalConfig,
 	}, nil
 }
 
-// Close releases resources held by the service
-func (s *Service) Close() error {
-	return s.search.Close()
-}
-
 // Magnify is used to examine a given content hash, determine if it's parsable
 // and returned the summarized meta-data. Returned parameters are in the format of:
 // content type, meta-data, error
