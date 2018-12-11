@@ -1,15 +1,16 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"net"
 	"time"
 
+	"github.com/gofrs/uuid"
 	"go.uber.org/zap"
 
 	"github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/Lens/analyzer/images"
+	"github.com/RTradeLtd/Lens/search"
 	"github.com/RTradeLtd/config"
 	"github.com/RTradeLtd/rtfs"
 
@@ -17,16 +18,12 @@ import (
 	pbreq "github.com/RTradeLtd/grpc/lens/request"
 	pbresp "github.com/RTradeLtd/grpc/lens/response"
 
-	"github.com/RTradeLtd/grpc/middleware"
-	"github.com/grpc-ecosystem/go-grpc-middleware"
-	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	context "golang.org/x/net/context"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials"
 )
 
-// APIServer is the Lens API server
-type APIServer struct {
+// API is the Lens API server
+type API struct {
 	lens *lens.Service
 
 	l *zap.SugaredLogger
@@ -59,9 +56,18 @@ func Run(
 		return fmt.Errorf("failed to instantiate image analyzer: %s", err.Error())
 	}
 
-	// create our lens service
+	// instantiate search service
+	logger.Infow("setting up search",
+		"search.datastore", opts.DataStorePath)
+	ss, err := search.NewService(opts.DataStorePath)
+	if err != nil {
+		return fmt.Errorf("failed to instantiate search service: %s", err.Error())
+	}
+	defer ss.Close()
+
+	// instantiate Lens proper
 	logger.Info("instantiating lens service")
-	service, err := lens.NewService(opts, cfg, manager, ia, logger)
+	service, err := lens.NewService(opts, cfg, manager, ia, ss, logger)
 	if err != nil {
 		return err
 	}
@@ -72,36 +78,18 @@ func Run(
 		return err
 	}
 
-	// setup authentication interceptor
-	unaryIntercept, streamInterceptor := middleware.NewServerInterceptors(cfg.Endpoints.Lens.AuthKey)
-	// setup server options
-	serverOpts := []grpc.ServerOption{
-		grpc_middleware.WithUnaryServerChain(
-			unaryIntercept,
-			grpc_ctxtags.UnaryServerInterceptor(grpc_ctxtags.WithFieldExtractor(grpc_ctxtags.CodeGenRequestFieldExtractor))),
-		grpc_middleware.WithStreamServerChain(
-			streamInterceptor,
-			grpc_ctxtags.StreamServerInterceptor(grpc_ctxtags.WithFieldExtractor(grpc_ctxtags.CodeGenRequestFieldExtractor))),
-	}
-
-	// setup tls configuration
-	if cfg.Lens.TLS.CertPath != "" {
-		logger.Infow("setting up TLS",
-			"cert", cfg.TLS.CertPath,
-			"key", cfg.TLS.KeyPath)
-		creds, err := credentials.NewServerTLSFromFile(
-			cfg.Endpoints.Lens.TLS.CertPath,
-			cfg.Endpoints.Lens.TLS.KeyFile)
-		if err != nil {
-			return err
-		}
-		serverOpts = append(serverOpts, grpc.Creds(creds))
-	} else {
-		logger.Warn("no TLS configuration found")
+	// instantiate server settings
+	serverOpts, err := options(
+		cfg.Endpoints.Lens.TLS.CertPath,
+		cfg.Endpoints.Lens.TLS.KeyFile,
+		cfg.Endpoints.Lens.AuthKey,
+		logger)
+	if err != nil {
+		return err
 	}
 
 	// create a grpc server
-	var s = &APIServer{
+	var s = &API{
 		lens: service,
 		l:    logger,
 	}
@@ -132,33 +120,50 @@ func Run(
 }
 
 // Index is used to submit a request for something to be indexed by lens
-func (as *APIServer) Index(ctx context.Context, req *pbreq.Index) (*pbresp.Index, error) {
-	switch req.GetDataType() {
+func (as *API) Index(ctx context.Context, req *pbreq.Index) (*pbresp.Index, error) {
+	switch req.GetType() {
 	case "ipld":
 		break
 	default:
-		return nil, errors.New("invalid data type")
+		return nil, fmt.Errorf("invalid data type '%s'", req.GetType())
 	}
 
-	var objectID = req.GetObjectIdentifier()
-	metaData, err := as.lens.Magnify(objectID)
+	var name = req.GetIdentifier()
+	var reindex = req.GetReindex()
+	metaData, err := as.lens.Magnify(name, reindex)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to perform indexing for '%s': %s",
+			name, err.Error())
 	}
 
-	indexResponse, err := as.lens.Store(metaData, objectID)
-	if err != nil {
-		return nil, err
+	var resp *lens.Object
+	if !reindex {
+		if resp, err = as.lens.Store(name, metaData); err != nil {
+			return nil, err
+		}
+	} else {
+		b, err := as.lens.Get(name)
+		if err != nil {
+			return nil, fmt.Errorf("failed to find ID for object '%s'", name)
+		}
+		id, err := uuid.FromBytes(b)
+		if err != nil {
+			return nil, fmt.Errorf("invalid uuid found for '%s' ('%s'): %s",
+				name, string(b), err.Error())
+		}
+		if resp, err = as.lens.Update(id, name, metaData); err != nil {
+			return nil, fmt.Errorf("failed to update object: %s", err.Error())
+		}
 	}
 
 	return &pbresp.Index{
-		Id:       indexResponse.LensID.String(),
+		Id:       resp.LensID.String(),
 		Keywords: metaData.Summary,
 	}, nil
 }
 
 // Search is used to submit a simple search request against the lens index
-func (as *APIServer) Search(ctx context.Context, req *pbreq.Search) (*pbresp.Results, error) {
+func (as *API) Search(ctx context.Context, req *pbreq.Search) (*pbresp.Results, error) {
 	objects, err := as.lens.KeywordSearch(req.Keywords)
 	if err != nil {
 		return nil, err

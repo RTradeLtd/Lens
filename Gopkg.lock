@@ -63,7 +63,7 @@
   revision = "62a112314f074fb704ebafbe6a95144396237bd2"
 
 [[projects]]
-  digest = "1:f7ddefe049242aeaf5105bee95634428ba465918a8def59b9e35ce486a4e0fb5"
+  digest = "1:2199debc2c4db73040e8a640d8025b963c549ae608a35855c2e7e3583ae9974a"
   name = "github.com/RTradeLtd/grpc"
   packages = [
     "lens",
@@ -72,8 +72,8 @@
     "middleware",
   ]
   pruneopts = "UT"
-  revision = "320346f207bfe9826e26fc7b05829bd46636f876"
-  version = "v1.0.5b"
+  revision = "1a4d769e38b5fbdfe8eecd3476042d3f85c9f733"
+  version = "v1.1.0"
 
 [[projects]]
   digest = "1:dde4bd07439fd961b0227570eb0aaae798bd29d4a18962a1956e58a0fd666935"
@@ -143,13 +143,15 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:4c0989ca0bcd10799064318923b9bc2db6b4d6338dd75f3f2d86c3511aaaf5cf"
+  digest = "1:9d6dc4d6de69b330d0de86494d6db90c09848c003d5db748f40c925f865c8534"
   name = "github.com/golang/protobuf"
   packages = [
+    "jsonpb",
     "proto",
     "ptypes",
     "ptypes/any",
     "ptypes/duration",
+    "ptypes/struct",
     "ptypes/timestamp",
   ]
   pruneopts = "UT"
@@ -165,11 +167,15 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:c805a0558c867a671fc2dd1c6134b92a4d15c3fee5803abc70fdabdcb683ea0b"
+  digest = "1:6d9ec638c0f60d01a25e43940f20dff30cf8b468371ea4df54cbc5b73e07e223"
   name = "github.com/grpc-ecosystem/go-grpc-middleware"
   packages = [
     ".",
+    "logging",
+    "logging/zap",
+    "logging/zap/ctxzap",
     "tags",
+    "tags/zap",
   ]
   pruneopts = "UT"
   revision = "c250d6563d4d4c20252cd865923440e829844f4e"
@@ -596,6 +602,7 @@
     "github.com/RTradeLtd/rtfs",
     "github.com/gofrs/uuid",
     "github.com/grpc-ecosystem/go-grpc-middleware",
+    "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap",
     "github.com/grpc-ecosystem/go-grpc-middleware/tags",
     "github.com/ipfs/go-cid",
     "github.com/ipfs/go-datastore",

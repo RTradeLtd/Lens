@@ -29,11 +29,11 @@ import (
 type Service struct {
 	ipfs   rtfs.Manager
 	images images.TensorflowAnalyzer
+	search search.Searcher
 
 	oc *ocr.Analyzer
 	ta *text.Analyzer
 	px *planetary.Extractor
-	ss *search.Service
 
 	l *zap.SugaredLogger
 }
@@ -53,16 +53,11 @@ type APIOpts struct {
 	Port string
 }
 
-// IndexOperationResponse is the response from a successfuly lens indexing operation
-type IndexOperationResponse struct {
-	ContentHash string    `json:"lens_object_content_hash"`
-	LensID      uuid.UUID `json:"lens_id"`
-}
-
 // NewService is used to generate our Lens service
 func NewService(opts ConfigOpts, cfg config.TemporalConfig,
 	rm rtfs.Manager,
 	ia images.TensorflowAnalyzer,
+	ss search.Searcher,
 	logger *zap.SugaredLogger) (*Service, error) {
 	// instantiate utility classes
 	px, err := planetary.NewPlanetaryExtractor(rm)
@@ -70,18 +65,12 @@ func NewService(opts ConfigOpts, cfg config.TemporalConfig,
 		return nil, err
 	}
 
-	// instantiate service
-	ss, err := search.NewService(opts.DataStorePath)
-	if err != nil {
-		return nil, err
-	}
-
 	return &Service{
 		ipfs:   rm,
 		images: ia,
+		search: ss,
 
 		px: px,
-		ss: ss,
 		ta: text.NewTextAnalyzer(opts.UseChainAlgorithm),
 		oc: ocr.NewAnalyzer(opts.TesseractConfigPath, logger.Named("ocr")),
 
@@ -89,18 +78,13 @@ func NewService(opts ConfigOpts, cfg config.TemporalConfig,
 	}, nil
 }
 
-// Close releases resources held by the service
-func (s *Service) Close() error {
-	return s.ss.Close()
-}
-
 // Magnify is used to examine a given content hash, determine if it's parsable
 // and returned the summarized meta-data. Returned parameters are in the format of:
 // content type, meta-data, error
-func (s *Service) Magnify(hash string) (metadata *models.MetaData, err error) {
-	if has, err := s.ss.Has(hash); err != nil {
+func (s *Service) Magnify(hash string, reindex bool) (metadata *models.MetaData, err error) {
+	if has, err := s.search.Has(hash); err != nil {
 		return nil, err
-	} else if has {
+	} else if has && !reindex {
 		return nil, errors.New("this object has already been indexed")
 	}
 
@@ -184,23 +168,40 @@ func (s *Service) Magnify(hash string) (metadata *models.MetaData, err error) {
 	}, nil
 }
 
+// Object is the response from a successfuly lens indexing operation
+type Object struct {
+	ContentHash string    `json:"lens_object_content_hash"`
+	LensID      uuid.UUID `json:"lens_id"`
+}
+
 // Store is used to store our collected meta data in a formatted object
-func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResponse, error) {
+func (s *Service) Store(name string, meta *models.MetaData) (*Object, error) {
 	id, err := uuid.NewV4()
 	if err != nil {
 		return nil, err
 	}
 
+	// store the name (aka, content hash) of the object so we can avoid duplicate
+	// processing in the future
+	if err := s.search.Put(name, id.Bytes()); err != nil {
+		return nil, err
+	}
+
+	return s.Update(id, name, meta)
+}
+
+// Update is used to update an object
+func (s *Service) Update(id uuid.UUID, name string, meta *models.MetaData) (*Object, error) {
+	if meta == nil || len(id.String()) < 1 || name == "" {
+		return nil, errors.New("invalid input")
+	}
+
 	// iterate over the meta data summary, and create keywords if they don't exist
 	for _, keyword := range meta.Summary {
 		if err := s.updateKeyword(keyword, id); err != nil {
-			return nil, err
+			return nil, fmt.Errorf("failed to update keyword '%s' for '%s': %s",
+				keyword, id, err.Error())
 		}
-	}
-
-	// store the name (aka, content hash) of the object so we can avoid duplicate processing in the future
-	if err = s.ss.Put(name, []byte(id.String())); err != nil {
-		return nil, err
 	}
 
 	// store a "mapping" of the lens uuid to its corresponding lens object
@@ -209,39 +210,39 @@ func (s *Service) Store(meta *models.MetaData, name string) (*IndexOperationResp
 		Name:     name,
 		MetaData: *meta,
 	})
-	if err = s.ss.Put(id.String(), object); err != nil {
-		return nil, err
+	if err = s.search.Put(id.String(), object); err != nil {
+		return nil, fmt.Errorf("failed to store '%s': '%s'", id.String(), err.Error())
 	}
 
-	// store the lens object in iPFS
+	// store the lens object in IPFS
 	hash, err := s.ipfs.DagPut(object, "json", "cbor")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to store '%s': %s", id.String(), err.Error())
 	}
 
-	return &IndexOperationResponse{
+	return &Object{
 		ContentHash: hash,
 		LensID:      id,
 	}, nil
 }
 
-// SearchByKeyName is used to search for an object by key name
-func (s *Service) SearchByKeyName(keyname string) ([]byte, error) {
-	if has, err := s.ss.Has(keyname); err != nil {
+// Get is used to search for an object identifier by key name
+func (s *Service) Get(keyname string) ([]byte, error) {
+	if has, err := s.search.Has(keyname); err != nil {
 		return nil, err
 	} else if !has {
 		return nil, errors.New("keyname does not exist")
 	}
-	return s.ss.Get(keyname)
+	return s.search.Get(keyname)
 }
 
 // KeywordSearch is used to search by keyword
 func (s *Service) KeywordSearch(keywords []string) ([]models.Object, error) {
-	return s.ss.KeywordSearch(keywords)
+	return s.search.KeywordSearch(keywords)
 }
 
 func (s *Service) updateKeyword(keyword string, objectID uuid.UUID) error {
-	if has, err := s.ss.Has(keyword); err != nil {
+	if has, err := s.search.Has(keyword); err != nil {
 		return err
 	} else if !has {
 		var key = models.Keyword{
@@ -252,11 +253,11 @@ func (s *Service) updateKeyword(keyword string, objectID uuid.UUID) error {
 		if err != nil {
 			return err
 		}
-		return s.ss.Put(keyword, kb)
+		return s.search.Put(keyword, kb)
 	}
 
 	// keyword exists, get the keyword object from the datastore
-	kb, err := s.ss.Get(keyword)
+	kb, err := s.search.Get(keyword)
 	if err != nil {
 		return err
 	}
@@ -279,5 +280,5 @@ func (s *Service) updateKeyword(keyword string, objectID uuid.UUID) error {
 	if err != nil {
 		return err
 	}
-	return s.ss.Put(keyword, kb)
+	return s.search.Put(keyword, kb)
 }

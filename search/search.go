@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/RTradeLtd/Lens/models"
@@ -21,6 +22,7 @@ type Service struct {
 
 // NewService is used to generate our new searcher service
 func NewService(dsPath string) (*Service, error) {
+	os.MkdirAll(dsPath, os.ModePerm)
 	ds, err := badger.NewDatastore(dsPath, &badger.DefaultOptions)
 	if err != nil {
 		return nil, err
@@ -145,7 +147,7 @@ func (s *Service) MigrateEntries(entries []query.Entry, im *rtfs.IpfsManager, mi
 				continue
 			}
 			processedIds[id.String()] = true
-			// getthe data from IPFs so we can sniff its mime-type
+			// get the data from IPFs so we can sniff its mime-type
 			// grab the object from the database
 			b, err := s.Get(id.String())
 			if err != nil {
