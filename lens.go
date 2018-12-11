@@ -214,7 +214,7 @@ func (s *Service) Update(id uuid.UUID, name string, meta *models.MetaData) (*Obj
 		return nil, fmt.Errorf("failed to store '%s': '%s'", id.String(), err.Error())
 	}
 
-	// store the lens object in iPFS
+	// store the lens object in IPFS
 	hash, err := s.ipfs.DagPut(object, "json", "cbor")
 	if err != nil {
 		return nil, fmt.Errorf("failed to store '%s': %s", id.String(), err.Error())
