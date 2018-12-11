@@ -74,6 +74,7 @@ func TestService_Magnify(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
+			defer searcher.Close()
 			s, err := NewService(ConfigOpts{}, config.TemporalConfig{},
 				ipfs,
 				tensor,
