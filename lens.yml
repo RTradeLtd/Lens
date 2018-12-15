@@ -1,6 +1,32 @@
+# Production docker-compose setup for Lens.
+#
+# Usage:
+#   env LENS=latest BASE=/my/dir docker-compose -f lens.yml up
+#
+# Data:
+#   - Leave BASE unassigned to use the root directory.
+#   - Generally, component data goes in $BASE/data/$COMPONENT.
+#
+# Configuration:
+#   * lens:
+#     - configuration file should be in data directory
+#     - set LENS in env to use desired version
+#   * ipfs:
+#     - configuration files should be in data directory
+#
+
 version: '3'
 
 services:
+  lens:
+    image: rtradetech/lens:${LENS}
+    network_mode: "host" # expose all
+    restart: on-failure
+    depends_on:
+      - "ipfs"
+    volumes:
+      - ${BASE}/data/lens:/data/lens
+
   ipfs:
     image: ipfs/go-ipfs:v0.4.17
     command: daemon --migrate=true --enable-pubsub-experiment
@@ -10,13 +36,3 @@ services:
       - 8080:8080
     volumes:
       - ${BASE}/data/ipfs:/data/ipfs
-  lens:
-    image: rtradetech/lens:latest
-    network_mode: "host" # expose all
-    restart: on-failure
-    depends_on:
-      - "ipfs"
-    ports:
-      - 9998:9998
-    volumes:
-      - ${BASE}/data/lens:/data/lens

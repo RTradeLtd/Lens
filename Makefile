@@ -1,6 +1,4 @@
-#LENSVERSION=`git describe --tags`
-LENSVERSION="testing"
-
+LENSVERSION=`git describe --tags`
 GOFLAGS=
 DIST=$(shell uname)
 ifeq ($(DIST), Linux) 
@@ -74,3 +72,15 @@ gen:
 		./vendor/github.com/RTradeLtd/rtfs/rtfs.i.go Manager
 	counterfeiter -o ./mocks/images.mock.go \
 		./analyzer/images/tensorflow.go TensorflowAnalyzer
+
+# Build docker release. Use MODE=gpu for the GPU-enabled tensorflow.
+MODE=cpu
+.PHONY: docker
+docker:
+	@echo "===================  building docker image  ==================="
+	@echo MODE: $(MODE)
+	@docker build \
+		-f $(MODE).Dockerfile \
+		--build-arg LENSVERSION=$(LENSVERSION) \
+		-t rtradetech/lens:$(LENSVERSION)-$(MODE) .
+	@echo "===================          done           ==================="
