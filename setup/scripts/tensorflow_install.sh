@@ -8,7 +8,7 @@ TENSORFLOW_DIR="tmp/tensorflow"
 mkdir -p $TENSORFLOW_DIR
 
 # set defaults
-TENSORFLOW_DIST="cpu"
+TENSORFLOW_DIST=${TENSORFLOW_DIST:="cpu"}
 TENSORFLOW_PLATFORM="linux"
 TENSORFLOW_ARCH="x86_64"
 LINKER=ldconfig

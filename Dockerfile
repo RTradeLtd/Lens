@@ -1,8 +1,9 @@
 # Set up Golang build environment
 FROM golang:latest AS build-env
 
-# Set versions
+# Set args
 ARG LENSVERSION
+ARG TENSORFLOW_DIST
 
 # Mount source code
 ENV BUILD_HOME=/go/src/github.com/RTradeLtd/Lens
@@ -35,6 +36,7 @@ FROM ubuntu:16.04
 LABEL maintainer "RTrade Technologies Ltd."
 COPY --from=build-env /bin/temporal-lens /usr/local/bin
 ADD setup /setup
+ARG TENSORFLOW_DIST
 
 # Install runtime dependencies
 RUN apt-get update; \

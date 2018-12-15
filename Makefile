@@ -73,14 +73,14 @@ gen:
 	counterfeiter -o ./mocks/images.mock.go \
 		./analyzer/images/tensorflow.go TensorflowAnalyzer
 
-# Build docker release. Use MODE=gpu for the GPU-enabled tensorflow.
+# Build docker release
 MODE=cpu
 .PHONY: docker
 docker:
 	@echo "===================  building docker image  ==================="
 	@echo MODE: $(MODE)
 	@docker build \
-		-f $(MODE).Dockerfile \
-		--build-arg LENSVERSION=$(LENSVERSION) \
+		--build-arg LENSVERSION=$(LENSVERSION)-$(MODE) \
+		--build-arg TENSORFLOW_DIST=$(MODE) \
 		-t rtradetech/lens:$(LENSVERSION)-$(MODE) .
 	@echo "===================          done           ==================="
