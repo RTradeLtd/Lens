@@ -1,6 +1,4 @@
-#LENSVERSION=`git describe --tags`
-LENSVERSION="testing"
-
+LENSVERSION=`git describe --tags`
 GOFLAGS=
 DIST=$(shell uname)
 ifeq ($(DIST), Linux) 
@@ -35,16 +33,6 @@ cli:
 	@echo "====================  building Lens CLI  ======================"
 	rm -f temporal-lens
 	go build $(GOFLAGS) -ldflags "-X main.Version=$(LENSVERSION)" ./cmd/temporal-lens
-	@echo "===================          done           ==================="
-
-# protoc -I protobuf service.proto --go_out=plugins=grpc:protobuf
-.PHONY: proto
-proto:
-	@echo "===================  building protobuffs  ==================="
-	# build the request protobuf
-	protoc -I=protobuf --go_out=. "protobuf/request.proto"
-	protoc -I=protobuf --go_out=. "protobuf/response.proto"
-	protoc -I=protobuf --go_out=plugins=grpc:. "protobuf/service.proto"
 	@echo "===================          done           ==================="
 
 # Set up test environment
@@ -84,3 +72,15 @@ gen:
 		./vendor/github.com/RTradeLtd/rtfs/rtfs.i.go Manager
 	counterfeiter -o ./mocks/images.mock.go \
 		./analyzer/images/tensorflow.go TensorflowAnalyzer
+
+# Build docker release
+MODE=cpu
+.PHONY: docker
+docker:
+	@echo "===================  building docker image  ==================="
+	@echo MODE: $(MODE)
+	@docker build \
+		--build-arg LENSVERSION=$(LENSVERSION)-$(MODE) \
+		--build-arg TENSORFLOW_DIST=$(MODE) \
+		-t rtradetech/lens:$(LENSVERSION)-$(MODE) .
+	@echo "===================          done           ==================="
