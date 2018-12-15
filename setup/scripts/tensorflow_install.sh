@@ -5,7 +5,6 @@ set -e
 # setup
 TENSORFLOW_VERSION="1.12.0"
 TENSORFLOW_DIR="tmp/tensorflow"
-OUTPUT_FILE="$TENSORFLOW_DIR/tensorflow.tar.gz"
 mkdir -p $TENSORFLOW_DIR
 
 # set defaults
@@ -16,6 +15,7 @@ LINKER=ldconfig
 
 # detect other platforms
 if [[ "$OSTYPE" == "darwin"* ]]; then
+  echo "[INFO] Darwin system detected - setting custom config"
   TENSORFLOW_PLATFORM="darwin"
   LINKER=update_dyld_shared_cache
 fi
@@ -26,12 +26,8 @@ TENSORFLOW_URL="https://storage.googleapis.com/tensorflow/libtensorflow/libtenso
 echo "[INFO] Tensorflow $TENSORFLOW will be downloaded"
 
 # download and install
-echo "[INFO] Downloading tensorflow"
-wget "$TENSORFLOW_URL" -O "$OUTPUT_FILE"
-echo "[INFO] Extracting tensorflow"
-tar -xzf "$OUTPUT_FILE" -C "$TENSORFLOW_DIR"
 echo "[INFO] Installing tensorflow"
-sudo cp -r "$TENSORFLOW_DIR/lib" "/usr/local/lib/"
-sudo cp -r "$TENSORFLOW_DIR/include/" "/usr/local/include"
-echo "[INFO] Updating linkers"
+curl -L $TENSORFLOW_URL | sudo tar -C /usr/local -xz
+
+echo "[INFO] Updating linker"
 sudo $LINKER
