@@ -3,8 +3,6 @@ go:
   - "1.11"
 services:
   - docker
-env:
-  - TF_VERSION=linux-x86_64-1.12.0
 compiler:
   - g++
 env:
@@ -14,10 +12,9 @@ install:
   # tesseract
   - bash setup/scripts/tesseract_install.sh
   # tensorflow
-  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-  - curl -L "https://storage.googleapis.com/tensorflow/libtensorflow/libtensorflow-cpu-${TF_VERSION}.tar.gz" | sudo tar -C /usr/local -xz
-  - sudo ldconfig
+  - bash setup/scripts/tensorflow_install.sh
   # golang dependencies
+  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
   - go get -u golang.org/x/lint/golint
   - go get -u github.com/gen2brain/go-fitz
   - dep ensure -v
