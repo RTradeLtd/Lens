@@ -22,7 +22,9 @@ import (
 var (
 	// Version denotes the tag of this build
 	Version string
-	dsPath  = flag.String("datastore", "/data/lens/badgerds-lens",
+
+	// flag configuration
+	dsPath = flag.String("datastore", "/data/lens/badgerds-lens",
 		"path to Badger datastore")
 	logPath = flag.String("logpath", "",
 		"path to write logs to - leave blank for stdout")
@@ -58,6 +60,7 @@ var commands = map[string]cmd.Cmd{
 			// let's goooo
 			if err := server.Run(
 				ctx,
+				Version,
 				cfg.Endpoints.Lens.URL,
 				lens.ConfigOpts{
 					UseChainAlgorithm: true,
@@ -96,6 +99,10 @@ var commands = map[string]cmd.Cmd{
 }
 
 func main() {
+	if Version == "" {
+		Version = "unknown"
+	}
+
 	// create app
 	temporal := cmd.New(commands, cmd.Config{
 		Name:     "Lens",
