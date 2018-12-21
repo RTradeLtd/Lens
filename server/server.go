@@ -24,10 +24,16 @@ import (
 
 // API is the Lens API server
 type API struct {
-	version string
-	lens    *lens.Service
+	meta Metadata
+	lens *lens.Service
 
 	l *zap.SugaredLogger
+}
+
+// Metadata denotes metadata about the server
+type Metadata struct {
+	Version string
+	Edition string
 }
 
 // Run is used to create our API server
@@ -36,8 +42,8 @@ func Run(
 	ctx context.Context,
 
 	// options
-	version string,
 	addr string,
+	meta Metadata,
 	opts lens.ConfigOpts,
 	cfg config.TemporalConfig,
 
@@ -97,9 +103,9 @@ func Run(
 
 	// create a grpc server
 	var s = &API{
-		version: version,
-		lens:    service,
-		l:       logger,
+		meta: meta,
+		lens: service,
+		l:    logger,
 	}
 	gServer := grpc.NewServer(serverOpts...)
 	pb.RegisterIndexerAPIServer(gServer, s)

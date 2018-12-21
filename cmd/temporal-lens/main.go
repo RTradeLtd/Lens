@@ -23,6 +23,9 @@ var (
 	// Version denotes the tag of this build
 	Version string
 
+	// Edition indicates the this build's type
+	Edition string
+
 	// flag configuration
 	dsPath = flag.String("datastore", "/data/lens/badgerds-lens",
 		"path to Badger datastore")
@@ -60,8 +63,11 @@ var commands = map[string]cmd.Cmd{
 			// let's goooo
 			if err := server.Run(
 				ctx,
-				Version,
 				cfg.Endpoints.Lens.URL,
+				server.Metadata{
+					Version: Version,
+					Edition: Edition,
+				},
 				lens.ConfigOpts{
 					UseChainAlgorithm: true,
 					DataStorePath:     *dsPath,
@@ -104,16 +110,16 @@ func main() {
 	}
 
 	// create app
-	temporal := cmd.New(commands, cmd.Config{
+	tlens := cmd.New(commands, cmd.Config{
 		Name:     "Lens",
 		ExecName: "temporal-lens",
-		Version:  "mvp",
+		Version:  fmt.Sprintf("%s (%s edition)", Version, Edition),
 		Desc:     "Lens is a tool to aid content discovery fro the distributed web",
 	})
 
 	// run no-config commands, exit if command was run
 	flag.Parse()
-	if exit := temporal.PreRun(flag.Args()); exit == cmd.CodeOK {
+	if exit := tlens.PreRun(flag.Args()); exit == cmd.CodeOK {
 		os.Exit(0)
 	}
 
@@ -139,5 +145,5 @@ func main() {
 	}
 
 	// execute
-	os.Exit(temporal.Run(*tCfg, flags, os.Args[1:]))
+	os.Exit(tlens.Run(*tCfg, flags, os.Args[1:]))
 }

@@ -1,4 +1,5 @@
 LENSVERSION=`git describe --tags`
+EDITION=cpu
 GOFLAGS=
 DIST=$(shell uname)
 ifeq ($(DIST), Linux) 
@@ -32,7 +33,9 @@ deps:
 cli:
 	@echo "====================  building Lens CLI  ======================"
 	rm -f temporal-lens
-	go build $(GOFLAGS) -ldflags "-X main.Version=$(LENSVERSION)" ./cmd/temporal-lens
+	go build $(GOFLAGS) \
+		-ldflags "-X main.Version=$(LENSVERSION) -X main.Edition=$(EDITION)" \
+		./cmd/temporal-lens
 	@echo "===================          done           ==================="
 
 # Set up test environment
@@ -74,13 +77,12 @@ gen:
 		./analyzer/images/tensorflow.go TensorflowAnalyzer
 
 # Build docker release
-MODE=cpu
 .PHONY: docker
 docker:
 	@echo "===================  building docker image  ==================="
-	@echo MODE: $(MODE)
+	@echo EDITION: $(EDITION)
 	@docker build \
-		--build-arg LENSVERSION=$(LENSVERSION)-$(MODE) \
-		--build-arg TENSORFLOW_DIST=$(MODE) \
-		-t rtradetech/lens:$(LENSVERSION)-$(MODE) .
+		--build-arg LENSVERSION=$(LENSVERSION)-$(EDITION) \
+		--build-arg TENSORFLOW_DIST=$(EDITION) \
+		-t rtradetech/lens:$(LENSVERSION)-$(EDITION) .
 	@echo "===================          done           ==================="
