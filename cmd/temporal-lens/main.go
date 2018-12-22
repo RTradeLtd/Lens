@@ -46,7 +46,9 @@ var commands = map[string]cmd.Cmd{
 			}
 			defer l.Sync()
 
-			l = l.With("version", Version)
+			l = l.With(
+				"version", Version,
+				"edition", Edition)
 			if *logPath != "" {
 				println("logger initialized - output will be written to", *logPath)
 			}
