@@ -3,6 +3,10 @@
 export LENSVERSION=$(git describe --tags)
 echo "=> Version set as " $LENSVERSION
 
+# TODO: build GPU edition as well, and update hooks to upload all images
+# - ${IMAGE_NAME}     should be CPU build
+# - ${IMAGE_NAME}-gpu should be GPU build
+
 export EDITION=${EDITION:-"cpu"}
 echo "=> Building " $EDITION " edition"
 
