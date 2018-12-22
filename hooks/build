@@ -1,0 +1,12 @@
+#!/bin/bash
+
+export LENSVERSION=$(git describe --tags)
+echo "=> Version set as " $LENSVERSION
+
+export EDITION=${EDITION:-"cpu"}
+echo "=> Building " $EDITION " edition"
+
+docker build \
+  --build-arg LENSVERSION=$(LENSVERSION)-$(EDITION) \
+  --build-arg TENSORFLOW_DIST=$(EDITION) \
+  -t $IMAGE_NAME .
