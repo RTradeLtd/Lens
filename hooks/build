@@ -7,6 +7,6 @@ export EDITION=${EDITION:-"cpu"}
 echo "=> Building " $EDITION " edition"
 
 docker build \
-  --build-arg LENSVERSION=$(LENSVERSION)-$(EDITION) \
+  --build-arg LENSVERSION=$(LENSVERSION) \
   --build-arg TENSORFLOW_DIST=$(EDITION) \
   -t $IMAGE_NAME .
