@@ -28,7 +28,7 @@ RUN go get -u -tags gcc7 github.com/gen2brain/go-fitz
 RUN go build \
     -tags gcc7 \
     -o /bin/temporal-lens \
-    -ldflags "-X main.Version=$LENSVERSION" \
+    -ldflags "-X main.Version=$LENSVERSION -X main.Edition=$TENSORFLOW_DIST" \
     ./cmd/temporal-lens
 
 # Copy binary into clean image

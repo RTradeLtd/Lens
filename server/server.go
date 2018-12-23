@@ -24,18 +24,31 @@ import (
 
 // API is the Lens API server
 type API struct {
+	meta Metadata
 	lens *lens.Service
 
 	l *zap.SugaredLogger
 }
 
+// Metadata denotes metadata about the server
+type Metadata struct {
+	Version string
+	Edition string
+}
+
 // Run is used to create our API server
 func Run(
+
 	ctx context.Context,
+
+	// options
 	addr string,
+	meta Metadata,
 	opts lens.ConfigOpts,
 	cfg config.TemporalConfig,
+
 	logger *zap.SugaredLogger,
+
 ) error {
 	// instantiate ipfs connection
 	ipfsAPI := fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port)
@@ -90,6 +103,7 @@ func Run(
 
 	// create a grpc server
 	var s = &API{
+		meta: meta,
 		lens: service,
 		l:    logger,
 	}
