@@ -147,5 +147,5 @@ func main() {
 	}
 
 	// execute
-	os.Exit(tlens.Run(*tCfg, flags, os.Args[1:]))
+	os.Exit(tlens.Run(*tCfg, flags, flag.Args()))
 }
