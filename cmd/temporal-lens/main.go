@@ -73,6 +73,7 @@ var commands = map[string]cmd.Cmd{
 				lens.ConfigOpts{
 					UseChainAlgorithm: true,
 					DataStorePath:     *dsPath,
+					ModelsPath:        args["modelsPath"],
 				},
 				cfg,
 				l.Named("server"),
@@ -134,16 +135,21 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// grab tensorflow model location
+	tensorflowModelsPath := os.Getenv("TENSORFLOW_MODELS_PATH")
+	if tensorflowModelsPath == "" {
+		tensorflowModelsPath = "/tmp"
+	}
 	// load arguments
 	flags := map[string]string{
 		"configDag":     configDag,
 		"certFilePath":  tCfg.API.Connection.Certificates.CertPath,
 		"keyFilePath":   tCfg.API.Connection.Certificates.KeyPath,
 		"listenAddress": tCfg.API.Connection.ListenAddress,
-
-		"dbPass": tCfg.Database.Password,
-		"dbURL":  tCfg.Database.URL,
-		"dbUser": tCfg.Database.Username,
+		"modelsPath":    tensorflowModelsPath,
+		"dbPass":        tCfg.Database.Password,
+		"dbURL":         tCfg.Database.URL,
+		"dbUser":        tCfg.Database.Username,
 	}
 
 	// execute
