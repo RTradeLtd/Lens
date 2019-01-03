@@ -27,7 +27,8 @@ var (
 	Edition string
 
 	// flag configuration
-	dsPath = flag.String("datastore", "/data/lens/badgerds-lens",
+	modelPath = flag.String("modelpath", "/tmp", "path to TensorFlow modles")
+	dsPath    = flag.String("datastore", "/data/lens/badgerds-lens",
 		"path to Badger datastore")
 	logPath = flag.String("logpath", "",
 		"path to write logs to - leave blank for stdout")
@@ -73,7 +74,7 @@ var commands = map[string]cmd.Cmd{
 				lens.ConfigOpts{
 					UseChainAlgorithm: true,
 					DataStorePath:     *dsPath,
-					ModelsPath:        args["modelsPath"],
+					ModelsPath:        *modelPath,
 				},
 				cfg,
 				l.Named("server"),
@@ -135,21 +136,16 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// grab tensorflow model location
-	tensorflowModelsPath := os.Getenv("TENSORFLOW_MODELS_PATH")
-	if tensorflowModelsPath == "" {
-		tensorflowModelsPath = "/tmp"
-	}
 	// load arguments
 	flags := map[string]string{
 		"configDag":     configDag,
 		"certFilePath":  tCfg.API.Connection.Certificates.CertPath,
 		"keyFilePath":   tCfg.API.Connection.Certificates.KeyPath,
 		"listenAddress": tCfg.API.Connection.ListenAddress,
-		"modelsPath":    tensorflowModelsPath,
-		"dbPass":        tCfg.Database.Password,
-		"dbURL":         tCfg.Database.URL,
-		"dbUser":        tCfg.Database.Username,
+
+		"dbPass": tCfg.Database.Password,
+		"dbURL":  tCfg.Database.URL,
+		"dbUser": tCfg.Database.Username,
 	}
 
 	// execute
