@@ -27,7 +27,8 @@ var (
 	Edition string
 
 	// flag configuration
-	dsPath = flag.String("datastore", "/data/lens/badgerds-lens",
+	modelPath = flag.String("models", "/tmp", "path to TensorFlow models")
+	dsPath    = flag.String("datastore", "/data/lens/badgerds-lens",
 		"path to Badger datastore")
 	logPath = flag.String("logpath", "",
 		"path to write logs to - leave blank for stdout")
@@ -73,6 +74,7 @@ var commands = map[string]cmd.Cmd{
 				lens.ConfigOpts{
 					UseChainAlgorithm: true,
 					DataStorePath:     *dsPath,
+					ModelsPath:        *modelPath,
 				},
 				cfg,
 				l.Named("server"),
