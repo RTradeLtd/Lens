@@ -27,7 +27,7 @@ var (
 	Edition string
 
 	// flag configuration
-	modelPath = flag.String("modelpath", "/tmp", "path to TensorFlow modles")
+	modelPath = flag.String("models", "/tmp", "path to TensorFlow models")
 	dsPath    = flag.String("datastore", "/data/lens/badgerds-lens",
 		"path to Badger datastore")
 	logPath = flag.String("logpath", "",
