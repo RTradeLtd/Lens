@@ -99,7 +99,7 @@ func (s *Service) MigrateEntries(entries []query.Entry, im *rtfs.IpfsManager, mi
 			}
 			// if we can't unmarshal into new object, then it's an "old" object and
 			// refers to the content hash
-			var obj models.Object
+			var obj models.ObjectV1
 			if err = json.Unmarshal(bytes, &obj); err == nil {
 				bytes, err = s.Get(id.String())
 				if err != nil {
@@ -121,7 +121,7 @@ func (s *Service) MigrateEntries(entries []query.Entry, im *rtfs.IpfsManager, mi
 			}
 
 			// format the meta-data
-			meta := models.MetaData{
+			meta := models.MetaDataV1{
 				Summary: []string{name},
 			}
 			obj.LensID = id
@@ -153,7 +153,7 @@ func (s *Service) MigrateEntries(entries []query.Entry, im *rtfs.IpfsManager, mi
 			if err != nil {
 				continue
 			}
-			var obj models.Object
+			var obj models.ObjectV1
 			if err = json.Unmarshal(b, &obj); err != nil {
 				continue
 			}
@@ -201,7 +201,7 @@ func (s *Service) Has(keyName string) (bool, error) {
 }
 
 // KeywordSearch retrieves a slice of content hashes that were indexed with these keywords
-func (s *Service) KeywordSearch(keywords []string) ([]models.Object, error) {
+func (s *Service) KeywordSearch(keywords []string) ([]models.ObjectV1, error) {
 	var (
 		matches = make([]uuid.UUID, 0)
 		visited = make(map[uuid.UUID]bool)
@@ -234,8 +234,8 @@ func (s *Service) KeywordSearch(keywords []string) ([]models.Object, error) {
 	}
 
 	var (
-		objects []models.Object
-		object  models.Object
+		objects []models.ObjectV1
+		object  models.ObjectV1
 	)
 	for _, v := range matches {
 		if has, err := s.Has(v.String()); err != nil {
@@ -267,12 +267,12 @@ type FilterOpts struct {
 }
 
 // AdvancedSearch is used to perform an advanced search against the lens index
-func (s *Service) AdvancedSearch(opts *FilterOpts) ([]models.Object, error) {
+func (s *Service) AdvancedSearch(opts *FilterOpts) ([]models.ObjectV1, error) {
 	// search through categories, and get a list of IDs to search for
 	var (
 		query    []string
 		category models.Category
-		obj      models.Object
+		obj      models.ObjectV1
 	)
 	for _, v := range opts.Categories {
 		if has, err := s.Has(v); err != nil || !has {
@@ -294,7 +294,7 @@ func (s *Service) AdvancedSearch(opts *FilterOpts) ([]models.Object, error) {
 	}
 
 	var (
-		matched = make([]models.Object, 0)
+		matched = make([]models.ObjectV1, 0)
 		visited = make(map[uuid.UUID]bool)
 	)
 	for _, v := range query {

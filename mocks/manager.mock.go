@@ -2,13 +2,13 @@
 package mocks
 
 import (
-	context "context"
-	io "io"
-	sync "sync"
-	time "time"
+	"context"
+	"io"
+	"sync"
+	"time"
 
 	shell "github.com/RTradeLtd/go-ipfs-api"
-	rtfs "github.com/RTradeLtd/rtfs"
+	"github.com/RTradeLtd/rtfs"
 )
 
 type FakeManager struct {

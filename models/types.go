@@ -2,8 +2,13 @@ package models
 
 import "github.com/gofrs/uuid"
 
-// MetaData is a piece of meta data from a given object after being lensed
-type MetaData struct {
+// MetaDataV0 is an old metadata object
+type MetaDataV0 struct {
+	Summary []string `json:"summary"`
+}
+
+// MetaDataV1 is a piece of meta data from a given object after being lensed
+type MetaDataV1 struct {
 	Summary  []string `json:"summary"`
 	MimeType string   `json:"mime_type"`
 	Category string   `json:"category"`
@@ -16,7 +21,10 @@ type Category struct {
 	Identifiers []uuid.UUID `json:"object_identifiers"`
 }
 
-// MetaDataOld is an old metadata object
-type MetaDataOld struct {
-	Summary []string `json:"summary"`
+// MetaDataV2 is a piece of meta data from a given object after being lensed
+type MetaDataV2 struct {
+	DisplayName string   `json:"display_name"`
+	MimeType    string   `json:"mime_type"`
+	Category    string   `json:"category"`
+	Tags        []string `json:"tags"`
 }

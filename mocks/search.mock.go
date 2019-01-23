@@ -2,26 +2,26 @@
 package mocks
 
 import (
-	sync "sync"
+	"sync"
 
-	models "github.com/RTradeLtd/Lens/models"
-	search "github.com/RTradeLtd/Lens/search"
-	rtfs "github.com/RTradeLtd/rtfs"
-	query "github.com/ipfs/go-datastore/query"
+	"github.com/RTradeLtd/Lens/models"
+	"github.com/RTradeLtd/Lens/search"
+	"github.com/RTradeLtd/rtfs"
+	"github.com/ipfs/go-datastore/query"
 )
 
 type FakeSearcher struct {
-	AdvancedSearchStub        func(*search.FilterOpts) ([]models.Object, error)
+	AdvancedSearchStub        func(*search.FilterOpts) ([]models.ObjectV1, error)
 	advancedSearchMutex       sync.RWMutex
 	advancedSearchArgsForCall []struct {
 		arg1 *search.FilterOpts
 	}
 	advancedSearchReturns struct {
-		result1 []models.Object
+		result1 []models.ObjectV1
 		result2 error
 	}
 	advancedSearchReturnsOnCall map[int]struct {
-		result1 []models.Object
+		result1 []models.ObjectV1
 		result2 error
 	}
 	CloseStub        func() error
@@ -72,17 +72,17 @@ type FakeSearcher struct {
 		result1 bool
 		result2 error
 	}
-	KeywordSearchStub        func([]string) ([]models.Object, error)
+	KeywordSearchStub        func([]string) ([]models.ObjectV1, error)
 	keywordSearchMutex       sync.RWMutex
 	keywordSearchArgsForCall []struct {
 		arg1 []string
 	}
 	keywordSearchReturns struct {
-		result1 []models.Object
+		result1 []models.ObjectV1
 		result2 error
 	}
 	keywordSearchReturnsOnCall map[int]struct {
-		result1 []models.Object
+		result1 []models.ObjectV1
 		result2 error
 	}
 	MigrateEntriesStub        func([]query.Entry, *rtfs.IpfsManager, bool) error
@@ -114,7 +114,7 @@ type FakeSearcher struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeSearcher) AdvancedSearch(arg1 *search.FilterOpts) ([]models.Object, error) {
+func (fake *FakeSearcher) AdvancedSearch(arg1 *search.FilterOpts) ([]models.ObjectV1, error) {
 	fake.advancedSearchMutex.Lock()
 	ret, specificReturn := fake.advancedSearchReturnsOnCall[len(fake.advancedSearchArgsForCall)]
 	fake.advancedSearchArgsForCall = append(fake.advancedSearchArgsForCall, struct {
@@ -138,7 +138,7 @@ func (fake *FakeSearcher) AdvancedSearchCallCount() int {
 	return len(fake.advancedSearchArgsForCall)
 }
 
-func (fake *FakeSearcher) AdvancedSearchCalls(stub func(*search.FilterOpts) ([]models.Object, error)) {
+func (fake *FakeSearcher) AdvancedSearchCalls(stub func(*search.FilterOpts) ([]models.ObjectV1, error)) {
 	fake.advancedSearchMutex.Lock()
 	defer fake.advancedSearchMutex.Unlock()
 	fake.AdvancedSearchStub = stub
@@ -151,28 +151,28 @@ func (fake *FakeSearcher) AdvancedSearchArgsForCall(i int) *search.FilterOpts {
 	return argsForCall.arg1
 }
 
-func (fake *FakeSearcher) AdvancedSearchReturns(result1 []models.Object, result2 error) {
+func (fake *FakeSearcher) AdvancedSearchReturns(result1 []models.ObjectV1, result2 error) {
 	fake.advancedSearchMutex.Lock()
 	defer fake.advancedSearchMutex.Unlock()
 	fake.AdvancedSearchStub = nil
 	fake.advancedSearchReturns = struct {
-		result1 []models.Object
+		result1 []models.ObjectV1
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeSearcher) AdvancedSearchReturnsOnCall(i int, result1 []models.Object, result2 error) {
+func (fake *FakeSearcher) AdvancedSearchReturnsOnCall(i int, result1 []models.ObjectV1, result2 error) {
 	fake.advancedSearchMutex.Lock()
 	defer fake.advancedSearchMutex.Unlock()
 	fake.AdvancedSearchStub = nil
 	if fake.advancedSearchReturnsOnCall == nil {
 		fake.advancedSearchReturnsOnCall = make(map[int]struct {
-			result1 []models.Object
+			result1 []models.ObjectV1
 			result2 error
 		})
 	}
 	fake.advancedSearchReturnsOnCall[i] = struct {
-		result1 []models.Object
+		result1 []models.ObjectV1
 		result2 error
 	}{result1, result2}
 }
@@ -410,7 +410,7 @@ func (fake *FakeSearcher) HasReturnsOnCall(i int, result1 bool, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeSearcher) KeywordSearch(arg1 []string) ([]models.Object, error) {
+func (fake *FakeSearcher) KeywordSearch(arg1 []string) ([]models.ObjectV1, error) {
 	var arg1Copy []string
 	if arg1 != nil {
 		arg1Copy = make([]string, len(arg1))
@@ -439,7 +439,7 @@ func (fake *FakeSearcher) KeywordSearchCallCount() int {
 	return len(fake.keywordSearchArgsForCall)
 }
 
-func (fake *FakeSearcher) KeywordSearchCalls(stub func([]string) ([]models.Object, error)) {
+func (fake *FakeSearcher) KeywordSearchCalls(stub func([]string) ([]models.ObjectV1, error)) {
 	fake.keywordSearchMutex.Lock()
 	defer fake.keywordSearchMutex.Unlock()
 	fake.KeywordSearchStub = stub
@@ -452,28 +452,28 @@ func (fake *FakeSearcher) KeywordSearchArgsForCall(i int) []string {
 	return argsForCall.arg1
 }
 
-func (fake *FakeSearcher) KeywordSearchReturns(result1 []models.Object, result2 error) {
+func (fake *FakeSearcher) KeywordSearchReturns(result1 []models.ObjectV1, result2 error) {
 	fake.keywordSearchMutex.Lock()
 	defer fake.keywordSearchMutex.Unlock()
 	fake.KeywordSearchStub = nil
 	fake.keywordSearchReturns = struct {
-		result1 []models.Object
+		result1 []models.ObjectV1
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *FakeSearcher) KeywordSearchReturnsOnCall(i int, result1 []models.Object, result2 error) {
+func (fake *FakeSearcher) KeywordSearchReturnsOnCall(i int, result1 []models.ObjectV1, result2 error) {
 	fake.keywordSearchMutex.Lock()
 	defer fake.keywordSearchMutex.Unlock()
 	fake.KeywordSearchStub = nil
 	if fake.keywordSearchReturnsOnCall == nil {
 		fake.keywordSearchReturnsOnCall = make(map[int]struct {
-			result1 []models.Object
+			result1 []models.ObjectV1
 			result2 error
 		})
 	}
 	fake.keywordSearchReturnsOnCall[i] = struct {
-		result1 []models.Object
+		result1 []models.ObjectV1
 		result2 error
 	}{result1, result2}
 }

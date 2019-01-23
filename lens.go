@@ -29,13 +29,15 @@ import (
 type Service struct {
 	ipfs   rtfs.Manager
 	images images.TensorflowAnalyzer
-	search search.Searcher
 
 	oc *ocr.Analyzer
 	ta *text.Analyzer
 	px *planetary.Extractor
 
 	l *zap.SugaredLogger
+
+	// for V2 - optional
+	search search.Searcher
 }
 
 // ConfigOpts are options used to configure the lens service
@@ -81,7 +83,7 @@ func NewService(opts ConfigOpts, cfg config.TemporalConfig,
 // Magnify is used to examine a given content hash, determine if it's parsable
 // and returned the summarized meta-data. Returned parameters are in the format of:
 // content type, meta-data, error
-func (s *Service) Magnify(hash string, reindex bool) (metadata *models.MetaData, err error) {
+func (s *Service) Magnify(hash string, reindex bool) (metadata *models.MetaDataV1, err error) {
 	if has, err := s.search.Has(hash); err != nil {
 		return nil, err
 	} else if has && !reindex {
@@ -161,7 +163,7 @@ func (s *Service) Magnify(hash string, reindex bool) (metadata *models.MetaData,
 	// clear the stored text so we can parse new text later
 	s.ta.Clear()
 
-	return &models.MetaData{
+	return &models.MetaDataV1{
 		Summary:  utils.Unique(meta),
 		MimeType: contentType,
 		Category: category,
@@ -175,7 +177,7 @@ type Object struct {
 }
 
 // Store is used to store our collected meta data in a formatted object
-func (s *Service) Store(name string, meta *models.MetaData) (*Object, error) {
+func (s *Service) Store(name string, meta *models.MetaDataV1) (*Object, error) {
 	id, err := uuid.NewV4()
 	if err != nil {
 		return nil, err
@@ -191,7 +193,7 @@ func (s *Service) Store(name string, meta *models.MetaData) (*Object, error) {
 }
 
 // Update is used to update an object
-func (s *Service) Update(id uuid.UUID, name string, meta *models.MetaData) (*Object, error) {
+func (s *Service) Update(id uuid.UUID, name string, meta *models.MetaDataV1) (*Object, error) {
 	if meta == nil || len(id.String()) < 1 || name == "" {
 		return nil, errors.New("invalid input")
 	}
@@ -205,7 +207,7 @@ func (s *Service) Update(id uuid.UUID, name string, meta *models.MetaData) (*Obj
 	}
 
 	// store a "mapping" of the lens uuid to its corresponding lens object
-	object, err := json.Marshal(&models.Object{
+	object, err := json.Marshal(&models.ObjectV1{
 		LensID:   id,
 		Name:     name,
 		MetaData: *meta,
@@ -237,7 +239,7 @@ func (s *Service) Get(keyname string) ([]byte, error) {
 }
 
 // KeywordSearch is used to search by keyword
-func (s *Service) KeywordSearch(keywords []string) ([]models.Object, error) {
+func (s *Service) KeywordSearch(keywords []string) ([]models.ObjectV1, error) {
 	return s.search.KeywordSearch(keywords)
 }
 
