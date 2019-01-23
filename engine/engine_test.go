@@ -86,8 +86,8 @@ func TestEngine_Search(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var l, _ = logs.NewLogger("", true)
-			// defer t.Logf("Logs: \n%v\n", out.All())
+			var l, out = logs.NewTestLogger()
+			defer t.Logf("Logs: \n%v\n", out.All())
 			e, err := New(l, Opts{"tmp", "tmp"})
 			if err != nil {
 				t.Error("failed to create engine: " + err.Error())
