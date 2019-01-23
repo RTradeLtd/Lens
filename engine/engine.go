@@ -13,9 +13,10 @@ import (
 
 // Searcher exposes Engine's primary functions
 type Searcher interface {
-	Index(object *models.ObjectV2, content string, force bool)
-	IsIndexed(hash string) bool
+	Index(doc Document)
 	Search(query Query) ([]Result, error)
+
+	IsIndexed(hash string) bool
 	Remove(hash string)
 }
 
@@ -79,22 +80,35 @@ func (e *Engine) Run(indexInterval time.Duration) {
 	}
 }
 
+// Document denotes a document to index
+type Document struct {
+	Object  *models.ObjectV2
+	Content string
+	Reindex bool
+}
+
 // Index stores the given object
-func (e *Engine) Index(object *models.ObjectV2, content string, force bool) {
-	e.e.Index(object.Hash, types.DocData{
-		Content: content,
-		Labels: append(object.MD.Tags,
-			mimeType(object.MD.MimeType),
-			category(object.MD.Category)),
+func (e *Engine) Index(doc Document) error {
+	if doc.Object == nil || doc.Object.Hash == "" {
+		return errors.New("no object details provided")
+	}
+	e.e.Index(doc.Object.Hash, types.DocData{
+		Content: doc.Content,
+		Labels: append(doc.Object.MD.Tags,
+			mimeType(doc.Object.MD.MimeType),
+			category(doc.Object.MD.Category)),
 		Fields: map[string]string{
 			"indexed":      time.Now().String(),
-			"display_name": object.MD.DisplayName,
-			"category":     object.MD.Category,
-			"mime_type":    object.MD.MimeType,
-			"tags":         strings.Join(object.MD.Tags, ","),
+			"display_name": doc.Object.MD.DisplayName,
+			"category":     doc.Object.MD.Category,
+			"mime_type":    doc.Object.MD.MimeType,
+			"tags":         strings.Join(doc.Object.MD.Tags, ","),
 		},
-	}, force)
-	e.l.Debugw("indexed", "hash", object.Hash)
+	}, doc.Reindex)
+	e.l.Infow("index requested",
+		"hash", doc.Object.Hash,
+		"size", len(doc.Content))
+	return nil
 }
 
 // IsIndexed checks if the given content hash has already been indexed
@@ -116,6 +130,7 @@ type Query struct {
 	Hashes []string
 }
 
+// Result denotes a found document
 type Result struct {
 	Hash string
 	MD   models.MetaDataV2
@@ -186,29 +201,6 @@ func (e *Engine) Search(q Query) ([]Result, error) {
 		results = append(results, newResult(&d))
 	}
 	return results, nil
-}
-
-func newResult(d *types.ScoredDoc) Result {
-	var score float32
-	if len(d.Scores) > 0 {
-		score = d.Scores[0]
-	}
-	var md models.MetaDataV2
-	if d.Fields != nil {
-		fields, ok := d.Fields.(map[string]string)
-		if ok {
-			md.DisplayName = fields["display_name"]
-			md.Category = fields["category"]
-			md.MimeType = fields["mime_type"]
-			md.Tags = strings.Split(fields["tags"], ",")
-		}
-	}
-
-	return Result{
-		Hash:  d.DocId,
-		Score: score,
-		MD:    md,
-	}
 }
 
 // Remove deletes an indexed object from the engine
