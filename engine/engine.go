@@ -16,6 +16,7 @@ type Searcher interface {
 	Index(object *models.ObjectV2, content string, force bool)
 	IsIndexed(hash string) bool
 	Search(query Query) ([]Result, error)
+	Remove(hash string)
 }
 
 // Engine implements Lens V2's core search functionality
@@ -208,6 +209,11 @@ func newResult(d *types.ScoredDoc) Result {
 		Score: score,
 		MD:    md,
 	}
+}
+
+// Remove deletes an indexed object from the engine
+func (e *Engine) Remove(hash string) {
+	e.e.RemoveDoc(hash, true)
 }
 
 // Close shuts down the engine, but not the goroutine started by Run - cancel
