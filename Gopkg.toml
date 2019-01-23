@@ -59,3 +59,7 @@ ignored = ["github.com/gen2brain/go-fitz"]
 [[override]]
   name = "github.com/golang/protobuf"
   version = "1.2.0"
+
+[[constraint]]
+  name = "github.com/go-ego/riot"
+  branch = "master"
