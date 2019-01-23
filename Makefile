@@ -61,7 +61,7 @@ check:
 # Generate code
 .PHONY: gen
 gen:
-	ifacemaker -d \
+	ifacemaker -d true \
 		-f search/search.go \
 		-s Service \
 		-i Searcher \
