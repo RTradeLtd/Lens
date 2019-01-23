@@ -87,7 +87,7 @@ func TestLens_Integration(t *testing.T) {
 	}
 
 	// retrieve stored object
-	var out models.Object
+	var out models.ObjectV1
 	if err = service.ipfs.DagGet(resp.ContentHash, &out); err != nil {
 		t.Fatal(err)
 	}
@@ -115,7 +115,7 @@ func TestLens_Integration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to update object: %s", err.Error())
 	}
-	var updated models.Object
+	var updated models.ObjectV1
 	b, err := service.Get(o.LensID.String())
 	if err != nil {
 		t.Fatalf("failed to retrieve object: %s", err.Error())

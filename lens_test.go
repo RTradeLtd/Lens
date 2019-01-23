@@ -27,7 +27,7 @@ func TestService_Magnify(t *testing.T) {
 		name     string
 		args     args
 		returns  returns
-		wantMeta *models.MetaData
+		wantMeta *models.MetaDataV1
 		wantErr  bool
 	}{
 		{"bad hash", args{""}, returns{"", false}, nil, true},
@@ -36,7 +36,7 @@ func TestService_Magnify(t *testing.T) {
 		{"ok: pdf",
 			args{"test"},
 			returns{"test/assets/text.pdf", false},
-			&models.MetaData{
+			&models.MetaDataV1{
 				MimeType: "application/pdf",
 				Category: "pdf",
 				Summary:  []string{"page", "simple"},
@@ -46,7 +46,7 @@ func TestService_Magnify(t *testing.T) {
 		{"ok: text",
 			args{"test"},
 			returns{"README.md", false},
-			&models.MetaData{
+			&models.MetaDataV1{
 				MimeType: "text/plain; charset=utf-8",
 				Category: "document",
 				Summary:  []string{"search", "service"},
@@ -56,7 +56,7 @@ func TestService_Magnify(t *testing.T) {
 		{"ok: image",
 			args{"test"},
 			returns{"test/assets/image.jpg", false},
-			&models.MetaData{
+			&models.MetaDataV1{
 				MimeType: "image/jpeg",
 				Category: "image",
 				Summary:  []string{"test"}, // mock output
@@ -133,7 +133,7 @@ func TestService_Update(t *testing.T) {
 	var id, _ = uuid.NewV4()
 
 	type args struct {
-		meta *models.MetaData
+		meta *models.MetaDataV1
 		id   uuid.UUID
 		name string
 	}
@@ -148,7 +148,7 @@ func TestService_Update(t *testing.T) {
 			nil,
 			true},
 		{"should attempt to update",
-			args{&models.MetaData{
+			args{&models.MetaDataV1{
 				Summary:  []string{"test"},
 				MimeType: "blah",
 				Category: "blah",
@@ -184,7 +184,7 @@ func TestService_Update(t *testing.T) {
 			if tt.wantErr {
 				return
 			}
-			var o models.Object
+			var o models.ObjectV1
 			var call = 1
 			key, val := searcher.PutArgsForCall(call)
 			t.Logf("input for call %d: '%s', '%s'", call, key, string(val))
