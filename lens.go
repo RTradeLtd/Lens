@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/RTradeLtd/Lens/engine"
 	"github.com/RTradeLtd/Lens/logs"
 
 	"go.uber.org/zap"
@@ -29,6 +30,7 @@ import (
 type Service struct {
 	ipfs   rtfs.Manager
 	images images.TensorflowAnalyzer
+	se     engine.Searcher
 
 	oc *ocr.Analyzer
 	ta *text.Analyzer
@@ -60,11 +62,19 @@ func NewService(opts ConfigOpts, cfg config.TemporalConfig,
 	rm rtfs.Manager,
 	ia images.TensorflowAnalyzer,
 	ss search.Searcher,
-	logger *zap.SugaredLogger) (*Service, error) {
+	logger *zap.SugaredLogger,
+
+	// for V2 - optional
+	se ...engine.Searcher) (*Service, error) {
 	// instantiate utility classes
 	px, err := planetary.NewPlanetaryExtractor(rm)
 	if err != nil {
 		return nil, err
+	}
+
+	var e engine.Searcher
+	if len(se) > 0 {
+		e = se[0]
 	}
 
 	return &Service{
@@ -77,6 +87,8 @@ func NewService(opts ConfigOpts, cfg config.TemporalConfig,
 		oc: ocr.NewAnalyzer(opts.TesseractConfigPath, logger.Named("ocr")),
 
 		l: logger.Named("service"),
+
+		se: e,
 	}, nil
 }
 
