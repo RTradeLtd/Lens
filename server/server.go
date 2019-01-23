@@ -8,7 +8,7 @@ import (
 	"github.com/gofrs/uuid"
 	"go.uber.org/zap"
 
-	"github.com/RTradeLtd/Lens"
+	lens "github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/Lens/analyzer/images"
 	"github.com/RTradeLtd/Lens/search"
 	"github.com/RTradeLtd/config"
@@ -174,6 +174,39 @@ func (as *API) Index(ctx context.Context, req *pbreq.Index) (*pbresp.Index, erro
 		Id:       resp.LensID.String(),
 		Keywords: metaData.Summary,
 	}, nil
+}
+
+func (as *API) IndexV2(ctx context.Context, req *pbreq.Index) (*pbresp.Index, error) {
+	switch req.GetType() {
+	case "ipld":
+		break
+	default:
+		return nil, fmt.Errorf("invalid data type '%s'", req.GetType())
+	}
+
+	var hash = req.GetIdentifier()
+	var reindex = req.GetReindex()
+	content, md, err := as.lens.MagnifyV2(hash, lens.MagnifyOpts{
+		DisplayName: "",         // todo
+		Tags:        []string{}, // todo
+		Reindex:     reindex,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to perform magnification for '%s': %s",
+			hash, err.Error())
+	}
+
+	if !reindex {
+		if err = as.lens.StoreV2(hash, content, md); err != nil {
+			return nil, err
+		}
+	} else {
+		if err = as.lens.UpdateV2(hash, content, md); err != nil {
+			return nil, err
+		}
+	}
+
+	return nil, nil
 }
 
 // Search is used to submit a simple search request against the lens index
