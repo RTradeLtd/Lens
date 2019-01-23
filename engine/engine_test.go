@@ -36,7 +36,7 @@ func TestEngine_Index(t *testing.T) {
 			}
 			defer e.Close()
 			go e.Run(time.Millisecond)
-			e.Index("", tt.args.object, true)
+			e.Index(tt.args.object, "", true)
 			time.Sleep(time.Millisecond)
 			if found := e.IsIndexed(tt.args.object.Hash); found != tt.wantIndexed {
 				t.Errorf("wanted IsIndexed = '%v', got '%v'", tt.wantIndexed, found)
@@ -95,7 +95,7 @@ func TestEngine_Search(t *testing.T) {
 			defer e.Close()
 			go e.Run(time.Millisecond)
 
-			e.Index(tt.fields.content, &tt.fields.object, true)
+			e.Index(&tt.fields.object, tt.fields.content, true)
 			time.Sleep(time.Millisecond)
 
 			got, err := e.Search(tt.args.q)

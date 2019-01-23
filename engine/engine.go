@@ -13,8 +13,9 @@ import (
 
 // Searcher exposes Engine's primary functions
 type Searcher interface {
-	Index(object *models.ObjectV2, force bool)
-	Search(q Query)
+	Index(object *models.ObjectV2, content string, force bool)
+	IsIndexed(hash string) bool
+	Search(query Query) ([]Result, error)
 }
 
 // Engine implements Lens V2's core search functionality
@@ -77,13 +78,8 @@ func (e *Engine) Run(indexInterval time.Duration) {
 	}
 }
 
-// IsIndexed checks if the given content hash has already been indexed
-func (e *Engine) IsIndexed(hash string) bool {
-	return e.e.HasDoc(hash)
-}
-
 // Index stores the given object
-func (e *Engine) Index(content string, object *models.ObjectV2, force bool) {
+func (e *Engine) Index(object *models.ObjectV2, content string, force bool) {
 	e.e.Index(object.Hash, types.DocData{
 		Content: content,
 		Labels: append(object.MD.Tags,
@@ -98,6 +94,11 @@ func (e *Engine) Index(content string, object *models.ObjectV2, force bool) {
 		},
 	}, force)
 	e.l.Debugw("indexed", "hash", object.Hash)
+}
+
+// IsIndexed checks if the given content hash has already been indexed
+func (e *Engine) IsIndexed(hash string) bool {
+	return e.e.HasDoc(hash)
 }
 
 // Query denotes options for a search
@@ -216,5 +217,3 @@ func (e *Engine) Close() {
 	close(e.stop)
 	e.e.Close()
 }
-
-// func generateLabels(hash string, tags []string)
