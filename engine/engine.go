@@ -55,20 +55,11 @@ func New(l *zap.SugaredLogger, opts Opts) (*Engine, error) {
 }
 
 // Run initiates period index flushes
-func (e *Engine) Run(indexInterval time.Duration) {
-	var ticker = time.NewTicker(indexInterval)
+func (e *Engine) Run() {
 	e.stop = make(chan bool)
 	for {
 		select {
-		case <-ticker.C:
-			var now = time.Now()
-			e.e.Flush()
-			e.l.Infow("index flushed",
-				"duration", time.Since(now),
-				"documents", e.e.NumIndexed())
-
 		case <-e.stop:
-			ticker.Stop()
 			e.l.Infow("exit signal received")
 			var now = time.Now()
 			e.e.Flush()
@@ -92,6 +83,7 @@ func (e *Engine) Index(doc Document) error {
 	if doc.Object == nil || doc.Object.Hash == "" {
 		return errors.New("no object details provided")
 	}
+	var l = e.l.With("hash", doc.Object.Hash)
 	e.e.Index(doc.Object.Hash, types.DocData{
 		Content: doc.Content,
 		Labels: append(doc.Object.MD.Tags,
@@ -105,9 +97,12 @@ func (e *Engine) Index(doc Document) error {
 			"tags":         strings.Join(doc.Object.MD.Tags, ","),
 		},
 	}, doc.Reindex)
-	e.l.Infow("index requested",
-		"hash", doc.Object.Hash,
-		"size", len(doc.Content))
+	l.Infow("index requested", "size", len(doc.Content))
+	var now = time.Now()
+	e.e.Flush()
+	l.Infow("index flushed",
+		"duration", time.Since(now),
+		"documents", e.e.NumIndexed())
 	return nil
 }
 
