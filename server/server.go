@@ -176,6 +176,7 @@ func (as *API) Index(ctx context.Context, req *pbreq.Index) (*pbresp.Index, erro
 	}, nil
 }
 
+// IndexV2 is used to submit a request for something to be indexed by lens
 func (as *API) IndexV2(ctx context.Context, req *pbreq.Index) (*pbresp.Index, error) {
 	switch req.GetType() {
 	case "ipld":
