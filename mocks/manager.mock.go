@@ -25,6 +25,20 @@ type FakeManager struct {
 		result1 string
 		result2 error
 	}
+	AppendDataStub        func(string, interface{}) (string, error)
+	appendDataMutex       sync.RWMutex
+	appendDataArgsForCall []struct {
+		arg1 string
+		arg2 interface{}
+	}
+	appendDataReturns struct {
+		result1 string
+		result2 error
+	}
+	appendDataReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	CatStub        func(string) ([]byte, error)
 	catMutex       sync.RWMutex
 	catArgsForCall []struct {
@@ -95,6 +109,34 @@ type FakeManager struct {
 		result1 string
 		result2 error
 	}
+	DedupAndCalculatePinSizeStub        func(string) (int64, []string, error)
+	dedupAndCalculatePinSizeMutex       sync.RWMutex
+	dedupAndCalculatePinSizeArgsForCall []struct {
+		arg1 string
+	}
+	dedupAndCalculatePinSizeReturns struct {
+		result1 int64
+		result2 []string
+		result3 error
+	}
+	dedupAndCalculatePinSizeReturnsOnCall map[int]struct {
+		result1 int64
+		result2 []string
+		result3 error
+	}
+	NewObjectStub        func(string) (string, error)
+	newObjectMutex       sync.RWMutex
+	newObjectArgsForCall []struct {
+		arg1 string
+	}
+	newObjectReturns struct {
+		result1 string
+		result2 error
+	}
+	newObjectReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	NodeAddressStub        func() string
 	nodeAddressMutex       sync.RWMutex
 	nodeAddressArgsForCall []struct {
@@ -104,6 +146,22 @@ type FakeManager struct {
 	}
 	nodeAddressReturnsOnCall map[int]struct {
 		result1 string
+	}
+	PatchLinkStub        func(string, string, string, bool) (string, error)
+	patchLinkMutex       sync.RWMutex
+	patchLinkArgsForCall []struct {
+		arg1 string
+		arg2 string
+		arg3 string
+		arg4 bool
+	}
+	patchLinkReturns struct {
+		result1 string
+		result2 error
+	}
+	patchLinkReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
 	}
 	PinStub        func(string) error
 	pinMutex       sync.RWMutex
@@ -145,6 +203,33 @@ type FakeManager struct {
 		result1 *shell.PublishResponse
 		result2 error
 	}
+	ResolveStub        func(string) (string, error)
+	resolveMutex       sync.RWMutex
+	resolveArgsForCall []struct {
+		arg1 string
+	}
+	resolveReturns struct {
+		result1 string
+		result2 error
+	}
+	resolveReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
+	SetDataStub        func(string, interface{}) (string, error)
+	setDataMutex       sync.RWMutex
+	setDataArgsForCall []struct {
+		arg1 string
+		arg2 interface{}
+	}
+	setDataReturns struct {
+		result1 string
+		result2 error
+	}
+	setDataReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	StatStub        func(string) (*shell.ObjectStats, error)
 	statMutex       sync.RWMutex
 	statArgsForCall []struct {
@@ -157,6 +242,18 @@ type FakeManager struct {
 	statReturnsOnCall map[int]struct {
 		result1 *shell.ObjectStats
 		result2 error
+	}
+	SwarmConnectStub        func(context.Context, ...string) error
+	swarmConnectMutex       sync.RWMutex
+	swarmConnectArgsForCall []struct {
+		arg1 context.Context
+		arg2 []string
+	}
+	swarmConnectReturns struct {
+		result1 error
+	}
+	swarmConnectReturnsOnCall map[int]struct {
+		result1 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
@@ -220,6 +317,70 @@ func (fake *FakeManager) AddReturnsOnCall(i int, result1 string, result2 error) 
 		})
 	}
 	fake.addReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeManager) AppendData(arg1 string, arg2 interface{}) (string, error) {
+	fake.appendDataMutex.Lock()
+	ret, specificReturn := fake.appendDataReturnsOnCall[len(fake.appendDataArgsForCall)]
+	fake.appendDataArgsForCall = append(fake.appendDataArgsForCall, struct {
+		arg1 string
+		arg2 interface{}
+	}{arg1, arg2})
+	fake.recordInvocation("AppendData", []interface{}{arg1, arg2})
+	fake.appendDataMutex.Unlock()
+	if fake.AppendDataStub != nil {
+		return fake.AppendDataStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.appendDataReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeManager) AppendDataCallCount() int {
+	fake.appendDataMutex.RLock()
+	defer fake.appendDataMutex.RUnlock()
+	return len(fake.appendDataArgsForCall)
+}
+
+func (fake *FakeManager) AppendDataCalls(stub func(string, interface{}) (string, error)) {
+	fake.appendDataMutex.Lock()
+	defer fake.appendDataMutex.Unlock()
+	fake.AppendDataStub = stub
+}
+
+func (fake *FakeManager) AppendDataArgsForCall(i int) (string, interface{}) {
+	fake.appendDataMutex.RLock()
+	defer fake.appendDataMutex.RUnlock()
+	argsForCall := fake.appendDataArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeManager) AppendDataReturns(result1 string, result2 error) {
+	fake.appendDataMutex.Lock()
+	defer fake.appendDataMutex.Unlock()
+	fake.AppendDataStub = nil
+	fake.appendDataReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeManager) AppendDataReturnsOnCall(i int, result1 string, result2 error) {
+	fake.appendDataMutex.Lock()
+	defer fake.appendDataMutex.Unlock()
+	fake.AppendDataStub = nil
+	if fake.appendDataReturnsOnCall == nil {
+		fake.appendDataReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.appendDataReturnsOnCall[i] = struct {
 		result1 string
 		result2 error
 	}{result1, result2}
@@ -544,6 +705,135 @@ func (fake *FakeManager) DagPutReturnsOnCall(i int, result1 string, result2 erro
 	}{result1, result2}
 }
 
+func (fake *FakeManager) DedupAndCalculatePinSize(arg1 string) (int64, []string, error) {
+	fake.dedupAndCalculatePinSizeMutex.Lock()
+	ret, specificReturn := fake.dedupAndCalculatePinSizeReturnsOnCall[len(fake.dedupAndCalculatePinSizeArgsForCall)]
+	fake.dedupAndCalculatePinSizeArgsForCall = append(fake.dedupAndCalculatePinSizeArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("DedupAndCalculatePinSize", []interface{}{arg1})
+	fake.dedupAndCalculatePinSizeMutex.Unlock()
+	if fake.DedupAndCalculatePinSizeStub != nil {
+		return fake.DedupAndCalculatePinSizeStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2, ret.result3
+	}
+	fakeReturns := fake.dedupAndCalculatePinSizeReturns
+	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
+}
+
+func (fake *FakeManager) DedupAndCalculatePinSizeCallCount() int {
+	fake.dedupAndCalculatePinSizeMutex.RLock()
+	defer fake.dedupAndCalculatePinSizeMutex.RUnlock()
+	return len(fake.dedupAndCalculatePinSizeArgsForCall)
+}
+
+func (fake *FakeManager) DedupAndCalculatePinSizeCalls(stub func(string) (int64, []string, error)) {
+	fake.dedupAndCalculatePinSizeMutex.Lock()
+	defer fake.dedupAndCalculatePinSizeMutex.Unlock()
+	fake.DedupAndCalculatePinSizeStub = stub
+}
+
+func (fake *FakeManager) DedupAndCalculatePinSizeArgsForCall(i int) string {
+	fake.dedupAndCalculatePinSizeMutex.RLock()
+	defer fake.dedupAndCalculatePinSizeMutex.RUnlock()
+	argsForCall := fake.dedupAndCalculatePinSizeArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeManager) DedupAndCalculatePinSizeReturns(result1 int64, result2 []string, result3 error) {
+	fake.dedupAndCalculatePinSizeMutex.Lock()
+	defer fake.dedupAndCalculatePinSizeMutex.Unlock()
+	fake.DedupAndCalculatePinSizeStub = nil
+	fake.dedupAndCalculatePinSizeReturns = struct {
+		result1 int64
+		result2 []string
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeManager) DedupAndCalculatePinSizeReturnsOnCall(i int, result1 int64, result2 []string, result3 error) {
+	fake.dedupAndCalculatePinSizeMutex.Lock()
+	defer fake.dedupAndCalculatePinSizeMutex.Unlock()
+	fake.DedupAndCalculatePinSizeStub = nil
+	if fake.dedupAndCalculatePinSizeReturnsOnCall == nil {
+		fake.dedupAndCalculatePinSizeReturnsOnCall = make(map[int]struct {
+			result1 int64
+			result2 []string
+			result3 error
+		})
+	}
+	fake.dedupAndCalculatePinSizeReturnsOnCall[i] = struct {
+		result1 int64
+		result2 []string
+		result3 error
+	}{result1, result2, result3}
+}
+
+func (fake *FakeManager) NewObject(arg1 string) (string, error) {
+	fake.newObjectMutex.Lock()
+	ret, specificReturn := fake.newObjectReturnsOnCall[len(fake.newObjectArgsForCall)]
+	fake.newObjectArgsForCall = append(fake.newObjectArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("NewObject", []interface{}{arg1})
+	fake.newObjectMutex.Unlock()
+	if fake.NewObjectStub != nil {
+		return fake.NewObjectStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.newObjectReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeManager) NewObjectCallCount() int {
+	fake.newObjectMutex.RLock()
+	defer fake.newObjectMutex.RUnlock()
+	return len(fake.newObjectArgsForCall)
+}
+
+func (fake *FakeManager) NewObjectCalls(stub func(string) (string, error)) {
+	fake.newObjectMutex.Lock()
+	defer fake.newObjectMutex.Unlock()
+	fake.NewObjectStub = stub
+}
+
+func (fake *FakeManager) NewObjectArgsForCall(i int) string {
+	fake.newObjectMutex.RLock()
+	defer fake.newObjectMutex.RUnlock()
+	argsForCall := fake.newObjectArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeManager) NewObjectReturns(result1 string, result2 error) {
+	fake.newObjectMutex.Lock()
+	defer fake.newObjectMutex.Unlock()
+	fake.NewObjectStub = nil
+	fake.newObjectReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeManager) NewObjectReturnsOnCall(i int, result1 string, result2 error) {
+	fake.newObjectMutex.Lock()
+	defer fake.newObjectMutex.Unlock()
+	fake.NewObjectStub = nil
+	if fake.newObjectReturnsOnCall == nil {
+		fake.newObjectReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.newObjectReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeManager) NodeAddress() string {
 	fake.nodeAddressMutex.Lock()
 	ret, specificReturn := fake.nodeAddressReturnsOnCall[len(fake.nodeAddressArgsForCall)]
@@ -594,6 +884,72 @@ func (fake *FakeManager) NodeAddressReturnsOnCall(i int, result1 string) {
 	fake.nodeAddressReturnsOnCall[i] = struct {
 		result1 string
 	}{result1}
+}
+
+func (fake *FakeManager) PatchLink(arg1 string, arg2 string, arg3 string, arg4 bool) (string, error) {
+	fake.patchLinkMutex.Lock()
+	ret, specificReturn := fake.patchLinkReturnsOnCall[len(fake.patchLinkArgsForCall)]
+	fake.patchLinkArgsForCall = append(fake.patchLinkArgsForCall, struct {
+		arg1 string
+		arg2 string
+		arg3 string
+		arg4 bool
+	}{arg1, arg2, arg3, arg4})
+	fake.recordInvocation("PatchLink", []interface{}{arg1, arg2, arg3, arg4})
+	fake.patchLinkMutex.Unlock()
+	if fake.PatchLinkStub != nil {
+		return fake.PatchLinkStub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.patchLinkReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeManager) PatchLinkCallCount() int {
+	fake.patchLinkMutex.RLock()
+	defer fake.patchLinkMutex.RUnlock()
+	return len(fake.patchLinkArgsForCall)
+}
+
+func (fake *FakeManager) PatchLinkCalls(stub func(string, string, string, bool) (string, error)) {
+	fake.patchLinkMutex.Lock()
+	defer fake.patchLinkMutex.Unlock()
+	fake.PatchLinkStub = stub
+}
+
+func (fake *FakeManager) PatchLinkArgsForCall(i int) (string, string, string, bool) {
+	fake.patchLinkMutex.RLock()
+	defer fake.patchLinkMutex.RUnlock()
+	argsForCall := fake.patchLinkArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *FakeManager) PatchLinkReturns(result1 string, result2 error) {
+	fake.patchLinkMutex.Lock()
+	defer fake.patchLinkMutex.Unlock()
+	fake.PatchLinkStub = nil
+	fake.patchLinkReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeManager) PatchLinkReturnsOnCall(i int, result1 string, result2 error) {
+	fake.patchLinkMutex.Lock()
+	defer fake.patchLinkMutex.Unlock()
+	fake.PatchLinkStub = nil
+	if fake.patchLinkReturnsOnCall == nil {
+		fake.patchLinkReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.patchLinkReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *FakeManager) Pin(arg1 string) error {
@@ -784,6 +1140,133 @@ func (fake *FakeManager) PublishReturnsOnCall(i int, result1 *shell.PublishRespo
 	}{result1, result2}
 }
 
+func (fake *FakeManager) Resolve(arg1 string) (string, error) {
+	fake.resolveMutex.Lock()
+	ret, specificReturn := fake.resolveReturnsOnCall[len(fake.resolveArgsForCall)]
+	fake.resolveArgsForCall = append(fake.resolveArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("Resolve", []interface{}{arg1})
+	fake.resolveMutex.Unlock()
+	if fake.ResolveStub != nil {
+		return fake.ResolveStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.resolveReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeManager) ResolveCallCount() int {
+	fake.resolveMutex.RLock()
+	defer fake.resolveMutex.RUnlock()
+	return len(fake.resolveArgsForCall)
+}
+
+func (fake *FakeManager) ResolveCalls(stub func(string) (string, error)) {
+	fake.resolveMutex.Lock()
+	defer fake.resolveMutex.Unlock()
+	fake.ResolveStub = stub
+}
+
+func (fake *FakeManager) ResolveArgsForCall(i int) string {
+	fake.resolveMutex.RLock()
+	defer fake.resolveMutex.RUnlock()
+	argsForCall := fake.resolveArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeManager) ResolveReturns(result1 string, result2 error) {
+	fake.resolveMutex.Lock()
+	defer fake.resolveMutex.Unlock()
+	fake.ResolveStub = nil
+	fake.resolveReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeManager) ResolveReturnsOnCall(i int, result1 string, result2 error) {
+	fake.resolveMutex.Lock()
+	defer fake.resolveMutex.Unlock()
+	fake.ResolveStub = nil
+	if fake.resolveReturnsOnCall == nil {
+		fake.resolveReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.resolveReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeManager) SetData(arg1 string, arg2 interface{}) (string, error) {
+	fake.setDataMutex.Lock()
+	ret, specificReturn := fake.setDataReturnsOnCall[len(fake.setDataArgsForCall)]
+	fake.setDataArgsForCall = append(fake.setDataArgsForCall, struct {
+		arg1 string
+		arg2 interface{}
+	}{arg1, arg2})
+	fake.recordInvocation("SetData", []interface{}{arg1, arg2})
+	fake.setDataMutex.Unlock()
+	if fake.SetDataStub != nil {
+		return fake.SetDataStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.setDataReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeManager) SetDataCallCount() int {
+	fake.setDataMutex.RLock()
+	defer fake.setDataMutex.RUnlock()
+	return len(fake.setDataArgsForCall)
+}
+
+func (fake *FakeManager) SetDataCalls(stub func(string, interface{}) (string, error)) {
+	fake.setDataMutex.Lock()
+	defer fake.setDataMutex.Unlock()
+	fake.SetDataStub = stub
+}
+
+func (fake *FakeManager) SetDataArgsForCall(i int) (string, interface{}) {
+	fake.setDataMutex.RLock()
+	defer fake.setDataMutex.RUnlock()
+	argsForCall := fake.setDataArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeManager) SetDataReturns(result1 string, result2 error) {
+	fake.setDataMutex.Lock()
+	defer fake.setDataMutex.Unlock()
+	fake.SetDataStub = nil
+	fake.setDataReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeManager) SetDataReturnsOnCall(i int, result1 string, result2 error) {
+	fake.setDataMutex.Lock()
+	defer fake.setDataMutex.Unlock()
+	fake.SetDataStub = nil
+	if fake.setDataReturnsOnCall == nil {
+		fake.setDataReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.setDataReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeManager) Stat(arg1 string) (*shell.ObjectStats, error) {
 	fake.statMutex.Lock()
 	ret, specificReturn := fake.statReturnsOnCall[len(fake.statArgsForCall)]
@@ -847,11 +1330,74 @@ func (fake *FakeManager) StatReturnsOnCall(i int, result1 *shell.ObjectStats, re
 	}{result1, result2}
 }
 
+func (fake *FakeManager) SwarmConnect(arg1 context.Context, arg2 ...string) error {
+	fake.swarmConnectMutex.Lock()
+	ret, specificReturn := fake.swarmConnectReturnsOnCall[len(fake.swarmConnectArgsForCall)]
+	fake.swarmConnectArgsForCall = append(fake.swarmConnectArgsForCall, struct {
+		arg1 context.Context
+		arg2 []string
+	}{arg1, arg2})
+	fake.recordInvocation("SwarmConnect", []interface{}{arg1, arg2})
+	fake.swarmConnectMutex.Unlock()
+	if fake.SwarmConnectStub != nil {
+		return fake.SwarmConnectStub(arg1, arg2...)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.swarmConnectReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeManager) SwarmConnectCallCount() int {
+	fake.swarmConnectMutex.RLock()
+	defer fake.swarmConnectMutex.RUnlock()
+	return len(fake.swarmConnectArgsForCall)
+}
+
+func (fake *FakeManager) SwarmConnectCalls(stub func(context.Context, ...string) error) {
+	fake.swarmConnectMutex.Lock()
+	defer fake.swarmConnectMutex.Unlock()
+	fake.SwarmConnectStub = stub
+}
+
+func (fake *FakeManager) SwarmConnectArgsForCall(i int) (context.Context, []string) {
+	fake.swarmConnectMutex.RLock()
+	defer fake.swarmConnectMutex.RUnlock()
+	argsForCall := fake.swarmConnectArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeManager) SwarmConnectReturns(result1 error) {
+	fake.swarmConnectMutex.Lock()
+	defer fake.swarmConnectMutex.Unlock()
+	fake.SwarmConnectStub = nil
+	fake.swarmConnectReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeManager) SwarmConnectReturnsOnCall(i int, result1 error) {
+	fake.swarmConnectMutex.Lock()
+	defer fake.swarmConnectMutex.Unlock()
+	fake.SwarmConnectStub = nil
+	if fake.swarmConnectReturnsOnCall == nil {
+		fake.swarmConnectReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.swarmConnectReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
 func (fake *FakeManager) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
+	fake.appendDataMutex.RLock()
+	defer fake.appendDataMutex.RUnlock()
 	fake.catMutex.RLock()
 	defer fake.catMutex.RUnlock()
 	fake.checkPinMutex.RLock()
@@ -862,16 +1408,28 @@ func (fake *FakeManager) Invocations() map[string][][]interface{} {
 	defer fake.dagGetMutex.RUnlock()
 	fake.dagPutMutex.RLock()
 	defer fake.dagPutMutex.RUnlock()
+	fake.dedupAndCalculatePinSizeMutex.RLock()
+	defer fake.dedupAndCalculatePinSizeMutex.RUnlock()
+	fake.newObjectMutex.RLock()
+	defer fake.newObjectMutex.RUnlock()
 	fake.nodeAddressMutex.RLock()
 	defer fake.nodeAddressMutex.RUnlock()
+	fake.patchLinkMutex.RLock()
+	defer fake.patchLinkMutex.RUnlock()
 	fake.pinMutex.RLock()
 	defer fake.pinMutex.RUnlock()
 	fake.pubSubPublishMutex.RLock()
 	defer fake.pubSubPublishMutex.RUnlock()
 	fake.publishMutex.RLock()
 	defer fake.publishMutex.RUnlock()
+	fake.resolveMutex.RLock()
+	defer fake.resolveMutex.RUnlock()
+	fake.setDataMutex.RLock()
+	defer fake.setDataMutex.RUnlock()
 	fake.statMutex.RLock()
 	defer fake.statMutex.RUnlock()
+	fake.swarmConnectMutex.RLock()
+	defer fake.swarmConnectMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

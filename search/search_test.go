@@ -22,7 +22,6 @@ func TestService(t *testing.T) {
 	}
 	im, err := rtfs.NewManager(
 		fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port),
-		nil,
 		1*time.Minute)
 	if err != nil {
 		t.Fatal(err)

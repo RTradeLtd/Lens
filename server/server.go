@@ -25,15 +25,16 @@ import (
 // API is the Lens API server
 type API struct {
 	meta Metadata
-	lens *lens.Service
+	lens *lens.V1
 
 	l *zap.SugaredLogger
 }
 
 // Metadata denotes metadata about the server
 type Metadata struct {
-	Version string
-	Edition string
+	Version    string
+	Edition    string
+	APIVersion int
 }
 
 // Run is used to create our API server
@@ -54,7 +55,7 @@ func Run(
 	ipfsAPI := fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port)
 	logger.Infow("instantiating IPFS connection",
 		"ipfs.api", ipfsAPI)
-	manager, err := rtfs.NewManager(ipfsAPI, nil, 1*time.Minute)
+	manager, err := rtfs.NewManager(ipfsAPI, 1*time.Minute)
 	if err != nil {
 		return fmt.Errorf("failed to instantiate ipfs manager: %s", err.Error())
 	}
@@ -80,7 +81,7 @@ func Run(
 
 	// instantiate Lens proper
 	logger.Info("instantiating lens service")
-	service, err := lens.NewService(opts, cfg, manager, ia, ss, logger)
+	service, err := lens.NewServiceV1(opts, cfg, manager, ia, ss, logger)
 	if err != nil {
 		return err
 	}
@@ -174,40 +175,6 @@ func (as *API) Index(ctx context.Context, req *pbreq.Index) (*pbresp.Index, erro
 		Id:       resp.LensID.String(),
 		Keywords: metaData.Summary,
 	}, nil
-}
-
-// IndexV2 is used to submit a request for something to be indexed by lens
-func (as *API) IndexV2(ctx context.Context, req *pbreq.Index) (*pbresp.Index, error) {
-	switch req.GetType() {
-	case "ipld":
-		break
-	default:
-		return nil, fmt.Errorf("invalid data type '%s'", req.GetType())
-	}
-
-	var hash = req.GetIdentifier()
-	var reindex = req.GetReindex()
-	content, md, err := as.lens.MagnifyV2(hash, lens.MagnifyOpts{
-		DisplayName: "",         // todo
-		Tags:        []string{}, // todo
-		Reindex:     reindex,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to perform magnification for '%s': %s",
-			hash, err.Error())
-	}
-
-	if !reindex {
-		if err = as.lens.StoreV2(hash, content, md); err != nil {
-			return nil, err
-		}
-	} else {
-		if err = as.lens.UpdateV2(hash, content, md); err != nil {
-			return nil, err
-		}
-	}
-
-	return nil, nil
 }
 
 // Search is used to submit a simple search request against the lens index

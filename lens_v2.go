@@ -1,17 +1,111 @@
 package lens
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 	"time"
 
+	"go.uber.org/zap"
+
+	"github.com/RTradeLtd/Lens/analyzer/images"
+	"github.com/RTradeLtd/Lens/analyzer/ocr"
 	"github.com/RTradeLtd/Lens/engine"
+	"github.com/RTradeLtd/Lens/text"
+	"github.com/RTradeLtd/Lens/xtractor/planetary"
+	"github.com/RTradeLtd/grpc/lensv2"
+	"github.com/RTradeLtd/rtfs"
 
 	"github.com/RTradeLtd/Lens/logs"
 	"github.com/RTradeLtd/Lens/models"
 )
+
+// V2 is the new Lens API, and implements the LensV2 gRPC interface directly.
+type V2 struct {
+	se   engine.Searcher
+	ipfs rtfs.Manager
+
+	// Analysis classes
+	oc *ocr.Analyzer
+	ta *text.Analyzer
+	px *planetary.Extractor
+	tf images.TensorflowAnalyzer
+
+	l *zap.SugaredLogger
+}
+
+// NewV2 instantiates a new V2 API
+func NewV2(
+	opts ConfigOpts,
+	ipfs rtfs.Manager,
+	ia images.TensorflowAnalyzer,
+	logger *zap.SugaredLogger,
+) (*V2, error) {
+	// instantiate utility classes
+	px, err := planetary.NewPlanetaryExtractor(ipfs)
+	if err != nil {
+		return nil, err
+	}
+
+	return &V2{
+		ipfs: ipfs,
+		tf:   ia,
+		px:   px,
+		ta:   text.NewTextAnalyzer(opts.UseChainAlgorithm),
+		oc:   ocr.NewAnalyzer(opts.TesseractConfigPath, logger.Named("ocr")),
+
+		l: logger.Named("service"),
+	}, nil
+}
+
+// Index analyzes and stores the given object
+func (v *V2) Index(ctx context.Context, req *lensv2.IndexReq) (*lensv2.IndexResp, error) {
+	switch req.GetType() {
+	case lensv2.IndexReq_IPLD:
+		break
+	default:
+		return nil, fmt.Errorf("invalid data type '%s'", req.GetType())
+	}
+
+	var hash = req.GetHash()
+	var reindex = req.GetOptions().GetReindex()
+	content, md, err := v.magnify(hash, MagnifyOpts{
+		DisplayName: req.GetDisplayName(),
+		Tags:        req.GetTags(),
+		Reindex:     reindex,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to perform magnification for '%s': %s",
+			hash, err.Error())
+	}
+
+	if !reindex {
+		if err = v.store(hash, content, md); err != nil {
+			return nil, err
+		}
+	} else {
+		if err = v.update(hash, content, md); err != nil {
+			return nil, err
+		}
+	}
+
+	return &lensv2.IndexResp{}, nil
+}
+
+// Search executes a query against the Lens index
+func (v *V2) Search(ctx context.Context, req *lensv2.SearchReq) (*lensv2.SearchResp, error) {
+	return &lensv2.SearchResp{}, nil
+}
+
+// Remove unindexes and deletes the requested object
+func (v *V2) Remove(ctx context.Context, req *lensv2.RemoveReq) (*lensv2.RemoveResp, error) {
+	if err := v.remove(req.GetHash()); err != nil {
+		return nil, err
+	}
+	return &lensv2.RemoveResp{}, nil
+}
 
 // MagnifyOpts declares configuration for magnification
 type MagnifyOpts struct {
@@ -20,10 +114,8 @@ type MagnifyOpts struct {
 	Tags        []string
 }
 
-// MagnifyV2 is used to examine a given content hash, determine if it's parsable,
-// and return the object's content and metadata
-func (s *Service) MagnifyV2(hash string, opts MagnifyOpts) (content string, metadata *models.MetaDataV2, err error) {
-	if s.se.IsIndexed(hash) && !opts.Reindex {
+func (v *V2) magnify(hash string, opts MagnifyOpts) (content string, metadata *models.MetaDataV2, err error) {
+	if v.se.IsIndexed(hash) && !opts.Reindex {
 		return "", nil, fmt.Errorf("object '%s' has already been indexed", hash)
 	}
 
@@ -33,12 +125,12 @@ func (s *Service) MagnifyV2(hash string, opts MagnifyOpts) (content string, meta
 	}
 
 	// set up logger
-	var l = logs.NewProcessLogger(s.l, "magnify", "hash", hash)
+	var l = logs.NewProcessLogger(v.l, "magnify", "hash", hash)
 	var start = time.Now()
 	defer func() { l.Infow("magnification ended", "duration", time.Since(start)) }()
 
 	// retrieve object and detect content type
-	contents, err := s.px.ExtractContents(hash)
+	contents, err := v.px.ExtractContents(hash)
 	if err != nil {
 		return "", nil, fmt.Errorf("failed to find content for hash '%s'", hash)
 	}
@@ -62,7 +154,7 @@ func (s *Service) MagnifyV2(hash string, opts MagnifyOpts) (content string, meta
 	switch parsed[0] {
 	case "application/pdf":
 		category = "pdf"
-		text, err := s.oc.Analyze(hash, contents, "pdf")
+		text, err := v.oc.Analyze(hash, contents, "pdf")
 		if err != nil {
 			return "", nil, err
 		}
@@ -78,14 +170,14 @@ func (s *Service) MagnifyV2(hash string, opts MagnifyOpts) (content string, meta
 			content = string(contents)
 		case "image":
 			category = "image"
-			keyword, err := s.images.Analyze(hash, contents)
+			keyword, err := v.tf.Analyze(hash, contents)
 			if err != nil {
 				l.Warnw("failed to categorize image", "error", err)
 				return "", nil, errors.New("failed to categorize image")
 			}
 
 			// grab any text in image
-			text, err := s.oc.Analyze(hash, contents, "image")
+			text, err := v.oc.Analyze(hash, contents, "image")
 			if err != nil {
 				l.Warnw("failed to OCR image", "error", err)
 				content = keyword
@@ -106,9 +198,9 @@ func (s *Service) MagnifyV2(hash string, opts MagnifyOpts) (content string, meta
 	}, nil
 }
 
-// StoreV2 is used to store our collected meta data in a formatted object
-func (s *Service) StoreV2(hash string, content string, md *models.MetaDataV2) error {
-	s.se.Index(engine.Document{
+// Store is used to store our collected meta data in a formatted object
+func (v *V2) store(hash string, content string, md *models.MetaDataV2) error {
+	v.se.Index(engine.Document{
 		Object: &models.ObjectV2{
 			Hash: hash,
 			MD:   *md,
@@ -119,19 +211,20 @@ func (s *Service) StoreV2(hash string, content string, md *models.MetaDataV2) er
 	return nil
 }
 
-// UpdateV2 is used to update an indexed object
-func (s *Service) UpdateV2(hash string, content string, md *models.MetaDataV2) error {
-	if err := s.RemoveV2(hash); err != nil {
+// Update is used to update an indexed object
+func (v *V2) update(hash string, content string, md *models.MetaDataV2) error {
+	if err := v.remove(hash); err != nil {
 		return err
 	}
-	s.StoreV2(hash, content, md)
+	v.store(hash, content, md)
 	return nil
 }
 
-// RemoveV2 is used to remove an indexed object
-func (s *Service) RemoveV2(hash string) error {
-	if s.se.IsIndexed(hash) {
+// Remove is used to remove an indexed object
+func (v *V2) remove(hash string) error {
+	if v.se.IsIndexed(hash) {
 		return fmt.Errorf("object '%s' does not exist", hash)
 	}
+	v.se.Remove(hash)
 	return nil
 }

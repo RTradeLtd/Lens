@@ -8,7 +8,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/RTradeLtd/Lens/engine"
 	"github.com/RTradeLtd/Lens/logs"
 
 	"go.uber.org/zap"
@@ -26,11 +25,10 @@ import (
 	"github.com/gofrs/uuid"
 )
 
-// Service contains the various components of Lens
-type Service struct {
+// V1 contains version 1 of the various components and functionality of Lens
+type V1 struct {
 	ipfs   rtfs.Manager
 	images images.TensorflowAnalyzer
-	se     engine.Searcher
 
 	oc *ocr.Analyzer
 	ta *text.Analyzer
@@ -38,7 +36,6 @@ type Service struct {
 
 	l *zap.SugaredLogger
 
-	// for V2 - optional
 	search search.Searcher
 }
 
@@ -57,27 +54,22 @@ type APIOpts struct {
 	Port string
 }
 
-// NewService is used to generate our Lens service
-func NewService(opts ConfigOpts, cfg config.TemporalConfig,
+// NewServiceV1 is used to generate our Lens service
+func NewServiceV1(
+	opts ConfigOpts,
+	cfg config.TemporalConfig,
 	rm rtfs.Manager,
 	ia images.TensorflowAnalyzer,
 	ss search.Searcher,
 	logger *zap.SugaredLogger,
-
-	// for V2 - optional
-	se ...engine.Searcher) (*Service, error) {
+) (*V1, error) {
 	// instantiate utility classes
 	px, err := planetary.NewPlanetaryExtractor(rm)
 	if err != nil {
 		return nil, err
 	}
 
-	var e engine.Searcher
-	if len(se) > 0 {
-		e = se[0]
-	}
-
-	return &Service{
+	return &V1{
 		ipfs:   rm,
 		images: ia,
 		search: ss,
@@ -87,29 +79,27 @@ func NewService(opts ConfigOpts, cfg config.TemporalConfig,
 		oc: ocr.NewAnalyzer(opts.TesseractConfigPath, logger.Named("ocr")),
 
 		l: logger.Named("service"),
-
-		se: e,
 	}, nil
 }
 
 // Magnify is used to examine a given content hash, determine if it's parsable
 // and returned the summarized meta-data. Returned parameters are in the format of:
 // content type, meta-data, error
-func (s *Service) Magnify(hash string, reindex bool) (metadata *models.MetaDataV1, err error) {
-	if has, err := s.search.Has(hash); err != nil {
+func (v *V1) Magnify(hash string, reindex bool) (metadata *models.MetaDataV1, err error) {
+	if has, err := v.search.Has(hash); err != nil {
 		return nil, err
 	} else if has && !reindex {
 		return nil, errors.New("this object has already been indexed")
 	}
 
-	var l = logs.NewProcessLogger(s.l, "magnify",
+	var l = logs.NewProcessLogger(v.l, "magnify",
 		"hash", hash)
 
 	var start = time.Now()
 	defer func() { l.Infow("magnification ended", "duration", time.Since(start)) }()
 
 	// retrieve object and detect content type
-	contents, err := s.px.ExtractContents(hash)
+	contents, err := v.px.ExtractContents(hash)
 	if err != nil {
 		return nil, fmt.Errorf("failed to find content for hash '%s'", hash)
 	}
@@ -135,11 +125,11 @@ func (s *Service) Magnify(hash string, reindex bool) (metadata *models.MetaDataV
 	switch parsed[0] {
 	case "application/pdf":
 		category = "pdf"
-		text, err := s.oc.Analyze(hash, contents, "pdf")
+		text, err := v.oc.Analyze(hash, contents, "pdf")
 		if err != nil {
 			return nil, err
 		}
-		meta = s.ta.Summarize(text, 0.25)
+		meta = v.ta.Summarize(text, 0.25)
 	default:
 		var parsed2 = strings.FieldsFunc(contentType, func(r rune) bool { return (r == '/') })
 		if parsed2 == nil || len(parsed2) == 0 {
@@ -148,24 +138,24 @@ func (s *Service) Magnify(hash string, reindex bool) (metadata *models.MetaDataV
 		switch parsed2[0] {
 		case "text":
 			category = "document"
-			meta = s.ta.Summarize(string(contents), 0.25)
+			meta = v.ta.Summarize(string(contents), 0.25)
 		case "image":
 			category = "image"
 
 			// categorize
-			keyword, err := s.images.Analyze(hash, contents)
+			keyword, err := v.images.Analyze(hash, contents)
 			if err != nil {
 				l.Warnw("failed to categorize image", "error", err)
 				return nil, errors.New("failed to categorize image")
 			}
 
 			// grab any text in image
-			text, err := s.oc.Analyze(hash, contents, "image")
+			text, err := v.oc.Analyze(hash, contents, "image")
 			if err != nil {
 				l.Warnw("failed to OCR image", "error", err)
 				meta = []string{keyword}
 			} else {
-				meta = append(s.ta.Summarize(text, 0.1), keyword)
+				meta = append(v.ta.Summarize(text, 0.1), keyword)
 			}
 		default:
 			return nil, errors.New("unsupported content type for indexing")
@@ -173,7 +163,7 @@ func (s *Service) Magnify(hash string, reindex bool) (metadata *models.MetaDataV
 	}
 
 	// clear the stored text so we can parse new text later
-	s.ta.Clear()
+	v.ta.Clear()
 
 	return &models.MetaDataV1{
 		Summary:  utils.Unique(meta),
@@ -189,7 +179,7 @@ type Object struct {
 }
 
 // Store is used to store our collected meta data in a formatted object
-func (s *Service) Store(name string, meta *models.MetaDataV1) (*Object, error) {
+func (v *V1) Store(name string, meta *models.MetaDataV1) (*Object, error) {
 	id, err := uuid.NewV4()
 	if err != nil {
 		return nil, err
@@ -197,22 +187,22 @@ func (s *Service) Store(name string, meta *models.MetaDataV1) (*Object, error) {
 
 	// store the name (aka, content hash) of the object so we can avoid duplicate
 	// processing in the future
-	if err := s.search.Put(name, id.Bytes()); err != nil {
+	if err := v.search.Put(name, id.Bytes()); err != nil {
 		return nil, err
 	}
 
-	return s.Update(id, name, meta)
+	return v.Update(id, name, meta)
 }
 
 // Update is used to update an object
-func (s *Service) Update(id uuid.UUID, name string, meta *models.MetaDataV1) (*Object, error) {
+func (v *V1) Update(id uuid.UUID, name string, meta *models.MetaDataV1) (*Object, error) {
 	if meta == nil || len(id.String()) < 1 || name == "" {
 		return nil, errors.New("invalid input")
 	}
 
 	// iterate over the meta data summary, and create keywords if they don't exist
 	for _, keyword := range meta.Summary {
-		if err := s.updateKeyword(keyword, id); err != nil {
+		if err := v.updateKeyword(keyword, id); err != nil {
 			return nil, fmt.Errorf("failed to update keyword '%s' for '%s': %s",
 				keyword, id, err.Error())
 		}
@@ -224,12 +214,12 @@ func (s *Service) Update(id uuid.UUID, name string, meta *models.MetaDataV1) (*O
 		Name:     name,
 		MetaData: *meta,
 	})
-	if err = s.search.Put(id.String(), object); err != nil {
+	if err = v.search.Put(id.String(), object); err != nil {
 		return nil, fmt.Errorf("failed to store '%s': '%s'", id.String(), err.Error())
 	}
 
 	// store the lens object in IPFS
-	hash, err := s.ipfs.DagPut(object, "json", "cbor")
+	hash, err := v.ipfs.DagPut(object, "json", "cbor")
 	if err != nil {
 		return nil, fmt.Errorf("failed to store '%s': %s", id.String(), err.Error())
 	}
@@ -241,22 +231,22 @@ func (s *Service) Update(id uuid.UUID, name string, meta *models.MetaDataV1) (*O
 }
 
 // Get is used to search for an object identifier by key name
-func (s *Service) Get(keyname string) ([]byte, error) {
-	if has, err := s.search.Has(keyname); err != nil {
+func (v *V1) Get(keyname string) ([]byte, error) {
+	if has, err := v.search.Has(keyname); err != nil {
 		return nil, err
 	} else if !has {
 		return nil, errors.New("keyname does not exist")
 	}
-	return s.search.Get(keyname)
+	return v.search.Get(keyname)
 }
 
 // KeywordSearch is used to search by keyword
-func (s *Service) KeywordSearch(keywords []string) ([]models.ObjectV1, error) {
-	return s.search.KeywordSearch(keywords)
+func (v *V1) KeywordSearch(keywords []string) ([]models.ObjectV1, error) {
+	return v.search.KeywordSearch(keywords)
 }
 
-func (s *Service) updateKeyword(keyword string, objectID uuid.UUID) error {
-	if has, err := s.search.Has(keyword); err != nil {
+func (v *V1) updateKeyword(keyword string, objectID uuid.UUID) error {
+	if has, err := v.search.Has(keyword); err != nil {
 		return err
 	} else if !has {
 		var key = models.Keyword{
@@ -267,11 +257,11 @@ func (s *Service) updateKeyword(keyword string, objectID uuid.UUID) error {
 		if err != nil {
 			return err
 		}
-		return s.search.Put(keyword, kb)
+		return v.search.Put(keyword, kb)
 	}
 
 	// keyword exists, get the keyword object from the datastore
-	kb, err := s.search.Get(keyword)
+	kb, err := v.search.Get(keyword)
 	if err != nil {
 		return err
 	}
@@ -294,5 +284,5 @@ func (s *Service) updateKeyword(keyword string, objectID uuid.UUID) error {
 	if err != nil {
 		return err
 	}
-	return s.search.Put(keyword, kb)
+	return v.search.Put(keyword, kb)
 }

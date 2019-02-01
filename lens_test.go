@@ -75,7 +75,7 @@ func TestService_Magnify(t *testing.T) {
 				t.Fatal(err)
 			}
 			defer searcher.Close()
-			s, err := NewService(ConfigOpts{}, config.TemporalConfig{},
+			s, err := NewServiceV1(ConfigOpts{}, config.TemporalConfig{},
 				ipfs,
 				tensor,
 				searcher,
@@ -163,7 +163,7 @@ func TestService_Update(t *testing.T) {
 			var tensor = &mocks.FakeTensorflowAnalyzer{}
 			var searcher = &mocks.FakeSearcher{}
 			var l, _ = logs.NewLogger("", false)
-			s, err := NewService(ConfigOpts{}, config.TemporalConfig{},
+			s, err := NewServiceV1(ConfigOpts{}, config.TemporalConfig{},
 				ipfs,
 				tensor,
 				searcher,
