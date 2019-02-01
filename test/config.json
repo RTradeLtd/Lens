@@ -79,6 +79,14 @@
 		"email_name": ""
 	},
 	"endpoints": {
-		"lens_grpc": "0.0.0.0:9998"
+		"lens": {
+			"url": "0.0.0.0:9998",
+			"tls": {
+				"cert_path": "",
+				"key_file": ""
+			},
+			"auth_key": "blahblahblah",
+			"log_file": ""
+		}
 	}
 }

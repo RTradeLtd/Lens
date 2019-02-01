@@ -36,9 +36,15 @@ type V2 struct {
 	l *zap.SugaredLogger
 }
 
+// V2Options denotes options for the V2 Lens API
+type V2Options struct {
+	UseChainAlgorithm   bool
+	TesseractConfigPath string
+}
+
 // NewV2 instantiates a new V2 API
 func NewV2(
-	opts ConfigOpts,
+	opts V2Options,
 	ipfs rtfs.Manager,
 	ia images.TensorflowAnalyzer,
 	logger *zap.SugaredLogger,
@@ -55,8 +61,7 @@ func NewV2(
 		px:   px,
 		ta:   text.NewTextAnalyzer(opts.UseChainAlgorithm),
 		oc:   ocr.NewAnalyzer(opts.TesseractConfigPath, logger.Named("ocr")),
-
-		l: logger.Named("service"),
+		l:    logger.Named("service.v2"),
 	}, nil
 }
 
