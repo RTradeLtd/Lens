@@ -34,7 +34,7 @@ func TestLens_Integration(t *testing.T) {
 		t.Fatal(err)
 	}
 	ipfsAPI := fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port)
-	manager, err := rtfs.NewManager(ipfsAPI, 1*time.Minute)
+	manager, err := rtfs.NewManager(ipfsAPI, "", 1*time.Minute)
 	if err != nil {
 		t.Fatal(err)
 	}

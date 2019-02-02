@@ -12,10 +12,11 @@ import (
 )
 
 type FakeManager struct {
-	AddStub        func(io.Reader) (string, error)
+	AddStub        func(io.Reader, ...func(*shell.RequestBuilder) error) (string, error)
 	addMutex       sync.RWMutex
 	addArgsForCall []struct {
 		arg1 io.Reader
+		arg2 []func(*shell.RequestBuilder) error
 	}
 	addReturns struct {
 		result1 string
@@ -109,21 +110,6 @@ type FakeManager struct {
 		result1 string
 		result2 error
 	}
-	DedupAndCalculatePinSizeStub        func(string) (int64, []string, error)
-	dedupAndCalculatePinSizeMutex       sync.RWMutex
-	dedupAndCalculatePinSizeArgsForCall []struct {
-		arg1 string
-	}
-	dedupAndCalculatePinSizeReturns struct {
-		result1 int64
-		result2 []string
-		result3 error
-	}
-	dedupAndCalculatePinSizeReturnsOnCall map[int]struct {
-		result1 int64
-		result2 []string
-		result3 error
-	}
 	NewObjectStub        func(string) (string, error)
 	newObjectMutex       sync.RWMutex
 	newObjectArgsForCall []struct {
@@ -174,6 +160,20 @@ type FakeManager struct {
 	pinReturnsOnCall map[int]struct {
 		result1 error
 	}
+	PinUpdateStub        func(string, string) (string, error)
+	pinUpdateMutex       sync.RWMutex
+	pinUpdateArgsForCall []struct {
+		arg1 string
+		arg2 string
+	}
+	pinUpdateReturns struct {
+		result1 string
+		result2 error
+	}
+	pinUpdateReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	PubSubPublishStub        func(string, string) error
 	pubSubPublishMutex       sync.RWMutex
 	pubSubPublishArgsForCall []struct {
@@ -201,6 +201,21 @@ type FakeManager struct {
 	}
 	publishReturnsOnCall map[int]struct {
 		result1 *shell.PublishResponse
+		result2 error
+	}
+	RefsStub        func(string, bool, bool) ([]string, error)
+	refsMutex       sync.RWMutex
+	refsArgsForCall []struct {
+		arg1 string
+		arg2 bool
+		arg3 bool
+	}
+	refsReturns struct {
+		result1 []string
+		result2 error
+	}
+	refsReturnsOnCall map[int]struct {
+		result1 []string
 		result2 error
 	}
 	ResolveStub        func(string) (string, error)
@@ -259,16 +274,17 @@ type FakeManager struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeManager) Add(arg1 io.Reader) (string, error) {
+func (fake *FakeManager) Add(arg1 io.Reader, arg2 ...func(*shell.RequestBuilder) error) (string, error) {
 	fake.addMutex.Lock()
 	ret, specificReturn := fake.addReturnsOnCall[len(fake.addArgsForCall)]
 	fake.addArgsForCall = append(fake.addArgsForCall, struct {
 		arg1 io.Reader
-	}{arg1})
-	fake.recordInvocation("Add", []interface{}{arg1})
+		arg2 []func(*shell.RequestBuilder) error
+	}{arg1, arg2})
+	fake.recordInvocation("Add", []interface{}{arg1, arg2})
 	fake.addMutex.Unlock()
 	if fake.AddStub != nil {
-		return fake.AddStub(arg1)
+		return fake.AddStub(arg1, arg2...)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -283,17 +299,17 @@ func (fake *FakeManager) AddCallCount() int {
 	return len(fake.addArgsForCall)
 }
 
-func (fake *FakeManager) AddCalls(stub func(io.Reader) (string, error)) {
+func (fake *FakeManager) AddCalls(stub func(io.Reader, ...func(*shell.RequestBuilder) error) (string, error)) {
 	fake.addMutex.Lock()
 	defer fake.addMutex.Unlock()
 	fake.AddStub = stub
 }
 
-func (fake *FakeManager) AddArgsForCall(i int) io.Reader {
+func (fake *FakeManager) AddArgsForCall(i int) (io.Reader, []func(*shell.RequestBuilder) error) {
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
 	argsForCall := fake.addArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeManager) AddReturns(result1 string, result2 error) {
@@ -705,72 +721,6 @@ func (fake *FakeManager) DagPutReturnsOnCall(i int, result1 string, result2 erro
 	}{result1, result2}
 }
 
-func (fake *FakeManager) DedupAndCalculatePinSize(arg1 string) (int64, []string, error) {
-	fake.dedupAndCalculatePinSizeMutex.Lock()
-	ret, specificReturn := fake.dedupAndCalculatePinSizeReturnsOnCall[len(fake.dedupAndCalculatePinSizeArgsForCall)]
-	fake.dedupAndCalculatePinSizeArgsForCall = append(fake.dedupAndCalculatePinSizeArgsForCall, struct {
-		arg1 string
-	}{arg1})
-	fake.recordInvocation("DedupAndCalculatePinSize", []interface{}{arg1})
-	fake.dedupAndCalculatePinSizeMutex.Unlock()
-	if fake.DedupAndCalculatePinSizeStub != nil {
-		return fake.DedupAndCalculatePinSizeStub(arg1)
-	}
-	if specificReturn {
-		return ret.result1, ret.result2, ret.result3
-	}
-	fakeReturns := fake.dedupAndCalculatePinSizeReturns
-	return fakeReturns.result1, fakeReturns.result2, fakeReturns.result3
-}
-
-func (fake *FakeManager) DedupAndCalculatePinSizeCallCount() int {
-	fake.dedupAndCalculatePinSizeMutex.RLock()
-	defer fake.dedupAndCalculatePinSizeMutex.RUnlock()
-	return len(fake.dedupAndCalculatePinSizeArgsForCall)
-}
-
-func (fake *FakeManager) DedupAndCalculatePinSizeCalls(stub func(string) (int64, []string, error)) {
-	fake.dedupAndCalculatePinSizeMutex.Lock()
-	defer fake.dedupAndCalculatePinSizeMutex.Unlock()
-	fake.DedupAndCalculatePinSizeStub = stub
-}
-
-func (fake *FakeManager) DedupAndCalculatePinSizeArgsForCall(i int) string {
-	fake.dedupAndCalculatePinSizeMutex.RLock()
-	defer fake.dedupAndCalculatePinSizeMutex.RUnlock()
-	argsForCall := fake.dedupAndCalculatePinSizeArgsForCall[i]
-	return argsForCall.arg1
-}
-
-func (fake *FakeManager) DedupAndCalculatePinSizeReturns(result1 int64, result2 []string, result3 error) {
-	fake.dedupAndCalculatePinSizeMutex.Lock()
-	defer fake.dedupAndCalculatePinSizeMutex.Unlock()
-	fake.DedupAndCalculatePinSizeStub = nil
-	fake.dedupAndCalculatePinSizeReturns = struct {
-		result1 int64
-		result2 []string
-		result3 error
-	}{result1, result2, result3}
-}
-
-func (fake *FakeManager) DedupAndCalculatePinSizeReturnsOnCall(i int, result1 int64, result2 []string, result3 error) {
-	fake.dedupAndCalculatePinSizeMutex.Lock()
-	defer fake.dedupAndCalculatePinSizeMutex.Unlock()
-	fake.DedupAndCalculatePinSizeStub = nil
-	if fake.dedupAndCalculatePinSizeReturnsOnCall == nil {
-		fake.dedupAndCalculatePinSizeReturnsOnCall = make(map[int]struct {
-			result1 int64
-			result2 []string
-			result3 error
-		})
-	}
-	fake.dedupAndCalculatePinSizeReturnsOnCall[i] = struct {
-		result1 int64
-		result2 []string
-		result3 error
-	}{result1, result2, result3}
-}
-
 func (fake *FakeManager) NewObject(arg1 string) (string, error) {
 	fake.newObjectMutex.Lock()
 	ret, specificReturn := fake.newObjectReturnsOnCall[len(fake.newObjectArgsForCall)]
@@ -1012,6 +962,70 @@ func (fake *FakeManager) PinReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
+func (fake *FakeManager) PinUpdate(arg1 string, arg2 string) (string, error) {
+	fake.pinUpdateMutex.Lock()
+	ret, specificReturn := fake.pinUpdateReturnsOnCall[len(fake.pinUpdateArgsForCall)]
+	fake.pinUpdateArgsForCall = append(fake.pinUpdateArgsForCall, struct {
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	fake.recordInvocation("PinUpdate", []interface{}{arg1, arg2})
+	fake.pinUpdateMutex.Unlock()
+	if fake.PinUpdateStub != nil {
+		return fake.PinUpdateStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.pinUpdateReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeManager) PinUpdateCallCount() int {
+	fake.pinUpdateMutex.RLock()
+	defer fake.pinUpdateMutex.RUnlock()
+	return len(fake.pinUpdateArgsForCall)
+}
+
+func (fake *FakeManager) PinUpdateCalls(stub func(string, string) (string, error)) {
+	fake.pinUpdateMutex.Lock()
+	defer fake.pinUpdateMutex.Unlock()
+	fake.PinUpdateStub = stub
+}
+
+func (fake *FakeManager) PinUpdateArgsForCall(i int) (string, string) {
+	fake.pinUpdateMutex.RLock()
+	defer fake.pinUpdateMutex.RUnlock()
+	argsForCall := fake.pinUpdateArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeManager) PinUpdateReturns(result1 string, result2 error) {
+	fake.pinUpdateMutex.Lock()
+	defer fake.pinUpdateMutex.Unlock()
+	fake.PinUpdateStub = nil
+	fake.pinUpdateReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeManager) PinUpdateReturnsOnCall(i int, result1 string, result2 error) {
+	fake.pinUpdateMutex.Lock()
+	defer fake.pinUpdateMutex.Unlock()
+	fake.PinUpdateStub = nil
+	if fake.pinUpdateReturnsOnCall == nil {
+		fake.pinUpdateReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.pinUpdateReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *FakeManager) PubSubPublish(arg1 string, arg2 string) error {
 	fake.pubSubPublishMutex.Lock()
 	ret, specificReturn := fake.pubSubPublishReturnsOnCall[len(fake.pubSubPublishArgsForCall)]
@@ -1136,6 +1150,71 @@ func (fake *FakeManager) PublishReturnsOnCall(i int, result1 *shell.PublishRespo
 	}
 	fake.publishReturnsOnCall[i] = struct {
 		result1 *shell.PublishResponse
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeManager) Refs(arg1 string, arg2 bool, arg3 bool) ([]string, error) {
+	fake.refsMutex.Lock()
+	ret, specificReturn := fake.refsReturnsOnCall[len(fake.refsArgsForCall)]
+	fake.refsArgsForCall = append(fake.refsArgsForCall, struct {
+		arg1 string
+		arg2 bool
+		arg3 bool
+	}{arg1, arg2, arg3})
+	fake.recordInvocation("Refs", []interface{}{arg1, arg2, arg3})
+	fake.refsMutex.Unlock()
+	if fake.RefsStub != nil {
+		return fake.RefsStub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.refsReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeManager) RefsCallCount() int {
+	fake.refsMutex.RLock()
+	defer fake.refsMutex.RUnlock()
+	return len(fake.refsArgsForCall)
+}
+
+func (fake *FakeManager) RefsCalls(stub func(string, bool, bool) ([]string, error)) {
+	fake.refsMutex.Lock()
+	defer fake.refsMutex.Unlock()
+	fake.RefsStub = stub
+}
+
+func (fake *FakeManager) RefsArgsForCall(i int) (string, bool, bool) {
+	fake.refsMutex.RLock()
+	defer fake.refsMutex.RUnlock()
+	argsForCall := fake.refsArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeManager) RefsReturns(result1 []string, result2 error) {
+	fake.refsMutex.Lock()
+	defer fake.refsMutex.Unlock()
+	fake.RefsStub = nil
+	fake.refsReturns = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeManager) RefsReturnsOnCall(i int, result1 []string, result2 error) {
+	fake.refsMutex.Lock()
+	defer fake.refsMutex.Unlock()
+	fake.RefsStub = nil
+	if fake.refsReturnsOnCall == nil {
+		fake.refsReturnsOnCall = make(map[int]struct {
+			result1 []string
+			result2 error
+		})
+	}
+	fake.refsReturnsOnCall[i] = struct {
+		result1 []string
 		result2 error
 	}{result1, result2}
 }
@@ -1408,8 +1487,6 @@ func (fake *FakeManager) Invocations() map[string][][]interface{} {
 	defer fake.dagGetMutex.RUnlock()
 	fake.dagPutMutex.RLock()
 	defer fake.dagPutMutex.RUnlock()
-	fake.dedupAndCalculatePinSizeMutex.RLock()
-	defer fake.dedupAndCalculatePinSizeMutex.RUnlock()
 	fake.newObjectMutex.RLock()
 	defer fake.newObjectMutex.RUnlock()
 	fake.nodeAddressMutex.RLock()
@@ -1418,10 +1495,14 @@ func (fake *FakeManager) Invocations() map[string][][]interface{} {
 	defer fake.patchLinkMutex.RUnlock()
 	fake.pinMutex.RLock()
 	defer fake.pinMutex.RUnlock()
+	fake.pinUpdateMutex.RLock()
+	defer fake.pinUpdateMutex.RUnlock()
 	fake.pubSubPublishMutex.RLock()
 	defer fake.pubSubPublishMutex.RUnlock()
 	fake.publishMutex.RLock()
 	defer fake.publishMutex.RUnlock()
+	fake.refsMutex.RLock()
+	defer fake.refsMutex.RUnlock()
 	fake.resolveMutex.RLock()
 	defer fake.resolveMutex.RUnlock()
 	fake.setDataMutex.RLock()

@@ -55,7 +55,7 @@ func Run(
 	ipfsAPI := fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port)
 	logger.Infow("instantiating IPFS connection",
 		"ipfs.api", ipfsAPI)
-	manager, err := rtfs.NewManager(ipfsAPI, 1*time.Minute)
+	manager, err := rtfs.NewManager(ipfsAPI, "", 1*time.Minute)
 	if err != nil {
 		return fmt.Errorf("failed to instantiate ipfs manager: %s", err.Error())
 	}

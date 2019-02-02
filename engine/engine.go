@@ -5,10 +5,14 @@ import (
 	"strings"
 	"time"
 
-	"github.com/RTradeLtd/Lens/models"
 	"github.com/go-ego/riot"
+	"github.com/go-ego/riot/net/com"
+	cluster "github.com/go-ego/riot/net/grpc"
 	"github.com/go-ego/riot/types"
+
 	"go.uber.org/zap"
+
+	"github.com/RTradeLtd/Lens/models"
 )
 
 // Searcher exposes Engine's primary functions
@@ -26,6 +30,8 @@ type Engine struct {
 	l *zap.SugaredLogger
 
 	stop chan bool
+
+	engineOpts *types.EngineOpts
 }
 
 // Opts denotes options for the Lens engine
@@ -51,11 +57,38 @@ func New(l *zap.SugaredLogger, opts Opts) (*Engine, error) {
 	return &Engine{
 		e: e,
 		l: l,
+
+		engineOpts: &r,
 	}, nil
 }
 
+// ClusterOpts denotes Lens database clustering options
+type ClusterOpts struct {
+	Port  string
+	Peers []string
+}
+
 // Run initiates period index flushes
-func (e *Engine) Run() {
+func (e *Engine) Run(c *ClusterOpts) {
+	if c != nil {
+		// TODO: implement
+		// https://github.com/go-ego/riot/issues/62
+		e.l.Fatal("cluster support is incomplete - do not use")
+		e.l.Infow("setting up Riot cluster", "opts", c)
+		cluster.InitEngine(com.Config{
+			Engine: com.Engine{
+				StoreEngine: e.engineOpts.StoreEngine,
+				StoreFolder: e.engineOpts.StoreFolder,
+			},
+			Rpc: com.Rpc{
+				GrpcPort: []string{}, // ??
+				DistPort: []string{}, // ??
+				Port:     c.Port,
+			},
+		})
+		go cluster.InitGrpc(c.Port)
+	}
+
 	e.stop = make(chan bool)
 	for {
 		select {

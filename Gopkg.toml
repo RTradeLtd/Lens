@@ -2,7 +2,6 @@ ignored = ["github.com/gen2brain/go-fitz"]
 
 [prune]
   go-tests = true
-  unused-packages = true
 
 ###############
 #   RTRADE    #
@@ -14,7 +13,7 @@ ignored = ["github.com/gen2brain/go-fitz"]
 
 [[constraint]]
   name = "github.com/RTradeLtd/rtfs"
-  version = "v0.3.0"
+  branch = "master"
 
 [[constraint]]
   name = "github.com/RTradeLtd/cmd"

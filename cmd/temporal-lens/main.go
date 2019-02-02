@@ -54,7 +54,7 @@ var commands = map[string]cmd.Cmd{
 			// instantiate ipfs connection
 			var ipfsURL = fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port)
 			l.Infow("instantiating IPFS connection", "ipfs.url", ipfsURL)
-			manager, err := rtfs.NewManager(ipfsURL, 1*time.Minute)
+			manager, err := rtfs.NewManager(ipfsURL, "", 1*time.Minute)
 			if err != nil {
 				l.Fatalw("failed to instantiate ipfs manager", "error", err)
 			}
@@ -143,6 +143,7 @@ var commands = map[string]cmd.Cmd{
 		Action: func(cfg config.TemporalConfig, args map[string]string) {
 			im, err := rtfs.NewManager(
 				fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port),
+				"",
 				5*time.Minute)
 			if err != nil {
 				log.Fatal(err)

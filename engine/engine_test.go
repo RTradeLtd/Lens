@@ -34,7 +34,7 @@ func TestEngine_Index(t *testing.T) {
 				t.Error("failed to create engine: " + err.Error())
 			}
 			defer e.Close()
-			go e.Run()
+			go e.Run(nil)
 			e.Index(Document{tt.args.object, "", true})
 			if found := e.IsIndexed(tt.args.object.Hash); found != tt.wantIndexed {
 				t.Errorf("wanted IsIndexed = '%v', got '%v'", tt.wantIndexed, found)
@@ -91,7 +91,7 @@ func TestEngine_Search(t *testing.T) {
 				t.Error("failed to create engine: " + err.Error())
 			}
 			defer e.Close()
-			go e.Run()
+			go e.Run(nil)
 
 			e.Index(Document{&tt.fields.object, tt.fields.content, true})
 
