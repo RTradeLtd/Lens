@@ -78,15 +78,14 @@
 		"email_address": "",
 		"email_name": ""
 	},
-	"endpoints": {
+	"services": {
 		"lens": {
 			"url": "0.0.0.0:9998",
 			"tls": {
 				"cert_path": "",
 				"key_file": ""
 			},
-			"auth_key": "blahblahblah",
-			"log_file": ""
+			"auth_key": "blahblahblah"
 		}
 	}
 }

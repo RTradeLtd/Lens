@@ -94,9 +94,9 @@ func Run(
 
 	// instantiate server settings
 	serverOpts, err := options(
-		cfg.Endpoints.Lens.TLS.CertPath,
-		cfg.Endpoints.Lens.TLS.KeyFile,
-		cfg.Endpoints.Lens.AuthKey,
+		cfg.Services.Lens.TLS.CertPath,
+		cfg.Services.Lens.TLS.KeyFile,
+		cfg.Services.Lens.AuthKey,
 		logger)
 	if err != nil {
 		return err

@@ -22,7 +22,7 @@ ignored = ["github.com/gen2brain/go-fitz"]
 
 [[constraint]]
   name = "github.com/RTradeLtd/config"
-  version = "v1.0.11"
+  branch = "master"
 
 ###############
 # THIRD PARTY #

@@ -85,8 +85,8 @@ var commands = map[string]cmd.Cmd{
 			}()
 
 			// go!
-			l.Infow("spinning up server", "config", cfg.Endpoints)
-			if err := server.RunV2(stop, l, srv, cfg.Endpoints); err != nil {
+			l.Infow("spinning up server", "config", cfg.Services.Lens)
+			if err := server.RunV2(stop, l, srv, cfg.Services.Lens); err != nil {
 				l.Fatalw("error encountered on server run", "error", err)
 			}
 		},
@@ -120,7 +120,7 @@ var commands = map[string]cmd.Cmd{
 			// let's goooo
 			if err := server.Run(
 				ctx,
-				cfg.Endpoints.Lens.URL,
+				cfg.Services.Lens.URL,
 				server.Metadata{
 					Version: Version,
 					Edition: Edition,

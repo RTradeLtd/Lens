@@ -10,19 +10,19 @@ import (
 )
 
 // RunV2 spins up the V2 Lens gRPC server
-func RunV2(stop <-chan bool, l *zap.SugaredLogger, srv lensv2.LensV2Server, cfg config.Endpoints) error {
+func RunV2(stop <-chan bool, l *zap.SugaredLogger, srv lensv2.LensV2Server, cfg config.Lens) error {
 	// instantiate server settings
 	serverOpts, err := options(
-		cfg.Lens.TLS.CertPath,
-		cfg.Lens.TLS.KeyFile,
-		cfg.Lens.AuthKey,
+		cfg.TLS.CertPath,
+		cfg.TLS.KeyFile,
+		cfg.AuthKey,
 		l)
 	if err != nil {
 		return err
 	}
 
 	// create connection we will listen on
-	lis, err := net.Listen("tcp", cfg.Lens.URL)
+	lis, err := net.Listen("tcp", cfg.URL)
 	if err != nil {
 		return err
 	}
@@ -45,7 +45,7 @@ func RunV2(stop <-chan bool, l *zap.SugaredLogger, srv lensv2.LensV2Server, cfg 
 	}()
 
 	// spin up server
-	l.Infow("spinning up server", "address", cfg.Lens.URL)
+	l.Infow("spinning up server", "address", cfg.URL)
 	if err = gServer.Serve(lis); err != nil {
 		l.Warn("shutting down server", "error", err)
 		return err
