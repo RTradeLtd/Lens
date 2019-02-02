@@ -86,3 +86,7 @@ docker:
 		--build-arg TENSORFLOW_DIST=$(EDITION) \
 		-t rtradetech/lens:$(LENSVERSION)-$(EDITION) .
 	@echo "===================          done           ==================="
+
+.PHONY: v2
+v2: cli
+	./temporal-lens --dev --cfg test/config.json v2
