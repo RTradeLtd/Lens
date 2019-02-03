@@ -83,7 +83,7 @@
 
 [[projects]]
   branch = "lens/v2"
-  digest = "1:272a3dea3b2b82e601f4660b8ebea025c7e893177e66b541ef6e5047ea18e332"
+  digest = "1:813575db040de5bc0fd54bf6de092c074f2fc4a36a15202d3e0bd158eed1514b"
   name = "github.com/RTradeLtd/grpc"
   packages = [
     "lens",
@@ -93,7 +93,7 @@
     "middleware",
   ]
   pruneopts = "T"
-  revision = "66ac4d032bb0e8527f3da273f39d699954a1486b"
+  revision = "9feb995fdbc97b0dfacfc6a764a4d0e42ed2400c"
 
 [[projects]]
   branch = "master"
@@ -537,11 +537,20 @@
     "host",
     "internal/common",
     "mem",
+    "net",
     "process",
   ]
   pruneopts = "T"
   revision = "071446942108a03a13cf0717275ad3bdbcb691b4"
   version = "v2.19.01"
+
+[[projects]]
+  branch = "master"
+  digest = "1:99c6a6dab47067c9b898e8c8b13d130c6ab4ffbcc4b7cc6236c2cd0b1e344f5b"
+  name = "github.com/shirou/w32"
+  packages = ["."]
+  pruneopts = "T"
+  revision = "bb4de0191aa41b5507caa14b0650cdbddcd9280b"
 
 [[projects]]
   digest = "1:919bb3aa6d9d0b67648c219fa4925312bc3c2872da19e818fa769e9c97a2b643"
@@ -553,7 +562,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:7b17050757aaa2f52fcc582125d7abaf5fc2ff273bf023da0c4f98e6f2ebed5f"
+  digest = "1:36b2aca16ab4e408bfd2c89f0799abdb3a4f3c5042f83b7e01623500cb3174eb"
   name = "github.com/syndtr/goleveldb"
   packages = [
     "leveldb",
@@ -570,7 +579,7 @@
     "leveldb/util",
   ]
   pruneopts = "T"
-  revision = "b001fa50d6b27f3f0bb175a87d0cb55426d0a0ae"
+  revision = "2f17a3356c6616cbfc4ae4c38147dc062a68fb0e"
 
 [[projects]]
   branch = "r1.12"
@@ -688,7 +697,7 @@
     "windows",
   ]
   pruneopts = "T"
-  revision = "afcc84fd7533758f95a6e93ae710aa945a0b7e73"
+  revision = "7ae0202eb74c2b534255c71b5a15fa4115aabbcc"
 
 [[projects]]
   digest = "1:6164911cb5e94e8d8d5131d646613ff82c14f5a8ce869de2f6d80d9889df8c5a"
@@ -790,6 +799,7 @@
     "github.com/RTradeLtd/grpc/middleware",
     "github.com/RTradeLtd/rtfs",
     "github.com/go-ego/riot",
+    "github.com/go-ego/riot/net/com",
     "github.com/go-ego/riot/net/grpc",
     "github.com/go-ego/riot/types",
     "github.com/gofrs/uuid",

@@ -101,7 +101,51 @@ func (v *V2) Index(ctx context.Context, req *lensv2.IndexReq) (*lensv2.IndexResp
 
 // Search executes a query against the Lens index
 func (v *V2) Search(ctx context.Context, req *lensv2.SearchReq) (*lensv2.SearchResp, error) {
-	return &lensv2.SearchResp{}, nil
+	var (
+		err     error
+		results []engine.Result
+		opts    = req.GetOptions()
+	)
+
+	if opts == nil {
+		results, err = v.se.Search(engine.Query{Text: req.GetQuery()})
+	} else {
+		results, err = v.se.Search(engine.Query{
+			Text:       req.GetQuery(),
+			Required:   opts.GetRequired(),
+			Tags:       opts.GetTags(),
+			Categories: opts.GetCategories(),
+			MimeTypes:  opts.GetMimeTypes(),
+			Hashes:     opts.GetHashes(),
+		})
+	}
+	if err != nil {
+		v.l.Errorw("error occured on query execution",
+			"error", err, "query", req)
+		return nil, fmt.Errorf("error occured on query execution: %s", err.Error())
+	}
+
+	v.l.Debugw("query completed",
+		"query", req, "results", len(results))
+	return &lensv2.SearchResp{
+		Results: func() []*lensv2.SearchResp_Result {
+			var formatted = make([]*lensv2.SearchResp_Result, len(results))
+			for i := 0; i < len(results); i++ {
+				var r = results[i]
+				formatted[i] = &lensv2.SearchResp_Result{
+					Score: r.Score,
+					Doc: &lensv2.Document{
+						Hash:        r.Hash,
+						DisplayName: r.MD.DisplayName,
+						MimeType:    r.MD.MimeType,
+						Category:    r.MD.Category,
+						Tags:        r.MD.Tags,
+					},
+				}
+			}
+			return formatted
+		}(),
+	}, nil
 }
 
 // Remove unindexes and deletes the requested object
