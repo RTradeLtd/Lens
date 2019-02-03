@@ -17,11 +17,13 @@ import (
 
 // Searcher exposes Engine's primary functions
 type Searcher interface {
-	Index(doc Document)
+	Index(doc Document) error
 	Search(query Query) ([]Result, error)
 
 	IsIndexed(hash string) bool
 	Remove(hash string)
+
+	Close()
 }
 
 // Engine implements Lens V2's core search functionality
@@ -68,7 +70,7 @@ type ClusterOpts struct {
 	Peers []string
 }
 
-// Run initiates period index flushes
+// Run starts any additional processes required to maintain the engine
 func (e *Engine) Run(c *ClusterOpts) {
 	if c != nil {
 		// TODO: implement
@@ -234,6 +236,7 @@ func (e *Engine) Search(q Query) ([]Result, error) {
 // Remove deletes an indexed object from the engine
 func (e *Engine) Remove(hash string) {
 	e.e.RemoveDoc(hash, true)
+	e.e.Flush()
 }
 
 // Close shuts down the engine, but not the goroutine started by Run - cancel

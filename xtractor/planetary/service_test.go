@@ -31,10 +31,7 @@ func TestPlanetaryExtractor(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	px, err := planetary.NewPlanetaryExtractor(manager)
-	if err != nil {
-		t.Fatal(err)
-	}
+	px := planetary.NewPlanetaryExtractor(manager)
 	var out interface{}
 	if err = px.ExtractObject(testHash, &out); err != nil {
 		t.Fatal(err)

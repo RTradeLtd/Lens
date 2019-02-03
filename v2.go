@@ -17,7 +17,6 @@ import (
 	"github.com/RTradeLtd/Lens/analyzer/images"
 	"github.com/RTradeLtd/Lens/analyzer/ocr"
 	"github.com/RTradeLtd/Lens/engine"
-	"github.com/RTradeLtd/Lens/text"
 	"github.com/RTradeLtd/Lens/xtractor/planetary"
 	"github.com/RTradeLtd/grpc/lensv2"
 	"github.com/RTradeLtd/rtfs"
@@ -33,7 +32,6 @@ type V2 struct {
 
 	// Analysis classes
 	oc *ocr.Analyzer
-	ta *text.Analyzer
 	px *planetary.Extractor
 	tf images.TensorflowAnalyzer
 
@@ -42,8 +40,9 @@ type V2 struct {
 
 // V2Options denotes options for the V2 Lens API
 type V2Options struct {
-	UseChainAlgorithm   bool
 	TesseractConfigPath string
+
+	Engine engine.Opts
 }
 
 // NewV2 instantiates a new V2 API
@@ -53,24 +52,57 @@ func NewV2(
 	ia images.TensorflowAnalyzer,
 	logger *zap.SugaredLogger,
 ) (*V2, error) {
-	// instantiate utility classes
-	px, err := planetary.NewPlanetaryExtractor(ipfs)
-	if err != nil {
-		return nil, fmt.Errorf("failed to instantiate IPFS extractor: %s", err.Error())
+	if logger == nil {
+		logger = zap.NewNop().Sugar()
 	}
 
+	// create new engine
+	se, err := engine.New(logger.Named("engine"), opts.Engine)
+	if err != nil {
+		return nil, fmt.Errorf("failed to instantiate search engine: %s", err.Error())
+	}
+	go se.Run(nil)
+
 	return &V2{
+		se:   se,
 		ipfs: ipfs,
-		tf:   ia,
-		px:   px,
-		ta:   text.NewTextAnalyzer(opts.UseChainAlgorithm),
-		oc:   ocr.NewAnalyzer(opts.TesseractConfigPath, logger.Named("ocr")),
-		l:    logger.Named("service.v2"),
+
+		tf: ia,
+		px: planetary.NewPlanetaryExtractor(ipfs),
+		oc: ocr.NewAnalyzer(opts.TesseractConfigPath, logger.Named("ocr")),
+		l:  logger.Named("service.v2"),
 	}, nil
 }
 
+// NewV2WithEngine instantiates a Lens V2 service with the given engine
+func NewV2WithEngine(
+	opts V2Options,
+	ipfs rtfs.Manager,
+	ia images.TensorflowAnalyzer,
+	se engine.Searcher,
+	logger *zap.SugaredLogger,
+) *V2 {
+	if logger == nil {
+		logger = zap.NewNop().Sugar()
+	}
+
+	return &V2{
+		se:   se,
+		ipfs: ipfs,
+
+		tf: ia,
+		px: planetary.NewPlanetaryExtractor(ipfs),
+		oc: ocr.NewAnalyzer(opts.TesseractConfigPath, logger.Named("ocr")),
+		l:  logger.Named("service.v2"),
+	}
+}
+
+// Close releases Lens resources
+func (v *V2) Close() { v.se.Close() }
+
 // Index analyzes and stores the given object
 func (v *V2) Index(ctx context.Context, req *lensv2.IndexReq) (*lensv2.IndexResp, error) {
+	var l = v.l.With("request", req)
 	switch req.GetType() {
 	case lensv2.IndexReq_IPLD:
 		break
@@ -87,22 +119,39 @@ func (v *V2) Index(ctx context.Context, req *lensv2.IndexReq) (*lensv2.IndexResp
 		Reindex:     reindex,
 	})
 	if err != nil {
+		l.Errorw("failed to magnify document", "error", err)
+		if strings.Contains(err.Error(), "failed to find content") {
+			return nil, status.Error(codes.NotFound, err.Error())
+		}
 		return nil, status.Errorf(codes.FailedPrecondition,
 			"failed to perform magnification for '%s': %s", hash, err.Error())
 	}
 
 	if !reindex {
 		if err = v.store(hash, content, md); err != nil {
+			l.Errorw("failed to store document", "error", err)
 			return nil, status.Errorf(codes.Internal,
 				"failed to store requested document: %s", err.Error())
 		}
 	} else {
 		if err = v.update(hash, content, md); err != nil {
-			return nil, err
+			l.Errorw("failed to update document", "error", err)
+			return nil, status.Errorf(codes.Internal,
+				"failed to update requested document: %s", err.Error())
 		}
 	}
 
-	return &lensv2.IndexResp{}, nil
+	l.Info("document indexed")
+
+	return &lensv2.IndexResp{
+		Doc: &lensv2.Document{
+			Hash:        hash,
+			DisplayName: md.DisplayName,
+			MimeType:    md.MimeType,
+			Category:    md.Category,
+			Tags:        md.Tags,
+		},
+	}, nil
 }
 
 // Search executes a query against the Lens index
@@ -257,15 +306,13 @@ func (v *V2) magnify(hash string, opts MagnifyOpts) (content string, metadata *m
 
 // Store is used to store our collected meta data in a formatted object
 func (v *V2) store(hash string, content string, md *models.MetaDataV2) error {
-	v.se.Index(engine.Document{
+	return v.se.Index(engine.Document{
 		Object: &models.ObjectV2{
 			Hash: hash,
 			MD:   *md,
 		},
 		Content: content,
-		Reindex: true,
 	})
-	return nil
 }
 
 // Update is used to update an indexed object
@@ -273,8 +320,7 @@ func (v *V2) update(hash string, content string, md *models.MetaDataV2) error {
 	if err := v.remove(hash); err != nil {
 		return err
 	}
-	v.store(hash, content, md)
-	return nil
+	return v.store(hash, content, md)
 }
 
 // Remove is used to remove an indexed object

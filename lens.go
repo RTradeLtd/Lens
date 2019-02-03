@@ -63,18 +63,12 @@ func NewServiceV1(
 	ss search.Searcher,
 	logger *zap.SugaredLogger,
 ) (*V1, error) {
-	// instantiate utility classes
-	px, err := planetary.NewPlanetaryExtractor(rm)
-	if err != nil {
-		return nil, err
-	}
-
 	return &V1{
 		ipfs:   rm,
 		images: ia,
 		search: ss,
 
-		px: px,
+		px: planetary.NewPlanetaryExtractor(rm),
 		ta: text.NewTextAnalyzer(opts.UseChainAlgorithm),
 		oc: ocr.NewAnalyzer(opts.TesseractConfigPath, logger.Named("ocr")),
 
