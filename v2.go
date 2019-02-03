@@ -8,6 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"google.golang.org/grpc/codes"
+
+	"google.golang.org/grpc/status"
+
 	"go.uber.org/zap"
 
 	"github.com/RTradeLtd/Lens/analyzer/images"
@@ -52,7 +56,7 @@ func NewV2(
 	// instantiate utility classes
 	px, err := planetary.NewPlanetaryExtractor(ipfs)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to instantiate IPFS extractor: %s", err.Error())
 	}
 
 	return &V2{
@@ -71,7 +75,8 @@ func (v *V2) Index(ctx context.Context, req *lensv2.IndexReq) (*lensv2.IndexResp
 	case lensv2.IndexReq_IPLD:
 		break
 	default:
-		return nil, fmt.Errorf("invalid data type '%s'", req.GetType())
+		return nil, status.Errorf(codes.InvalidArgument,
+			"invalid data type '%s' provided", req.GetType())
 	}
 
 	var hash = req.GetHash()
@@ -82,13 +87,14 @@ func (v *V2) Index(ctx context.Context, req *lensv2.IndexReq) (*lensv2.IndexResp
 		Reindex:     reindex,
 	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to perform magnification for '%s': %s",
-			hash, err.Error())
+		return nil, status.Errorf(codes.FailedPrecondition,
+			"failed to perform magnification for '%s': %s", hash, err.Error())
 	}
 
 	if !reindex {
 		if err = v.store(hash, content, md); err != nil {
-			return nil, err
+			return nil, status.Errorf(codes.Internal,
+				"failed to store requested document: %s", err.Error())
 		}
 	} else {
 		if err = v.update(hash, content, md); err != nil {
@@ -122,7 +128,8 @@ func (v *V2) Search(ctx context.Context, req *lensv2.SearchReq) (*lensv2.SearchR
 	if err != nil {
 		v.l.Errorw("error occured on query execution",
 			"error", err, "query", req)
-		return nil, fmt.Errorf("error occured on query execution: %s", err.Error())
+		return nil, status.Errorf(codes.Internal,
+			"error occured on query execution: %s", err.Error())
 	}
 
 	v.l.Debugw("query completed",
@@ -151,7 +158,8 @@ func (v *V2) Search(ctx context.Context, req *lensv2.SearchReq) (*lensv2.SearchR
 // Remove unindexes and deletes the requested object
 func (v *V2) Remove(ctx context.Context, req *lensv2.RemoveReq) (*lensv2.RemoveResp, error) {
 	if err := v.remove(req.GetHash()); err != nil {
-		return nil, err
+		return nil, status.Errorf(codes.NotFound,
+			"failed to remove requested hash: %s", err.Error())
 	}
 	return &lensv2.RemoveResp{}, nil
 }
