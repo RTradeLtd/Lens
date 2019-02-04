@@ -16,7 +16,7 @@ install:
   # golang dependencies
   - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
   - go get -u golang.org/x/lint/golint
-  - go get -u github.com/gen2brain/go-fitz
+  - go get -tags nopie -u github.com/gen2brain/go-fitz # https://github.com/gen2brain/go-fitz#build-tags
   - dep ensure -v
 
 before_script:
