@@ -41,17 +41,20 @@ func TestV2_Index(t *testing.T) {
 		name        string
 		args        args
 		returns     returns
+		wantType    MimeType
 		wantErrCode codes.Code
 	}{
 		{"nil request",
 			args{nil},
 			returns{"", false, false, false},
+			"",
 			codes.InvalidArgument},
 		{"bad type",
 			args{&lensv2.IndexReq{
 				Type: lensv2.IndexReq_UNKNOWN,
 			}},
 			returns{"", false, false, false},
+			"",
 			codes.InvalidArgument},
 		{"no content for hash found",
 			args{&lensv2.IndexReq{
@@ -59,6 +62,7 @@ func TestV2_Index(t *testing.T) {
 				Hash: "asdf",
 			}},
 			returns{"", false, false, false},
+			"",
 			codes.NotFound},
 		{"already indexed",
 			args{&lensv2.IndexReq{
@@ -66,6 +70,7 @@ func TestV2_Index(t *testing.T) {
 				Hash: "asdf",
 			}},
 			returns{"README.md", false, false, true},
+			"",
 			codes.FailedPrecondition},
 		{"tensor failure",
 			args{&lensv2.IndexReq{
@@ -73,7 +78,32 @@ func TestV2_Index(t *testing.T) {
 				Hash: "asdf",
 			}},
 			returns{"test/assets/image.jpg", true, false, false},
+			"",
 			codes.FailedPrecondition}, // TODO: might not be the best code to return
+		{"ok: image",
+			args{&lensv2.IndexReq{
+				Type: lensv2.IndexReq_IPLD,
+				Hash: "asdf",
+			}},
+			returns{"test/assets/image.jpg", false, false, false},
+			MimeTypeImage,
+			codes.OK},
+		{"ok: pdf",
+			args{&lensv2.IndexReq{
+				Type: lensv2.IndexReq_IPLD,
+				Hash: "asdf",
+			}},
+			returns{"test/assets/text.pdf", false, false, false},
+			MimeTypePDF,
+			codes.OK},
+		{"ok: document",
+			args{&lensv2.IndexReq{
+				Type: lensv2.IndexReq_IPLD,
+				Hash: "asdf",
+			}},
+			returns{"README.md", false, false, false},
+			MimeTypeDocument,
+			codes.OK},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -115,6 +145,10 @@ func TestV2_Index(t *testing.T) {
 				if got.GetDoc().GetDisplayName() != tt.args.req.GetDisplayName() {
 					t.Errorf("got display name %s, want %s",
 						got.GetDoc().GetDisplayName(), tt.args.req.GetDisplayName())
+				}
+				if got.GetDoc().GetCategory() != string(tt.wantType) {
+					t.Errorf("got category %s, want %s",
+						got.GetDoc().GetCategory(), tt.wantType)
 				}
 			} else {
 				// otherwise, check codes are the same
