@@ -83,7 +83,7 @@
 
 [[projects]]
   branch = "lens/v2"
-  digest = "1:1fe5d718375386ddcc3f9229e74929f5e37e0a7e5f91664aa0ac1035746b125f"
+  digest = "1:650c88850cccf90892917b22ccc719db65fb941d3bd0baaec96004615a6362ee"
   name = "github.com/RTradeLtd/grpc"
   packages = [
     "lens",
@@ -93,7 +93,7 @@
     "middleware",
   ]
   pruneopts = "T"
-  revision = "2bb354da9e148d39b307d3f49aab131beeaf1a59"
+  revision = "74b30fcc5197083935bc326fe4bb77b7ef115c67"
 
 [[projects]]
   branch = "master"
