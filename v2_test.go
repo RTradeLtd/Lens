@@ -157,25 +157,25 @@ func TestV2_Search(t *testing.T) {
 			}},
 			returns{nil, errors.New("oh no")},
 			codes.Internal},
-		{"no results",
+		{"ok: no results",
 			args{&lensv2.SearchReq{
 				Query: "cats",
 			}},
 			returns{[]engine.Result{}, nil},
 			0},
-		{"nil results",
+		{"ok: nil results",
 			args{&lensv2.SearchReq{
 				Query: "cats",
 			}},
 			returns{nil, nil},
 			0},
-		{"with results",
+		{"ok: with results",
 			args{&lensv2.SearchReq{
 				Query: "cats",
 			}},
 			returns{[]engine.Result{{Hash: "asdf"}}, nil},
 			0},
-		{"with options",
+		{"ok: with options",
 			args{&lensv2.SearchReq{
 				Query: "cats",
 				Options: &lensv2.SearchReq_Options{
