@@ -257,3 +257,77 @@ func TestV2_Search(t *testing.T) {
 		})
 	}
 }
+
+func TestV2_Remove(t *testing.T) {
+	type args struct {
+		req *lensv2.RemoveReq
+	}
+	type returns struct {
+		exists bool
+	}
+	tests := []struct {
+		name        string
+		args        args
+		returns     returns
+		wantErrCode codes.Code
+	}{
+		{"nil request",
+			args{nil},
+			returns{true},
+			codes.InvalidArgument},
+		{"no hash",
+			args{&lensv2.RemoveReq{}},
+			returns{true},
+			codes.InvalidArgument},
+		{"not indexed",
+			args{&lensv2.RemoveReq{
+				Hash: "asdf",
+			}},
+			returns{false},
+			codes.NotFound},
+		{"ok: indexed",
+			args{&lensv2.RemoveReq{
+				Hash: "asdf",
+			}},
+			returns{true},
+			0},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var ipfs = &mocks.FakeRTFSManager{}
+			var tensor = &mocks.FakeTensorflowAnalyzer{}
+			var se = &mocks.FakeEngineSearcher{}
+			var v = NewV2WithEngine(V2Options{},
+				ipfs,
+				tensor,
+				se,
+				zap.NewNop().Sugar())
+
+			// set up mocks
+			se.IsIndexedReturns(tt.returns.exists)
+
+			// execute tests
+			got, err := v.Remove(context.Background(), tt.args.req)
+			if (err != nil) != (tt.wantErrCode != 0) {
+				t.Errorf("V2.Remove() error = %v, wantErr %v", err, (tt.wantErrCode != 0))
+				return
+			}
+
+			t.Logf("got response '%+v'", got)
+			if tt.wantErrCode == 0 {
+				// if an error was not expected, check the returned document
+				if got == nil {
+					t.Errorf("V2.Remove() = nil, want not nil")
+				}
+			} else {
+				// otherwise, check codes are the same
+				var s = status.Convert(err)
+				t.Logf("got error message '%s'", s.Message())
+				if s.Code() != tt.wantErrCode {
+					t.Errorf("V2.Remove() err code = %s, want %s",
+						s.Code().String(), tt.wantErrCode.String())
+				}
+			}
+		})
+	}
+}

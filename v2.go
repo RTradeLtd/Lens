@@ -216,10 +216,16 @@ func (v *V2) Search(ctx context.Context, req *lensv2.SearchReq) (*lensv2.SearchR
 
 // Remove unindexes and deletes the requested object
 func (v *V2) Remove(ctx context.Context, req *lensv2.RemoveReq) (*lensv2.RemoveResp, error) {
+	if req.GetHash() == "" {
+		return nil, status.Errorf(codes.InvalidArgument,
+			"no hash to remove was provided")
+	}
+
 	if err := v.remove(req.GetHash()); err != nil {
 		return nil, status.Errorf(codes.NotFound,
 			"failed to remove requested hash: %s", err.Error())
 	}
+
 	return &lensv2.RemoveResp{}, nil
 }
 
@@ -335,7 +341,7 @@ func (v *V2) update(hash string, content string, md *models.MetaDataV2) error {
 
 // Remove is used to remove an indexed object
 func (v *V2) remove(hash string) error {
-	if v.se.IsIndexed(hash) {
+	if !v.se.IsIndexed(hash) {
 		return fmt.Errorf("object '%s' does not exist", hash)
 	}
 	v.se.Remove(hash)
