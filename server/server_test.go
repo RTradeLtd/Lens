@@ -89,7 +89,7 @@ func TestAPIServer_Index(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// set up dependencies
-			var ipfs = &mocks.FakeManager{}
+			var ipfs = &mocks.FakeRTFSManager{}
 			var tensor = &mocks.FakeTensorflowAnalyzer{}
 			var searcher = &mocks.FakeSearcher{}
 			var l, _ = logs.NewLogger("", false)
