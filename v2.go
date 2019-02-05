@@ -162,6 +162,16 @@ func (v *V2) Search(ctx context.Context, req *lensv2.SearchReq) (*lensv2.SearchR
 		opts    = req.GetOptions()
 	)
 
+	if req.GetQuery() == "" &&
+		len(opts.GetCategories()) < 1 &&
+		len(opts.GetHashes()) < 1 &&
+		len(opts.GetMimeTypes()) < 1 &&
+		len(opts.GetRequired()) < 1 &&
+		len(opts.GetTags()) < 1 {
+		return nil, status.Errorf(codes.InvalidArgument,
+			"no search parameters provided")
+	}
+
 	if opts == nil {
 		results, err = v.se.Search(engine.Query{Text: req.GetQuery()})
 	} else {
