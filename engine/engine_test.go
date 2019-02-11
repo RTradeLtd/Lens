@@ -4,6 +4,8 @@ import (
 	"reflect"
 	"testing"
 
+	"go.uber.org/zap/zaptest"
+
 	"github.com/RTradeLtd/Lens/logs"
 	"github.com/RTradeLtd/Lens/models"
 )
@@ -27,8 +29,7 @@ func TestEngine_Index(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var l, out = logs.NewTestLogger()
-			defer t.Logf("Logs: \n%v\n", out.All())
+			var l = zaptest.NewLogger(t).Sugar()
 			e, err := New(l, Opts{"tmp", "tmp"})
 			if err != nil {
 				t.Error("failed to create engine: " + err.Error())

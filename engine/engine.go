@@ -97,8 +97,8 @@ func (e *Engine) Run(c *ClusterOpts) {
 		case <-e.stop:
 			e.l.Infow("exit signal received")
 			var now = time.Now()
-			e.e.Flush()
-			e.l.Infow("index flushed",
+			e.e.Close()
+			e.l.Infow("index flushed and engine closed",
 				"duration", time.Since(now),
 				"documents", e.e.NumIndexed())
 			return
@@ -243,6 +243,4 @@ func (e *Engine) Remove(hash string) {
 // the provided context to do that.
 func (e *Engine) Close() {
 	e.stop <- true
-	close(e.stop)
-	e.e.Close()
 }
