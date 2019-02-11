@@ -45,7 +45,9 @@ type Opts struct {
 // New instantiates a new Engine
 func New(l *zap.SugaredLogger, opts Opts) (*Engine, error) {
 	var e = &riot.Engine{}
-	var r = types.EngineOpts{}
+	var r = types.EngineOpts{
+		GseDict: opts.DictPath,
+	}
 
 	// database persistence settings
 	if opts.StorePath != "" {
@@ -59,6 +61,8 @@ func New(l *zap.SugaredLogger, opts Opts) (*Engine, error) {
 	return &Engine{
 		e: e,
 		l: l,
+
+		stop: make(chan bool),
 
 		engineOpts: &r,
 	}, nil
@@ -91,7 +95,6 @@ func (e *Engine) Run(c *ClusterOpts) {
 		go cluster.InitGrpc(c.Port)
 	}
 
-	e.stop = make(chan bool)
 	for {
 		select {
 		case <-e.stop:
@@ -143,6 +146,9 @@ func (e *Engine) Index(doc Document) error {
 
 // IsIndexed checks if the given content hash has already been indexed
 func (e *Engine) IsIndexed(hash string) bool {
+	if hash == "" {
+		return false
+	}
 	return e.e.HasDoc(hash)
 }
 
