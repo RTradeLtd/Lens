@@ -17,6 +17,7 @@ func TestEngine_parallel(t *testing.T) {
 	defer e.Close()
 	go e.Run(nil)
 
+	// each case must be able to successfully index the given args.object and content
 	type args struct {
 		object  *models.ObjectV2
 		content string
@@ -63,13 +64,28 @@ func TestEngine_parallel(t *testing.T) {
 				t.Errorf("wanted Index error = false, got %v", err)
 			}
 
+			// we'll be referring to this hash a few times
+			var objHash = tt.args.object.Hash
+
 			// make sure object can be found
-			if !e.IsIndexed(tt.args.object.Hash) {
+			if !e.IsIndexed(objHash) {
 				t.Errorf("wanted IsIndexed = true, got false")
 			}
 
 			// attempt search
+			if res, err := e.Search(Query{
+				Text:   tt.args.content,
+				Hashes: []string{objHash},
+			}); err != nil && len(res) > 0 {
+				if res[0].Hash != objHash {
+					t.Errorf("wanted Search to find '%s', but failed", objHash)
+				}
+			} else {
+				t.Errorf("wanted Search to find '%s', but failed", objHash)
+			}
 
+			// remove document
+			e.Remove(objHash)
 		})
 	}
 }
