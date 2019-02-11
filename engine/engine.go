@@ -122,7 +122,19 @@ func (e *Engine) Index(doc Document) error {
 		return errors.New("no object details provided")
 	}
 	var l = e.l.With("hash", doc.Object.Hash)
-	e.e.Index(doc.Object.Hash, types.DocData{
+
+	// populate defaults if necessary
+	if doc.Object.MD.MimeType == "" {
+		l.Debug("defaulting to MimeTypeUnknown")
+		doc.Object.MD.MimeType = models.MimeTypeUnknown
+	}
+	if doc.Object.MD.Category == "" {
+		l.Debug("defaulting to category = 'unknown'")
+		doc.Object.MD.Category = "unknown"
+	}
+
+	// prepare doc data
+	var docData = types.DocData{
 		Content: doc.Content,
 		Labels: append(doc.Object.MD.Tags,
 			mimeType(doc.Object.MD.MimeType),
@@ -134,13 +146,18 @@ func (e *Engine) Index(doc Document) error {
 			"mime_type":    doc.Object.MD.MimeType,
 			"tags":         strings.Join(doc.Object.MD.Tags, ","),
 		},
-	}, doc.Reindex)
+	}
+
+	// execute index and flush
+	l.Debug("requesting index", "data", docData)
+	e.e.Index(doc.Object.Hash, docData, doc.Reindex)
 	l.Infow("index requested", "size", len(doc.Content))
 	var now = time.Now()
 	e.e.Flush()
 	l.Infow("index flushed",
 		"duration", time.Since(now),
 		"documents", e.e.NumIndexed())
+
 	return nil
 }
 
