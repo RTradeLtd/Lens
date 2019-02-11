@@ -23,7 +23,6 @@ deps:
 
 	# install gofitz
 	go get -u $(GOFLAGS) github.com/gen2brain/go-fitz
-	( cd $(GOPATH)/src/github.com/gen2brain/go-fitz ; git checkout 297d6b6088086f9eb8f2c5be84046f9acdc5789a)
 
 	# Install counterfeiter, used for mock generation
 	go get -u github.com/maxbrunsfeld/counterfeiter
