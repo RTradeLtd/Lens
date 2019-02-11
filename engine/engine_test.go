@@ -7,7 +7,6 @@ import (
 
 	"go.uber.org/zap/zaptest"
 
-	"github.com/RTradeLtd/Lens/logs"
 	"github.com/RTradeLtd/Lens/models"
 )
 
@@ -71,70 +70,6 @@ func TestEngine_Index(t *testing.T) {
 	}
 }
 
-func TestEngine_Index_parallel(t *testing.T) {
-	var l = zaptest.NewLogger(t).Sugar()
-	e, err := New(l, Opts{"", filepath.Join("tmp", t.Name())})
-	if err != nil {
-		t.Error("failed to create engine: " + err.Error())
-	}
-	defer e.Close()
-	go e.Run(nil)
-
-	type args struct {
-		object  *models.ObjectV2
-		content string
-	}
-	tests := []struct {
-		args args
-	}{
-		{args{&models.ObjectV2{
-			Hash: "abcde",
-			MD:   models.MetaDataV2{},
-		}, "quick brown fox"}},
-		{args{&models.ObjectV2{
-			Hash: "asdf",
-			MD:   models.MetaDataV2{},
-		}, "slow white fox"}},
-		{args{&models.ObjectV2{
-			Hash: "qwewqr",
-			MD:   models.MetaDataV2{},
-		}, "hungry grey fox"}},
-		{args{&models.ObjectV2{
-			Hash: "oiuysa",
-			MD: models.MetaDataV2{
-				DisplayName: "launch pad",
-				Category:    "clubs",
-				Tags:        []string{"ubc"},
-			},
-		}, "ubc launch pad"}},
-		{args{&models.ObjectV2{
-			Hash: "oishii",
-			MD: models.MetaDataV2{
-				DisplayName: "rtrade",
-				Category:    "startup",
-				Tags:        []string{"ipfs", "decentralized"},
-			},
-		}, "rtrade technologies"}},
-	}
-	for _, tt := range tests {
-		tt := tt // copy case
-		t.Run("index "+tt.args.object.Hash, func(t *testing.T) {
-			t.Parallel()
-
-			// request index
-			if err = e.Index(Document{tt.args.object, "", true}); err != nil {
-				t.Errorf("wanted Index error = false, got %v", err)
-			}
-
-			// make sure object can be found (or can't)
-			var found bool
-			if !e.IsIndexed(tt.args.object.Hash) {
-				t.Errorf("wanted IsIndexed = true, got '%v'", found)
-			}
-		})
-	}
-}
-
 func TestEngine_Search(t *testing.T) {
 	var testContent = `You are currently using an enterprise storage solution powered by
 			Temporal, an API built for the Interplanetary File System. This platform
@@ -143,64 +78,125 @@ func TestEngine_Search(t *testing.T) {
 	var testObj = models.ObjectV2{
 		Hash: "abcde",
 		MD: models.MetaDataV2{
-			MimeType: "text",
-			Category: "",
-			Tags:     []string{"test", "object"},
+			DisplayName: "my test object!",
+			MimeType:    "text",
+			Category:    "amazing startup",
+			Tags:        []string{"test", "object"},
 		},
 	}
-	type fields struct {
-		content string
-		object  models.ObjectV2
+
+	// not testing indexing capabilities, so we can share an instance
+	var l = zaptest.NewLogger(t).Sugar()
+	e, err := New(l, Opts{"", filepath.Join("tmp", t.Name())})
+	if err != nil {
+		t.Error("failed to create engine: " + err.Error())
 	}
+	defer e.Close()
+	go e.Run(nil)
+
+	// store test object in engine
+	e.Index(Document{&testObj, testContent, true})
+
 	type args struct {
 		q Query
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantDoc bool
 	}{
-		{"find test obj with text",
-			fields{testContent, testObj},
+		{"ok: find test obj with hash",
+			args{Query{
+				// Needs text - hashes are only provided as a filtering option
+				Text:   "Interplanetary File System",
+				Hashes: []string{testObj.Hash},
+			}},
+			true},
+		{"fail: do NOT find test obj with wrong hash filter",
+			args{Query{
+				Text:   "Interplanetary File System",
+				Hashes: []string{"not_my_hash"},
+			}},
+			false},
+		{"ok: find test obj with text",
 			args{Query{
 				Text: "Interplanetary File System",
 			}},
 			true},
-		{"find test obj with mime type",
-			fields{testContent, testObj},
+		{"fail: do NOT find test obj with wrong text",
+			args{Query{
+				Text: "robert is the best!",
+			}},
+			false},
+		{"ok: find test obj with required text",
+			args{Query{
+				Required: []string{"Interplanetary"},
+			}},
+			true},
+		{"ok: find test obj with required text separated",
+			args{Query{
+				Required: []string{" API   ", "Interplanetary    File   System", "outstanding features", "   "},
+			}},
+			true},
+		{"fail: do NOT find test obj without required text",
+			args{Query{
+				Required: []string{"ubc launch pad"},
+			}},
+			false},
+		{"ok: find test obj with mime type",
 			args{Query{
 				MimeTypes: []string{testObj.MD.MimeType},
 			}},
 			true},
+		{"fail: do NOT find test obj without mime type",
+			args{Query{
+				MimeTypes: []string{models.MimeTypeUnknown},
+			}},
+			false},
+		{"ok: find test obj with category",
+			args{Query{
+				Categories: []string{testObj.MD.Category},
+			}},
+			true},
+		{"fail: do NOT find test obj without category",
+			args{Query{
+				Categories: []string{"amazing"},
+			}},
+			false},
+		{"ok: find test obj with tag",
+			args{Query{
+				Tags: []string{testObj.MD.Tags[0]},
+			}},
+			true},
+		{"fail: do NOT find test obj without tag",
+			args{Query{
+				Tags: []string{"kfc"},
+			}},
+			false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var l, out = logs.NewTestLogger()
-			defer t.Logf("Logs: \n%v\n", out.All())
-			e, err := New(l, Opts{"tmp", "tmp"})
-			if err != nil {
-				t.Error("failed to create engine: " + err.Error())
-			}
-			defer e.Close()
-			go e.Run(nil)
+			// set new logger for each test for cleanliness
+			e.l = zaptest.NewLogger(t).Sugar()
 
-			e.Index(Document{&tt.fields.object, tt.fields.content, true})
-
+			// attempt to search for object
 			got, err := e.Search(tt.args.q)
 			if err != nil && tt.wantDoc {
 				t.Error("got error: " + err.Error())
+				return
 			}
 
+			// check for document
 			if tt.wantDoc {
 				if len(got) < 1 {
 					t.Error("got no results")
+					return
 				}
-				if got[0].Hash != tt.fields.object.Hash {
-					t.Errorf("Engine.Search() = %s, want %s", got[0].Hash, tt.fields.object.Hash)
+				if got[0].Hash != testObj.Hash {
+					t.Errorf("Engine.Search() = %s, want %s", got[0].Hash, testObj)
 				}
-				if !reflect.DeepEqual(got[0].MD, tt.fields.object.MD) {
-					t.Errorf("Engine.Search() = %v, want %v", got[0].MD, tt.fields.object.MD)
+				if !reflect.DeepEqual(got[0].MD, testObj.MD) {
+					t.Errorf("Engine.Search() = %v, want %v", got[0].MD, testObj.MD)
 				}
 			}
 		})

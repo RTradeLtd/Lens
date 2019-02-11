@@ -149,7 +149,9 @@ func (e *Engine) Index(doc Document) error {
 	}
 
 	// execute index and flush
-	l.Debug("requesting index", "data", docData)
+	l.Debugw("requesting index",
+		"labels", docData.Labels,
+		"fields", docData.Fields)
 	e.e.Index(doc.Object.Hash, docData, doc.Reindex)
 	l.Infow("index requested", "size", len(doc.Content))
 	var now = time.Now()
@@ -179,7 +181,8 @@ type Query struct {
 	Categories []string
 	MimeTypes  []string
 
-	// restrict what documents to include in query
+	// Hashes restricts what documents to include in query - this is only a
+	// filtering option, so some other query fields must be provided as well
 	Hashes []string
 }
 
@@ -193,19 +196,22 @@ type Result struct {
 
 // Search performs a query
 func (e *Engine) Search(q Query) ([]Result, error) {
-	e.l.Debugw("search requested", "query", q)
-	var out = e.e.Search(types.SearchReq{
+	var l = e.l.With("query", q)
+	l.Debug("search requested")
+
+	// construct search request
+	var request = types.SearchReq{
 		// search for provided plain-text query
 		Text: q.Text,
 
 		// query for specific tags, categories, or mimetypes
 		Labels: func() (labels []string) {
-			if len(q.Categories) > 0 || len(q.MimeTypes) > 0 {
-				if len(q.Tags) > 0 {
-					labels = q.Tags
-				} else {
-					labels = make([]string, 0)
-				}
+			if len(q.Tags) > 0 {
+				labels = q.Tags
+			} else if len(q.Categories) > 0 || len(q.MimeTypes) > 0 {
+				labels = make([]string, 0)
+			} else {
+				return
 			}
 			for _, c := range q.Categories {
 				labels = append(labels, category(c))
@@ -230,7 +236,29 @@ func (e *Engine) Search(q Query) ([]Result, error) {
 		// require certain words
 		Logic: types.Logic{
 			Expr: types.Expr{
-				Must: q.Required,
+				Must: func() (required []string) {
+					if len(q.Required) < 1 {
+						return
+					}
+					// required must be lowercase, and cannot have spaces. we also want
+					// to avoid required strings that are too short.
+					var splitter = func(c rune) bool { return c == ' ' }
+					required = make([]string, 0)
+					for _, cur := range q.Required {
+						if parts := strings.FieldsFunc(cur, splitter); len(parts) > 1 {
+							for _, p := range parts {
+								if len(p) > 1 {
+									required = append(required, strings.ToLower(p))
+								}
+							}
+						} else {
+							if stripped := strings.Replace(cur, " ", "", -1); len(stripped) > 1 {
+								required = append(required, strings.ToLower(stripped))
+							}
+						}
+					}
+					return
+				}(),
 			},
 		},
 
@@ -239,20 +267,39 @@ func (e *Engine) Search(q Query) ([]Result, error) {
 		RankOpts: &types.RankOpts{
 			MaxOutputs: 1000, // max 1000 documents
 		},
-	})
+	}
+	l.Debugw("search constructed", "request", request)
+
+	// always log results of search
+	var maxScore float32
+	var results = make([]Result, 0)
+	defer func() {
+		l.Infow("search completed",
+			"found", len(results),
+			"max_score", maxScore)
+	}()
+
+	// execute request
+	var out = e.e.Search(request)
 	if out.NumDocs == 0 {
 		return nil, errors.New("no results found")
 	}
 
-	e.l.Debugw("search returned", "docs", out.Docs)
+	// check returned docs
+	l.Debugw("search returned", "docs", out.Docs)
 	docs, ok := out.Docs.(types.ScoredDocs)
 	if !ok {
 		return nil, errors.New("failed to read search result")
 	}
-	var results = make([]Result, 0)
+
 	for _, d := range docs {
-		results = append(results, newResult(&d))
+		var r = newResult(&d)
+		if r.Score > maxScore {
+			maxScore = r.Score
+		}
+		results = append(results, r)
 	}
+
 	return results, nil
 }
 
