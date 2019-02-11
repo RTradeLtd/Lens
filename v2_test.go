@@ -9,6 +9,7 @@ import (
 
 	"github.com/RTradeLtd/Lens/engine"
 	"github.com/RTradeLtd/Lens/mocks"
+	"github.com/RTradeLtd/Lens/models"
 	"github.com/RTradeLtd/grpc/lensv2"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"
@@ -41,7 +42,7 @@ func TestV2_Index(t *testing.T) {
 		name        string
 		args        args
 		returns     returns
-		wantType    MimeType
+		wantType    models.MimeType
 		wantErrCode codes.Code
 	}{
 		{"nil request",
@@ -86,7 +87,7 @@ func TestV2_Index(t *testing.T) {
 				Hash: "asdf",
 			}},
 			returns{"test/assets/image.jpg", false, false, false},
-			MimeTypeImage,
+			models.MimeTypeImage,
 			codes.OK},
 		{"ok: pdf",
 			args{&lensv2.IndexReq{
@@ -94,7 +95,7 @@ func TestV2_Index(t *testing.T) {
 				Hash: "asdf",
 			}},
 			returns{"test/assets/text.pdf", false, false, false},
-			MimeTypePDF,
+			models.MimeTypePDF,
 			codes.OK},
 		{"ok: document",
 			args{&lensv2.IndexReq{
@@ -102,7 +103,7 @@ func TestV2_Index(t *testing.T) {
 				Hash: "asdf",
 			}},
 			returns{"README.md", false, false, false},
-			MimeTypeDocument,
+			models.MimeTypeDocument,
 			codes.OK},
 	}
 	for _, tt := range tests {

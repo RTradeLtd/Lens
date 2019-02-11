@@ -55,10 +55,10 @@ func (v *V2) magnify(hash string, opts magnifyOpts) (content string, metadata *m
 	}
 
 	// scrape for content based on content-type
-	var category MimeType
+	var category models.MimeType
 	switch parsed[0] {
 	case "application/pdf":
-		category = MimeTypePDF
+		category = models.MimeTypePDF
 		text, err := v.oc.Analyze(hash, contents, "pdf")
 		if err != nil {
 			return "", nil, err
@@ -71,10 +71,10 @@ func (v *V2) magnify(hash string, opts magnifyOpts) (content string, metadata *m
 		}
 		switch parsed2[0] {
 		case "text":
-			category = MimeTypeDocument
+			category = models.MimeTypeDocument
 			content = string(contents)
 		case "image":
-			category = MimeTypeImage
+			category = models.MimeTypeImage
 			keyword, err := v.tf.Analyze(hash, contents)
 			if err != nil {
 				l.Warnw("failed to categorize image", "error", err)
