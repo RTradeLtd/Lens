@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"testing"
+	"time"
 
 	"go.uber.org/zap/zaptest"
 
@@ -47,7 +48,7 @@ func TestEngine_Index(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var l = zaptest.NewLogger(t).Sugar()
-			e, err := New(l, Opts{"", filepath.Join("tmp", t.Name())})
+			e, err := New(l, Opts{"", filepath.Join("tmp", t.Name()), time.Microsecond})
 			if err != nil {
 				t.Error("failed to create engine: " + err.Error())
 			}
@@ -87,7 +88,7 @@ func TestEngine_Search(t *testing.T) {
 
 	// not testing indexing capabilities, so we can share an instance
 	var l = zaptest.NewLogger(t).Sugar()
-	e, err := New(l, Opts{"", filepath.Join("tmp", t.Name())})
+	e, err := New(l, Opts{"", filepath.Join("tmp", t.Name()), time.Microsecond})
 	if err != nil {
 		t.Error("failed to create engine: " + err.Error())
 	}

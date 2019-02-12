@@ -3,6 +3,7 @@ package engine
 import (
 	"path/filepath"
 	"testing"
+	"time"
 
 	"github.com/RTradeLtd/Lens/models"
 	"go.uber.org/zap/zaptest"
@@ -10,7 +11,7 @@ import (
 
 func TestEngine_parallel(t *testing.T) {
 	var l = zaptest.NewLogger(t).Sugar()
-	e, err := New(l, Opts{"", filepath.Join("tmp", t.Name())})
+	e, err := New(l, Opts{"", filepath.Join("tmp", t.Name()), time.Millisecond})
 	if err != nil {
 		t.Error("failed to create engine: " + err.Error())
 	}
@@ -55,17 +56,20 @@ func TestEngine_parallel(t *testing.T) {
 		}, "rtrade technologies"}},
 	}
 	for _, tt := range tests {
-		tt := tt // copy case
-		t.Run("index "+tt.args.object.Hash, func(t *testing.T) {
+		var tcase = tt // copy case
+		t.Run("index "+tcase.args.object.Hash, func(t *testing.T) {
 			t.Parallel()
 
 			// request index
-			if err = e.Index(Document{tt.args.object, "", true}); err != nil {
+			if err = e.Index(Document{tcase.args.object, tcase.args.content, true}); err != nil {
 				t.Errorf("wanted Index error = false, got %v", err)
 			}
 
+			// wait for flush
+			time.Sleep(time.Second)
+
 			// we'll be referring to this hash a few times
-			var objHash = tt.args.object.Hash
+			var objHash = tcase.args.object.Hash
 
 			// make sure object can be found
 			if !e.IsIndexed(objHash) {
@@ -74,7 +78,7 @@ func TestEngine_parallel(t *testing.T) {
 
 			// attempt search
 			if res, err := e.Search(Query{
-				Text:   tt.args.content,
+				Text:   tcase.args.content,
 				Hashes: []string{objHash},
 			}); err != nil && len(res) > 0 {
 				if res[0].Hash != objHash {

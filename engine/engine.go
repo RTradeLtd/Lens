@@ -12,6 +12,7 @@ import (
 
 	"go.uber.org/zap"
 
+	"github.com/RTradeLtd/Lens/engine/queue"
 	"github.com/RTradeLtd/Lens/models"
 )
 
@@ -28,18 +29,21 @@ type Searcher interface {
 
 // Engine implements Lens V2's core search functionality
 type Engine struct {
-	e *riot.Engine
 	l *zap.SugaredLogger
 
-	stop chan bool
-
+	e          *riot.Engine
 	engineOpts *types.EngineOpts
+
+	q *queue.Queue
+
+	stop chan bool
 }
 
 // Opts denotes options for the Lens engine
 type Opts struct {
 	DictPath  string
 	StorePath string
+	FlushRate time.Duration
 }
 
 // New instantiates a new Engine
@@ -47,6 +51,10 @@ func New(l *zap.SugaredLogger, opts Opts) (*Engine, error) {
 	var e = &riot.Engine{}
 	var r = types.EngineOpts{
 		GseDict: opts.DictPath,
+	}
+
+	if opts.FlushRate == 0 {
+		opts.FlushRate = time.Minute
 	}
 
 	// database persistence settings
@@ -59,12 +67,15 @@ func New(l *zap.SugaredLogger, opts Opts) (*Engine, error) {
 	l.Infow("starting up search engine", "config", r)
 	e.Init(r)
 	return &Engine{
-		e: e,
 		l: l,
 
-		stop: make(chan bool),
-
+		e:          e,
 		engineOpts: &r,
+
+		// TODO: insert queue, and flush there?
+		q: queue.New(l.Named("queue"), e.Flush, e.Close, opts.FlushRate),
+
+		stop: make(chan bool),
 	}, nil
 }
 
@@ -98,12 +109,8 @@ func (e *Engine) Run(c *ClusterOpts) {
 	for {
 		select {
 		case <-e.stop:
-			e.l.Infow("exit signal received")
-			var now = time.Now()
-			e.e.Close()
-			e.l.Infow("index flushed and engine closed",
-				"duration", time.Since(now),
-				"documents", e.e.NumIndexed())
+			e.l.Infow("exit signal received - closing")
+			e.q.Close()
 			return
 		}
 	}
@@ -148,17 +155,15 @@ func (e *Engine) Index(doc Document) error {
 		},
 	}
 
-	// execute index and flush
-	l.Debugw("requesting index",
+	// execute index
+	e.e.Index(doc.Object.Hash, docData, doc.Reindex)
+
+	// queue for flush
+	e.q.Queue(doc.Object.Hash)
+	l.Infow("index requested",
+		"size", len(doc.Content),
 		"labels", docData.Labels,
 		"fields", docData.Fields)
-	e.e.Index(doc.Object.Hash, docData, doc.Reindex)
-	l.Infow("index requested", "size", len(doc.Content))
-	var now = time.Now()
-	e.e.Flush()
-	l.Infow("index flushed",
-		"duration", time.Since(now),
-		"documents", e.e.NumIndexed())
 
 	return nil
 }
@@ -309,8 +314,5 @@ func (e *Engine) Remove(hash string) {
 	e.e.Flush()
 }
 
-// Close shuts down the engine, but not the goroutine started by Run - cancel
-// the provided context to do that.
-func (e *Engine) Close() {
-	e.stop <- true
-}
+// Close shuts down the engine
+func (e *Engine) Close() { e.stop <- true }
