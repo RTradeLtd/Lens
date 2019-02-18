@@ -54,7 +54,7 @@ func NewV2(
 	if err != nil {
 		return nil, fmt.Errorf("failed to instantiate search engine: %s", err.Error())
 	}
-	go se.Run(nil)
+	go se.Run()
 
 	return &V2{
 		se:   se,
