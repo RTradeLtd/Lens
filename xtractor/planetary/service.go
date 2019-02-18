@@ -10,10 +10,10 @@ type Extractor struct {
 }
 
 // NewPlanetaryExtractor is used to generate our IPLD object extractor
-func NewPlanetaryExtractor(ipfsManager rtfs.Manager) (*Extractor, error) {
+func NewPlanetaryExtractor(ipfsManager rtfs.Manager) *Extractor {
 	return &Extractor{
 		im: ipfsManager,
-	}, nil
+	}
 }
 
 // ExtractObject is used to extract an IPLD object from a content hash

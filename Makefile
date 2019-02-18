@@ -61,7 +61,7 @@ check:
 # Generate code
 .PHONY: gen
 gen:
-	ifacemaker -d \
+	ifacemaker -d true \
 		-f search/search.go \
 		-s Service \
 		-i Searcher \
@@ -72,9 +72,13 @@ gen:
 	counterfeiter -o ./mocks/search.mock.go \
 		./search/search.i.go Searcher
 	counterfeiter -o ./mocks/manager.mock.go \
+		-fake-name FakeRTFSManager \
 		./vendor/github.com/RTradeLtd/rtfs/rtfs.i.go Manager
 	counterfeiter -o ./mocks/images.mock.go \
 		./analyzer/images/tensorflow.go TensorflowAnalyzer
+	counterfeiter -o ./mocks/engine.mock.go \
+		-fake-name FakeEngineSearcher \
+		./engine/engine.go Searcher
 
 # Build docker release
 .PHONY: docker
@@ -86,3 +90,7 @@ docker:
 		--build-arg TENSORFLOW_DIST=$(EDITION) \
 		-t rtradetech/lens:$(LENSVERSION)-$(EDITION) .
 	@echo "===================          done           ==================="
+
+.PHONY: v2
+v2: cli
+	./temporal-lens --dev --cfg test/config.json v2

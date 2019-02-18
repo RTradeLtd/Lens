@@ -23,7 +23,7 @@ type Searcher interface {
 	// Has is used to check if our database has a key matching this name
 	Has(keyName string) (bool, error)
 	// KeywordSearch retrieves a slice of content hashes that were indexed with these keywords
-	KeywordSearch(keywords []string) ([]models.Object, error)
+	KeywordSearch(keywords []string) ([]models.ObjectV1, error)
 	// AdvancedSearch is used to perform an advanced search against the lens index
-	AdvancedSearch(opts *FilterOpts) ([]models.Object, error)
+	AdvancedSearch(opts *FilterOpts) ([]models.ObjectV1, error)
 }

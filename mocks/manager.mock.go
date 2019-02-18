@@ -2,26 +2,41 @@
 package mocks
 
 import (
-	context "context"
-	io "io"
-	sync "sync"
-	time "time"
+	"context"
+	"io"
+	"sync"
+	"time"
 
 	shell "github.com/RTradeLtd/go-ipfs-api"
-	rtfs "github.com/RTradeLtd/rtfs"
+	"github.com/RTradeLtd/rtfs"
 )
 
-type FakeManager struct {
-	AddStub        func(io.Reader) (string, error)
+type FakeRTFSManager struct {
+	AddStub        func(io.Reader, ...func(*shell.RequestBuilder) error) (string, error)
 	addMutex       sync.RWMutex
 	addArgsForCall []struct {
 		arg1 io.Reader
+		arg2 []func(*shell.RequestBuilder) error
 	}
 	addReturns struct {
 		result1 string
 		result2 error
 	}
 	addReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
+	AppendDataStub        func(string, interface{}) (string, error)
+	appendDataMutex       sync.RWMutex
+	appendDataArgsForCall []struct {
+		arg1 string
+		arg2 interface{}
+	}
+	appendDataReturns struct {
+		result1 string
+		result2 error
+	}
+	appendDataReturnsOnCall map[int]struct {
 		result1 string
 		result2 error
 	}
@@ -95,6 +110,19 @@ type FakeManager struct {
 		result1 string
 		result2 error
 	}
+	NewObjectStub        func(string) (string, error)
+	newObjectMutex       sync.RWMutex
+	newObjectArgsForCall []struct {
+		arg1 string
+	}
+	newObjectReturns struct {
+		result1 string
+		result2 error
+	}
+	newObjectReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	NodeAddressStub        func() string
 	nodeAddressMutex       sync.RWMutex
 	nodeAddressArgsForCall []struct {
@@ -104,6 +132,22 @@ type FakeManager struct {
 	}
 	nodeAddressReturnsOnCall map[int]struct {
 		result1 string
+	}
+	PatchLinkStub        func(string, string, string, bool) (string, error)
+	patchLinkMutex       sync.RWMutex
+	patchLinkArgsForCall []struct {
+		arg1 string
+		arg2 string
+		arg3 string
+		arg4 bool
+	}
+	patchLinkReturns struct {
+		result1 string
+		result2 error
+	}
+	patchLinkReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
 	}
 	PinStub        func(string) error
 	pinMutex       sync.RWMutex
@@ -115,6 +159,20 @@ type FakeManager struct {
 	}
 	pinReturnsOnCall map[int]struct {
 		result1 error
+	}
+	PinUpdateStub        func(string, string) (string, error)
+	pinUpdateMutex       sync.RWMutex
+	pinUpdateArgsForCall []struct {
+		arg1 string
+		arg2 string
+	}
+	pinUpdateReturns struct {
+		result1 string
+		result2 error
+	}
+	pinUpdateReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
 	}
 	PubSubPublishStub        func(string, string) error
 	pubSubPublishMutex       sync.RWMutex
@@ -145,6 +203,48 @@ type FakeManager struct {
 		result1 *shell.PublishResponse
 		result2 error
 	}
+	RefsStub        func(string, bool, bool) ([]string, error)
+	refsMutex       sync.RWMutex
+	refsArgsForCall []struct {
+		arg1 string
+		arg2 bool
+		arg3 bool
+	}
+	refsReturns struct {
+		result1 []string
+		result2 error
+	}
+	refsReturnsOnCall map[int]struct {
+		result1 []string
+		result2 error
+	}
+	ResolveStub        func(string) (string, error)
+	resolveMutex       sync.RWMutex
+	resolveArgsForCall []struct {
+		arg1 string
+	}
+	resolveReturns struct {
+		result1 string
+		result2 error
+	}
+	resolveReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
+	SetDataStub        func(string, interface{}) (string, error)
+	setDataMutex       sync.RWMutex
+	setDataArgsForCall []struct {
+		arg1 string
+		arg2 interface{}
+	}
+	setDataReturns struct {
+		result1 string
+		result2 error
+	}
+	setDataReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	StatStub        func(string) (*shell.ObjectStats, error)
 	statMutex       sync.RWMutex
 	statArgsForCall []struct {
@@ -158,20 +258,33 @@ type FakeManager struct {
 		result1 *shell.ObjectStats
 		result2 error
 	}
+	SwarmConnectStub        func(context.Context, ...string) error
+	swarmConnectMutex       sync.RWMutex
+	swarmConnectArgsForCall []struct {
+		arg1 context.Context
+		arg2 []string
+	}
+	swarmConnectReturns struct {
+		result1 error
+	}
+	swarmConnectReturnsOnCall map[int]struct {
+		result1 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeManager) Add(arg1 io.Reader) (string, error) {
+func (fake *FakeRTFSManager) Add(arg1 io.Reader, arg2 ...func(*shell.RequestBuilder) error) (string, error) {
 	fake.addMutex.Lock()
 	ret, specificReturn := fake.addReturnsOnCall[len(fake.addArgsForCall)]
 	fake.addArgsForCall = append(fake.addArgsForCall, struct {
 		arg1 io.Reader
-	}{arg1})
-	fake.recordInvocation("Add", []interface{}{arg1})
+		arg2 []func(*shell.RequestBuilder) error
+	}{arg1, arg2})
+	fake.recordInvocation("Add", []interface{}{arg1, arg2})
 	fake.addMutex.Unlock()
 	if fake.AddStub != nil {
-		return fake.AddStub(arg1)
+		return fake.AddStub(arg1, arg2...)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -180,26 +293,26 @@ func (fake *FakeManager) Add(arg1 io.Reader) (string, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeManager) AddCallCount() int {
+func (fake *FakeRTFSManager) AddCallCount() int {
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
 	return len(fake.addArgsForCall)
 }
 
-func (fake *FakeManager) AddCalls(stub func(io.Reader) (string, error)) {
+func (fake *FakeRTFSManager) AddCalls(stub func(io.Reader, ...func(*shell.RequestBuilder) error) (string, error)) {
 	fake.addMutex.Lock()
 	defer fake.addMutex.Unlock()
 	fake.AddStub = stub
 }
 
-func (fake *FakeManager) AddArgsForCall(i int) io.Reader {
+func (fake *FakeRTFSManager) AddArgsForCall(i int) (io.Reader, []func(*shell.RequestBuilder) error) {
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
 	argsForCall := fake.addArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeManager) AddReturns(result1 string, result2 error) {
+func (fake *FakeRTFSManager) AddReturns(result1 string, result2 error) {
 	fake.addMutex.Lock()
 	defer fake.addMutex.Unlock()
 	fake.AddStub = nil
@@ -209,7 +322,7 @@ func (fake *FakeManager) AddReturns(result1 string, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeManager) AddReturnsOnCall(i int, result1 string, result2 error) {
+func (fake *FakeRTFSManager) AddReturnsOnCall(i int, result1 string, result2 error) {
 	fake.addMutex.Lock()
 	defer fake.addMutex.Unlock()
 	fake.AddStub = nil
@@ -225,7 +338,71 @@ func (fake *FakeManager) AddReturnsOnCall(i int, result1 string, result2 error) 
 	}{result1, result2}
 }
 
-func (fake *FakeManager) Cat(arg1 string) ([]byte, error) {
+func (fake *FakeRTFSManager) AppendData(arg1 string, arg2 interface{}) (string, error) {
+	fake.appendDataMutex.Lock()
+	ret, specificReturn := fake.appendDataReturnsOnCall[len(fake.appendDataArgsForCall)]
+	fake.appendDataArgsForCall = append(fake.appendDataArgsForCall, struct {
+		arg1 string
+		arg2 interface{}
+	}{arg1, arg2})
+	fake.recordInvocation("AppendData", []interface{}{arg1, arg2})
+	fake.appendDataMutex.Unlock()
+	if fake.AppendDataStub != nil {
+		return fake.AppendDataStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.appendDataReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeRTFSManager) AppendDataCallCount() int {
+	fake.appendDataMutex.RLock()
+	defer fake.appendDataMutex.RUnlock()
+	return len(fake.appendDataArgsForCall)
+}
+
+func (fake *FakeRTFSManager) AppendDataCalls(stub func(string, interface{}) (string, error)) {
+	fake.appendDataMutex.Lock()
+	defer fake.appendDataMutex.Unlock()
+	fake.AppendDataStub = stub
+}
+
+func (fake *FakeRTFSManager) AppendDataArgsForCall(i int) (string, interface{}) {
+	fake.appendDataMutex.RLock()
+	defer fake.appendDataMutex.RUnlock()
+	argsForCall := fake.appendDataArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeRTFSManager) AppendDataReturns(result1 string, result2 error) {
+	fake.appendDataMutex.Lock()
+	defer fake.appendDataMutex.Unlock()
+	fake.AppendDataStub = nil
+	fake.appendDataReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRTFSManager) AppendDataReturnsOnCall(i int, result1 string, result2 error) {
+	fake.appendDataMutex.Lock()
+	defer fake.appendDataMutex.Unlock()
+	fake.AppendDataStub = nil
+	if fake.appendDataReturnsOnCall == nil {
+		fake.appendDataReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.appendDataReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRTFSManager) Cat(arg1 string) ([]byte, error) {
 	fake.catMutex.Lock()
 	ret, specificReturn := fake.catReturnsOnCall[len(fake.catArgsForCall)]
 	fake.catArgsForCall = append(fake.catArgsForCall, struct {
@@ -243,26 +420,26 @@ func (fake *FakeManager) Cat(arg1 string) ([]byte, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeManager) CatCallCount() int {
+func (fake *FakeRTFSManager) CatCallCount() int {
 	fake.catMutex.RLock()
 	defer fake.catMutex.RUnlock()
 	return len(fake.catArgsForCall)
 }
 
-func (fake *FakeManager) CatCalls(stub func(string) ([]byte, error)) {
+func (fake *FakeRTFSManager) CatCalls(stub func(string) ([]byte, error)) {
 	fake.catMutex.Lock()
 	defer fake.catMutex.Unlock()
 	fake.CatStub = stub
 }
 
-func (fake *FakeManager) CatArgsForCall(i int) string {
+func (fake *FakeRTFSManager) CatArgsForCall(i int) string {
 	fake.catMutex.RLock()
 	defer fake.catMutex.RUnlock()
 	argsForCall := fake.catArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeManager) CatReturns(result1 []byte, result2 error) {
+func (fake *FakeRTFSManager) CatReturns(result1 []byte, result2 error) {
 	fake.catMutex.Lock()
 	defer fake.catMutex.Unlock()
 	fake.CatStub = nil
@@ -272,7 +449,7 @@ func (fake *FakeManager) CatReturns(result1 []byte, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeManager) CatReturnsOnCall(i int, result1 []byte, result2 error) {
+func (fake *FakeRTFSManager) CatReturnsOnCall(i int, result1 []byte, result2 error) {
 	fake.catMutex.Lock()
 	defer fake.catMutex.Unlock()
 	fake.CatStub = nil
@@ -288,7 +465,7 @@ func (fake *FakeManager) CatReturnsOnCall(i int, result1 []byte, result2 error) 
 	}{result1, result2}
 }
 
-func (fake *FakeManager) CheckPin(arg1 string) (bool, error) {
+func (fake *FakeRTFSManager) CheckPin(arg1 string) (bool, error) {
 	fake.checkPinMutex.Lock()
 	ret, specificReturn := fake.checkPinReturnsOnCall[len(fake.checkPinArgsForCall)]
 	fake.checkPinArgsForCall = append(fake.checkPinArgsForCall, struct {
@@ -306,26 +483,26 @@ func (fake *FakeManager) CheckPin(arg1 string) (bool, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeManager) CheckPinCallCount() int {
+func (fake *FakeRTFSManager) CheckPinCallCount() int {
 	fake.checkPinMutex.RLock()
 	defer fake.checkPinMutex.RUnlock()
 	return len(fake.checkPinArgsForCall)
 }
 
-func (fake *FakeManager) CheckPinCalls(stub func(string) (bool, error)) {
+func (fake *FakeRTFSManager) CheckPinCalls(stub func(string) (bool, error)) {
 	fake.checkPinMutex.Lock()
 	defer fake.checkPinMutex.Unlock()
 	fake.CheckPinStub = stub
 }
 
-func (fake *FakeManager) CheckPinArgsForCall(i int) string {
+func (fake *FakeRTFSManager) CheckPinArgsForCall(i int) string {
 	fake.checkPinMutex.RLock()
 	defer fake.checkPinMutex.RUnlock()
 	argsForCall := fake.checkPinArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeManager) CheckPinReturns(result1 bool, result2 error) {
+func (fake *FakeRTFSManager) CheckPinReturns(result1 bool, result2 error) {
 	fake.checkPinMutex.Lock()
 	defer fake.checkPinMutex.Unlock()
 	fake.CheckPinStub = nil
@@ -335,7 +512,7 @@ func (fake *FakeManager) CheckPinReturns(result1 bool, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeManager) CheckPinReturnsOnCall(i int, result1 bool, result2 error) {
+func (fake *FakeRTFSManager) CheckPinReturnsOnCall(i int, result1 bool, result2 error) {
 	fake.checkPinMutex.Lock()
 	defer fake.checkPinMutex.Unlock()
 	fake.CheckPinStub = nil
@@ -351,7 +528,7 @@ func (fake *FakeManager) CheckPinReturnsOnCall(i int, result1 bool, result2 erro
 	}{result1, result2}
 }
 
-func (fake *FakeManager) CustomRequest(arg1 context.Context, arg2 string, arg3 string, arg4 map[string]string, arg5 ...string) (*shell.Response, error) {
+func (fake *FakeRTFSManager) CustomRequest(arg1 context.Context, arg2 string, arg3 string, arg4 map[string]string, arg5 ...string) (*shell.Response, error) {
 	fake.customRequestMutex.Lock()
 	ret, specificReturn := fake.customRequestReturnsOnCall[len(fake.customRequestArgsForCall)]
 	fake.customRequestArgsForCall = append(fake.customRequestArgsForCall, struct {
@@ -373,26 +550,26 @@ func (fake *FakeManager) CustomRequest(arg1 context.Context, arg2 string, arg3 s
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeManager) CustomRequestCallCount() int {
+func (fake *FakeRTFSManager) CustomRequestCallCount() int {
 	fake.customRequestMutex.RLock()
 	defer fake.customRequestMutex.RUnlock()
 	return len(fake.customRequestArgsForCall)
 }
 
-func (fake *FakeManager) CustomRequestCalls(stub func(context.Context, string, string, map[string]string, ...string) (*shell.Response, error)) {
+func (fake *FakeRTFSManager) CustomRequestCalls(stub func(context.Context, string, string, map[string]string, ...string) (*shell.Response, error)) {
 	fake.customRequestMutex.Lock()
 	defer fake.customRequestMutex.Unlock()
 	fake.CustomRequestStub = stub
 }
 
-func (fake *FakeManager) CustomRequestArgsForCall(i int) (context.Context, string, string, map[string]string, []string) {
+func (fake *FakeRTFSManager) CustomRequestArgsForCall(i int) (context.Context, string, string, map[string]string, []string) {
 	fake.customRequestMutex.RLock()
 	defer fake.customRequestMutex.RUnlock()
 	argsForCall := fake.customRequestArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
-func (fake *FakeManager) CustomRequestReturns(result1 *shell.Response, result2 error) {
+func (fake *FakeRTFSManager) CustomRequestReturns(result1 *shell.Response, result2 error) {
 	fake.customRequestMutex.Lock()
 	defer fake.customRequestMutex.Unlock()
 	fake.CustomRequestStub = nil
@@ -402,7 +579,7 @@ func (fake *FakeManager) CustomRequestReturns(result1 *shell.Response, result2 e
 	}{result1, result2}
 }
 
-func (fake *FakeManager) CustomRequestReturnsOnCall(i int, result1 *shell.Response, result2 error) {
+func (fake *FakeRTFSManager) CustomRequestReturnsOnCall(i int, result1 *shell.Response, result2 error) {
 	fake.customRequestMutex.Lock()
 	defer fake.customRequestMutex.Unlock()
 	fake.CustomRequestStub = nil
@@ -418,7 +595,7 @@ func (fake *FakeManager) CustomRequestReturnsOnCall(i int, result1 *shell.Respon
 	}{result1, result2}
 }
 
-func (fake *FakeManager) DagGet(arg1 string, arg2 interface{}) error {
+func (fake *FakeRTFSManager) DagGet(arg1 string, arg2 interface{}) error {
 	fake.dagGetMutex.Lock()
 	ret, specificReturn := fake.dagGetReturnsOnCall[len(fake.dagGetArgsForCall)]
 	fake.dagGetArgsForCall = append(fake.dagGetArgsForCall, struct {
@@ -437,26 +614,26 @@ func (fake *FakeManager) DagGet(arg1 string, arg2 interface{}) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeManager) DagGetCallCount() int {
+func (fake *FakeRTFSManager) DagGetCallCount() int {
 	fake.dagGetMutex.RLock()
 	defer fake.dagGetMutex.RUnlock()
 	return len(fake.dagGetArgsForCall)
 }
 
-func (fake *FakeManager) DagGetCalls(stub func(string, interface{}) error) {
+func (fake *FakeRTFSManager) DagGetCalls(stub func(string, interface{}) error) {
 	fake.dagGetMutex.Lock()
 	defer fake.dagGetMutex.Unlock()
 	fake.DagGetStub = stub
 }
 
-func (fake *FakeManager) DagGetArgsForCall(i int) (string, interface{}) {
+func (fake *FakeRTFSManager) DagGetArgsForCall(i int) (string, interface{}) {
 	fake.dagGetMutex.RLock()
 	defer fake.dagGetMutex.RUnlock()
 	argsForCall := fake.dagGetArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeManager) DagGetReturns(result1 error) {
+func (fake *FakeRTFSManager) DagGetReturns(result1 error) {
 	fake.dagGetMutex.Lock()
 	defer fake.dagGetMutex.Unlock()
 	fake.DagGetStub = nil
@@ -465,7 +642,7 @@ func (fake *FakeManager) DagGetReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeManager) DagGetReturnsOnCall(i int, result1 error) {
+func (fake *FakeRTFSManager) DagGetReturnsOnCall(i int, result1 error) {
 	fake.dagGetMutex.Lock()
 	defer fake.dagGetMutex.Unlock()
 	fake.DagGetStub = nil
@@ -479,7 +656,7 @@ func (fake *FakeManager) DagGetReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeManager) DagPut(arg1 interface{}, arg2 string, arg3 string) (string, error) {
+func (fake *FakeRTFSManager) DagPut(arg1 interface{}, arg2 string, arg3 string) (string, error) {
 	fake.dagPutMutex.Lock()
 	ret, specificReturn := fake.dagPutReturnsOnCall[len(fake.dagPutArgsForCall)]
 	fake.dagPutArgsForCall = append(fake.dagPutArgsForCall, struct {
@@ -499,26 +676,26 @@ func (fake *FakeManager) DagPut(arg1 interface{}, arg2 string, arg3 string) (str
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeManager) DagPutCallCount() int {
+func (fake *FakeRTFSManager) DagPutCallCount() int {
 	fake.dagPutMutex.RLock()
 	defer fake.dagPutMutex.RUnlock()
 	return len(fake.dagPutArgsForCall)
 }
 
-func (fake *FakeManager) DagPutCalls(stub func(interface{}, string, string) (string, error)) {
+func (fake *FakeRTFSManager) DagPutCalls(stub func(interface{}, string, string) (string, error)) {
 	fake.dagPutMutex.Lock()
 	defer fake.dagPutMutex.Unlock()
 	fake.DagPutStub = stub
 }
 
-func (fake *FakeManager) DagPutArgsForCall(i int) (interface{}, string, string) {
+func (fake *FakeRTFSManager) DagPutArgsForCall(i int) (interface{}, string, string) {
 	fake.dagPutMutex.RLock()
 	defer fake.dagPutMutex.RUnlock()
 	argsForCall := fake.dagPutArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
 }
 
-func (fake *FakeManager) DagPutReturns(result1 string, result2 error) {
+func (fake *FakeRTFSManager) DagPutReturns(result1 string, result2 error) {
 	fake.dagPutMutex.Lock()
 	defer fake.dagPutMutex.Unlock()
 	fake.DagPutStub = nil
@@ -528,7 +705,7 @@ func (fake *FakeManager) DagPutReturns(result1 string, result2 error) {
 	}{result1, result2}
 }
 
-func (fake *FakeManager) DagPutReturnsOnCall(i int, result1 string, result2 error) {
+func (fake *FakeRTFSManager) DagPutReturnsOnCall(i int, result1 string, result2 error) {
 	fake.dagPutMutex.Lock()
 	defer fake.dagPutMutex.Unlock()
 	fake.DagPutStub = nil
@@ -544,7 +721,70 @@ func (fake *FakeManager) DagPutReturnsOnCall(i int, result1 string, result2 erro
 	}{result1, result2}
 }
 
-func (fake *FakeManager) NodeAddress() string {
+func (fake *FakeRTFSManager) NewObject(arg1 string) (string, error) {
+	fake.newObjectMutex.Lock()
+	ret, specificReturn := fake.newObjectReturnsOnCall[len(fake.newObjectArgsForCall)]
+	fake.newObjectArgsForCall = append(fake.newObjectArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("NewObject", []interface{}{arg1})
+	fake.newObjectMutex.Unlock()
+	if fake.NewObjectStub != nil {
+		return fake.NewObjectStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.newObjectReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeRTFSManager) NewObjectCallCount() int {
+	fake.newObjectMutex.RLock()
+	defer fake.newObjectMutex.RUnlock()
+	return len(fake.newObjectArgsForCall)
+}
+
+func (fake *FakeRTFSManager) NewObjectCalls(stub func(string) (string, error)) {
+	fake.newObjectMutex.Lock()
+	defer fake.newObjectMutex.Unlock()
+	fake.NewObjectStub = stub
+}
+
+func (fake *FakeRTFSManager) NewObjectArgsForCall(i int) string {
+	fake.newObjectMutex.RLock()
+	defer fake.newObjectMutex.RUnlock()
+	argsForCall := fake.newObjectArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeRTFSManager) NewObjectReturns(result1 string, result2 error) {
+	fake.newObjectMutex.Lock()
+	defer fake.newObjectMutex.Unlock()
+	fake.NewObjectStub = nil
+	fake.newObjectReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRTFSManager) NewObjectReturnsOnCall(i int, result1 string, result2 error) {
+	fake.newObjectMutex.Lock()
+	defer fake.newObjectMutex.Unlock()
+	fake.NewObjectStub = nil
+	if fake.newObjectReturnsOnCall == nil {
+		fake.newObjectReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.newObjectReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRTFSManager) NodeAddress() string {
 	fake.nodeAddressMutex.Lock()
 	ret, specificReturn := fake.nodeAddressReturnsOnCall[len(fake.nodeAddressArgsForCall)]
 	fake.nodeAddressArgsForCall = append(fake.nodeAddressArgsForCall, struct {
@@ -561,19 +801,19 @@ func (fake *FakeManager) NodeAddress() string {
 	return fakeReturns.result1
 }
 
-func (fake *FakeManager) NodeAddressCallCount() int {
+func (fake *FakeRTFSManager) NodeAddressCallCount() int {
 	fake.nodeAddressMutex.RLock()
 	defer fake.nodeAddressMutex.RUnlock()
 	return len(fake.nodeAddressArgsForCall)
 }
 
-func (fake *FakeManager) NodeAddressCalls(stub func() string) {
+func (fake *FakeRTFSManager) NodeAddressCalls(stub func() string) {
 	fake.nodeAddressMutex.Lock()
 	defer fake.nodeAddressMutex.Unlock()
 	fake.NodeAddressStub = stub
 }
 
-func (fake *FakeManager) NodeAddressReturns(result1 string) {
+func (fake *FakeRTFSManager) NodeAddressReturns(result1 string) {
 	fake.nodeAddressMutex.Lock()
 	defer fake.nodeAddressMutex.Unlock()
 	fake.NodeAddressStub = nil
@@ -582,7 +822,7 @@ func (fake *FakeManager) NodeAddressReturns(result1 string) {
 	}{result1}
 }
 
-func (fake *FakeManager) NodeAddressReturnsOnCall(i int, result1 string) {
+func (fake *FakeRTFSManager) NodeAddressReturnsOnCall(i int, result1 string) {
 	fake.nodeAddressMutex.Lock()
 	defer fake.nodeAddressMutex.Unlock()
 	fake.NodeAddressStub = nil
@@ -596,7 +836,73 @@ func (fake *FakeManager) NodeAddressReturnsOnCall(i int, result1 string) {
 	}{result1}
 }
 
-func (fake *FakeManager) Pin(arg1 string) error {
+func (fake *FakeRTFSManager) PatchLink(arg1 string, arg2 string, arg3 string, arg4 bool) (string, error) {
+	fake.patchLinkMutex.Lock()
+	ret, specificReturn := fake.patchLinkReturnsOnCall[len(fake.patchLinkArgsForCall)]
+	fake.patchLinkArgsForCall = append(fake.patchLinkArgsForCall, struct {
+		arg1 string
+		arg2 string
+		arg3 string
+		arg4 bool
+	}{arg1, arg2, arg3, arg4})
+	fake.recordInvocation("PatchLink", []interface{}{arg1, arg2, arg3, arg4})
+	fake.patchLinkMutex.Unlock()
+	if fake.PatchLinkStub != nil {
+		return fake.PatchLinkStub(arg1, arg2, arg3, arg4)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.patchLinkReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeRTFSManager) PatchLinkCallCount() int {
+	fake.patchLinkMutex.RLock()
+	defer fake.patchLinkMutex.RUnlock()
+	return len(fake.patchLinkArgsForCall)
+}
+
+func (fake *FakeRTFSManager) PatchLinkCalls(stub func(string, string, string, bool) (string, error)) {
+	fake.patchLinkMutex.Lock()
+	defer fake.patchLinkMutex.Unlock()
+	fake.PatchLinkStub = stub
+}
+
+func (fake *FakeRTFSManager) PatchLinkArgsForCall(i int) (string, string, string, bool) {
+	fake.patchLinkMutex.RLock()
+	defer fake.patchLinkMutex.RUnlock()
+	argsForCall := fake.patchLinkArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4
+}
+
+func (fake *FakeRTFSManager) PatchLinkReturns(result1 string, result2 error) {
+	fake.patchLinkMutex.Lock()
+	defer fake.patchLinkMutex.Unlock()
+	fake.PatchLinkStub = nil
+	fake.patchLinkReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRTFSManager) PatchLinkReturnsOnCall(i int, result1 string, result2 error) {
+	fake.patchLinkMutex.Lock()
+	defer fake.patchLinkMutex.Unlock()
+	fake.PatchLinkStub = nil
+	if fake.patchLinkReturnsOnCall == nil {
+		fake.patchLinkReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.patchLinkReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRTFSManager) Pin(arg1 string) error {
 	fake.pinMutex.Lock()
 	ret, specificReturn := fake.pinReturnsOnCall[len(fake.pinArgsForCall)]
 	fake.pinArgsForCall = append(fake.pinArgsForCall, struct {
@@ -614,26 +920,26 @@ func (fake *FakeManager) Pin(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeManager) PinCallCount() int {
+func (fake *FakeRTFSManager) PinCallCount() int {
 	fake.pinMutex.RLock()
 	defer fake.pinMutex.RUnlock()
 	return len(fake.pinArgsForCall)
 }
 
-func (fake *FakeManager) PinCalls(stub func(string) error) {
+func (fake *FakeRTFSManager) PinCalls(stub func(string) error) {
 	fake.pinMutex.Lock()
 	defer fake.pinMutex.Unlock()
 	fake.PinStub = stub
 }
 
-func (fake *FakeManager) PinArgsForCall(i int) string {
+func (fake *FakeRTFSManager) PinArgsForCall(i int) string {
 	fake.pinMutex.RLock()
 	defer fake.pinMutex.RUnlock()
 	argsForCall := fake.pinArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeManager) PinReturns(result1 error) {
+func (fake *FakeRTFSManager) PinReturns(result1 error) {
 	fake.pinMutex.Lock()
 	defer fake.pinMutex.Unlock()
 	fake.PinStub = nil
@@ -642,7 +948,7 @@ func (fake *FakeManager) PinReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeManager) PinReturnsOnCall(i int, result1 error) {
+func (fake *FakeRTFSManager) PinReturnsOnCall(i int, result1 error) {
 	fake.pinMutex.Lock()
 	defer fake.pinMutex.Unlock()
 	fake.PinStub = nil
@@ -656,7 +962,71 @@ func (fake *FakeManager) PinReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeManager) PubSubPublish(arg1 string, arg2 string) error {
+func (fake *FakeRTFSManager) PinUpdate(arg1 string, arg2 string) (string, error) {
+	fake.pinUpdateMutex.Lock()
+	ret, specificReturn := fake.pinUpdateReturnsOnCall[len(fake.pinUpdateArgsForCall)]
+	fake.pinUpdateArgsForCall = append(fake.pinUpdateArgsForCall, struct {
+		arg1 string
+		arg2 string
+	}{arg1, arg2})
+	fake.recordInvocation("PinUpdate", []interface{}{arg1, arg2})
+	fake.pinUpdateMutex.Unlock()
+	if fake.PinUpdateStub != nil {
+		return fake.PinUpdateStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.pinUpdateReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeRTFSManager) PinUpdateCallCount() int {
+	fake.pinUpdateMutex.RLock()
+	defer fake.pinUpdateMutex.RUnlock()
+	return len(fake.pinUpdateArgsForCall)
+}
+
+func (fake *FakeRTFSManager) PinUpdateCalls(stub func(string, string) (string, error)) {
+	fake.pinUpdateMutex.Lock()
+	defer fake.pinUpdateMutex.Unlock()
+	fake.PinUpdateStub = stub
+}
+
+func (fake *FakeRTFSManager) PinUpdateArgsForCall(i int) (string, string) {
+	fake.pinUpdateMutex.RLock()
+	defer fake.pinUpdateMutex.RUnlock()
+	argsForCall := fake.pinUpdateArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeRTFSManager) PinUpdateReturns(result1 string, result2 error) {
+	fake.pinUpdateMutex.Lock()
+	defer fake.pinUpdateMutex.Unlock()
+	fake.PinUpdateStub = nil
+	fake.pinUpdateReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRTFSManager) PinUpdateReturnsOnCall(i int, result1 string, result2 error) {
+	fake.pinUpdateMutex.Lock()
+	defer fake.pinUpdateMutex.Unlock()
+	fake.PinUpdateStub = nil
+	if fake.pinUpdateReturnsOnCall == nil {
+		fake.pinUpdateReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.pinUpdateReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRTFSManager) PubSubPublish(arg1 string, arg2 string) error {
 	fake.pubSubPublishMutex.Lock()
 	ret, specificReturn := fake.pubSubPublishReturnsOnCall[len(fake.pubSubPublishArgsForCall)]
 	fake.pubSubPublishArgsForCall = append(fake.pubSubPublishArgsForCall, struct {
@@ -675,26 +1045,26 @@ func (fake *FakeManager) PubSubPublish(arg1 string, arg2 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeManager) PubSubPublishCallCount() int {
+func (fake *FakeRTFSManager) PubSubPublishCallCount() int {
 	fake.pubSubPublishMutex.RLock()
 	defer fake.pubSubPublishMutex.RUnlock()
 	return len(fake.pubSubPublishArgsForCall)
 }
 
-func (fake *FakeManager) PubSubPublishCalls(stub func(string, string) error) {
+func (fake *FakeRTFSManager) PubSubPublishCalls(stub func(string, string) error) {
 	fake.pubSubPublishMutex.Lock()
 	defer fake.pubSubPublishMutex.Unlock()
 	fake.PubSubPublishStub = stub
 }
 
-func (fake *FakeManager) PubSubPublishArgsForCall(i int) (string, string) {
+func (fake *FakeRTFSManager) PubSubPublishArgsForCall(i int) (string, string) {
 	fake.pubSubPublishMutex.RLock()
 	defer fake.pubSubPublishMutex.RUnlock()
 	argsForCall := fake.pubSubPublishArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeManager) PubSubPublishReturns(result1 error) {
+func (fake *FakeRTFSManager) PubSubPublishReturns(result1 error) {
 	fake.pubSubPublishMutex.Lock()
 	defer fake.pubSubPublishMutex.Unlock()
 	fake.PubSubPublishStub = nil
@@ -703,7 +1073,7 @@ func (fake *FakeManager) PubSubPublishReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeManager) PubSubPublishReturnsOnCall(i int, result1 error) {
+func (fake *FakeRTFSManager) PubSubPublishReturnsOnCall(i int, result1 error) {
 	fake.pubSubPublishMutex.Lock()
 	defer fake.pubSubPublishMutex.Unlock()
 	fake.PubSubPublishStub = nil
@@ -717,7 +1087,7 @@ func (fake *FakeManager) PubSubPublishReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeManager) Publish(arg1 string, arg2 string, arg3 time.Duration, arg4 time.Duration, arg5 bool) (*shell.PublishResponse, error) {
+func (fake *FakeRTFSManager) Publish(arg1 string, arg2 string, arg3 time.Duration, arg4 time.Duration, arg5 bool) (*shell.PublishResponse, error) {
 	fake.publishMutex.Lock()
 	ret, specificReturn := fake.publishReturnsOnCall[len(fake.publishArgsForCall)]
 	fake.publishArgsForCall = append(fake.publishArgsForCall, struct {
@@ -739,26 +1109,26 @@ func (fake *FakeManager) Publish(arg1 string, arg2 string, arg3 time.Duration, a
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeManager) PublishCallCount() int {
+func (fake *FakeRTFSManager) PublishCallCount() int {
 	fake.publishMutex.RLock()
 	defer fake.publishMutex.RUnlock()
 	return len(fake.publishArgsForCall)
 }
 
-func (fake *FakeManager) PublishCalls(stub func(string, string, time.Duration, time.Duration, bool) (*shell.PublishResponse, error)) {
+func (fake *FakeRTFSManager) PublishCalls(stub func(string, string, time.Duration, time.Duration, bool) (*shell.PublishResponse, error)) {
 	fake.publishMutex.Lock()
 	defer fake.publishMutex.Unlock()
 	fake.PublishStub = stub
 }
 
-func (fake *FakeManager) PublishArgsForCall(i int) (string, string, time.Duration, time.Duration, bool) {
+func (fake *FakeRTFSManager) PublishArgsForCall(i int) (string, string, time.Duration, time.Duration, bool) {
 	fake.publishMutex.RLock()
 	defer fake.publishMutex.RUnlock()
 	argsForCall := fake.publishArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3, argsForCall.arg4, argsForCall.arg5
 }
 
-func (fake *FakeManager) PublishReturns(result1 *shell.PublishResponse, result2 error) {
+func (fake *FakeRTFSManager) PublishReturns(result1 *shell.PublishResponse, result2 error) {
 	fake.publishMutex.Lock()
 	defer fake.publishMutex.Unlock()
 	fake.PublishStub = nil
@@ -768,7 +1138,7 @@ func (fake *FakeManager) PublishReturns(result1 *shell.PublishResponse, result2 
 	}{result1, result2}
 }
 
-func (fake *FakeManager) PublishReturnsOnCall(i int, result1 *shell.PublishResponse, result2 error) {
+func (fake *FakeRTFSManager) PublishReturnsOnCall(i int, result1 *shell.PublishResponse, result2 error) {
 	fake.publishMutex.Lock()
 	defer fake.publishMutex.Unlock()
 	fake.PublishStub = nil
@@ -784,7 +1154,199 @@ func (fake *FakeManager) PublishReturnsOnCall(i int, result1 *shell.PublishRespo
 	}{result1, result2}
 }
 
-func (fake *FakeManager) Stat(arg1 string) (*shell.ObjectStats, error) {
+func (fake *FakeRTFSManager) Refs(arg1 string, arg2 bool, arg3 bool) ([]string, error) {
+	fake.refsMutex.Lock()
+	ret, specificReturn := fake.refsReturnsOnCall[len(fake.refsArgsForCall)]
+	fake.refsArgsForCall = append(fake.refsArgsForCall, struct {
+		arg1 string
+		arg2 bool
+		arg3 bool
+	}{arg1, arg2, arg3})
+	fake.recordInvocation("Refs", []interface{}{arg1, arg2, arg3})
+	fake.refsMutex.Unlock()
+	if fake.RefsStub != nil {
+		return fake.RefsStub(arg1, arg2, arg3)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.refsReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeRTFSManager) RefsCallCount() int {
+	fake.refsMutex.RLock()
+	defer fake.refsMutex.RUnlock()
+	return len(fake.refsArgsForCall)
+}
+
+func (fake *FakeRTFSManager) RefsCalls(stub func(string, bool, bool) ([]string, error)) {
+	fake.refsMutex.Lock()
+	defer fake.refsMutex.Unlock()
+	fake.RefsStub = stub
+}
+
+func (fake *FakeRTFSManager) RefsArgsForCall(i int) (string, bool, bool) {
+	fake.refsMutex.RLock()
+	defer fake.refsMutex.RUnlock()
+	argsForCall := fake.refsArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2, argsForCall.arg3
+}
+
+func (fake *FakeRTFSManager) RefsReturns(result1 []string, result2 error) {
+	fake.refsMutex.Lock()
+	defer fake.refsMutex.Unlock()
+	fake.RefsStub = nil
+	fake.refsReturns = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRTFSManager) RefsReturnsOnCall(i int, result1 []string, result2 error) {
+	fake.refsMutex.Lock()
+	defer fake.refsMutex.Unlock()
+	fake.RefsStub = nil
+	if fake.refsReturnsOnCall == nil {
+		fake.refsReturnsOnCall = make(map[int]struct {
+			result1 []string
+			result2 error
+		})
+	}
+	fake.refsReturnsOnCall[i] = struct {
+		result1 []string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRTFSManager) Resolve(arg1 string) (string, error) {
+	fake.resolveMutex.Lock()
+	ret, specificReturn := fake.resolveReturnsOnCall[len(fake.resolveArgsForCall)]
+	fake.resolveArgsForCall = append(fake.resolveArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("Resolve", []interface{}{arg1})
+	fake.resolveMutex.Unlock()
+	if fake.ResolveStub != nil {
+		return fake.ResolveStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.resolveReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeRTFSManager) ResolveCallCount() int {
+	fake.resolveMutex.RLock()
+	defer fake.resolveMutex.RUnlock()
+	return len(fake.resolveArgsForCall)
+}
+
+func (fake *FakeRTFSManager) ResolveCalls(stub func(string) (string, error)) {
+	fake.resolveMutex.Lock()
+	defer fake.resolveMutex.Unlock()
+	fake.ResolveStub = stub
+}
+
+func (fake *FakeRTFSManager) ResolveArgsForCall(i int) string {
+	fake.resolveMutex.RLock()
+	defer fake.resolveMutex.RUnlock()
+	argsForCall := fake.resolveArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeRTFSManager) ResolveReturns(result1 string, result2 error) {
+	fake.resolveMutex.Lock()
+	defer fake.resolveMutex.Unlock()
+	fake.ResolveStub = nil
+	fake.resolveReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRTFSManager) ResolveReturnsOnCall(i int, result1 string, result2 error) {
+	fake.resolveMutex.Lock()
+	defer fake.resolveMutex.Unlock()
+	fake.ResolveStub = nil
+	if fake.resolveReturnsOnCall == nil {
+		fake.resolveReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.resolveReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRTFSManager) SetData(arg1 string, arg2 interface{}) (string, error) {
+	fake.setDataMutex.Lock()
+	ret, specificReturn := fake.setDataReturnsOnCall[len(fake.setDataArgsForCall)]
+	fake.setDataArgsForCall = append(fake.setDataArgsForCall, struct {
+		arg1 string
+		arg2 interface{}
+	}{arg1, arg2})
+	fake.recordInvocation("SetData", []interface{}{arg1, arg2})
+	fake.setDataMutex.Unlock()
+	if fake.SetDataStub != nil {
+		return fake.SetDataStub(arg1, arg2)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.setDataReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeRTFSManager) SetDataCallCount() int {
+	fake.setDataMutex.RLock()
+	defer fake.setDataMutex.RUnlock()
+	return len(fake.setDataArgsForCall)
+}
+
+func (fake *FakeRTFSManager) SetDataCalls(stub func(string, interface{}) (string, error)) {
+	fake.setDataMutex.Lock()
+	defer fake.setDataMutex.Unlock()
+	fake.SetDataStub = stub
+}
+
+func (fake *FakeRTFSManager) SetDataArgsForCall(i int) (string, interface{}) {
+	fake.setDataMutex.RLock()
+	defer fake.setDataMutex.RUnlock()
+	argsForCall := fake.setDataArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeRTFSManager) SetDataReturns(result1 string, result2 error) {
+	fake.setDataMutex.Lock()
+	defer fake.setDataMutex.Unlock()
+	fake.SetDataStub = nil
+	fake.setDataReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRTFSManager) SetDataReturnsOnCall(i int, result1 string, result2 error) {
+	fake.setDataMutex.Lock()
+	defer fake.setDataMutex.Unlock()
+	fake.SetDataStub = nil
+	if fake.setDataReturnsOnCall == nil {
+		fake.setDataReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.setDataReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRTFSManager) Stat(arg1 string) (*shell.ObjectStats, error) {
 	fake.statMutex.Lock()
 	ret, specificReturn := fake.statReturnsOnCall[len(fake.statArgsForCall)]
 	fake.statArgsForCall = append(fake.statArgsForCall, struct {
@@ -802,26 +1364,26 @@ func (fake *FakeManager) Stat(arg1 string) (*shell.ObjectStats, error) {
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeManager) StatCallCount() int {
+func (fake *FakeRTFSManager) StatCallCount() int {
 	fake.statMutex.RLock()
 	defer fake.statMutex.RUnlock()
 	return len(fake.statArgsForCall)
 }
 
-func (fake *FakeManager) StatCalls(stub func(string) (*shell.ObjectStats, error)) {
+func (fake *FakeRTFSManager) StatCalls(stub func(string) (*shell.ObjectStats, error)) {
 	fake.statMutex.Lock()
 	defer fake.statMutex.Unlock()
 	fake.StatStub = stub
 }
 
-func (fake *FakeManager) StatArgsForCall(i int) string {
+func (fake *FakeRTFSManager) StatArgsForCall(i int) string {
 	fake.statMutex.RLock()
 	defer fake.statMutex.RUnlock()
 	argsForCall := fake.statArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeManager) StatReturns(result1 *shell.ObjectStats, result2 error) {
+func (fake *FakeRTFSManager) StatReturns(result1 *shell.ObjectStats, result2 error) {
 	fake.statMutex.Lock()
 	defer fake.statMutex.Unlock()
 	fake.StatStub = nil
@@ -831,7 +1393,7 @@ func (fake *FakeManager) StatReturns(result1 *shell.ObjectStats, result2 error) 
 	}{result1, result2}
 }
 
-func (fake *FakeManager) StatReturnsOnCall(i int, result1 *shell.ObjectStats, result2 error) {
+func (fake *FakeRTFSManager) StatReturnsOnCall(i int, result1 *shell.ObjectStats, result2 error) {
 	fake.statMutex.Lock()
 	defer fake.statMutex.Unlock()
 	fake.StatStub = nil
@@ -847,11 +1409,74 @@ func (fake *FakeManager) StatReturnsOnCall(i int, result1 *shell.ObjectStats, re
 	}{result1, result2}
 }
 
-func (fake *FakeManager) Invocations() map[string][][]interface{} {
+func (fake *FakeRTFSManager) SwarmConnect(arg1 context.Context, arg2 ...string) error {
+	fake.swarmConnectMutex.Lock()
+	ret, specificReturn := fake.swarmConnectReturnsOnCall[len(fake.swarmConnectArgsForCall)]
+	fake.swarmConnectArgsForCall = append(fake.swarmConnectArgsForCall, struct {
+		arg1 context.Context
+		arg2 []string
+	}{arg1, arg2})
+	fake.recordInvocation("SwarmConnect", []interface{}{arg1, arg2})
+	fake.swarmConnectMutex.Unlock()
+	if fake.SwarmConnectStub != nil {
+		return fake.SwarmConnectStub(arg1, arg2...)
+	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.swarmConnectReturns
+	return fakeReturns.result1
+}
+
+func (fake *FakeRTFSManager) SwarmConnectCallCount() int {
+	fake.swarmConnectMutex.RLock()
+	defer fake.swarmConnectMutex.RUnlock()
+	return len(fake.swarmConnectArgsForCall)
+}
+
+func (fake *FakeRTFSManager) SwarmConnectCalls(stub func(context.Context, ...string) error) {
+	fake.swarmConnectMutex.Lock()
+	defer fake.swarmConnectMutex.Unlock()
+	fake.SwarmConnectStub = stub
+}
+
+func (fake *FakeRTFSManager) SwarmConnectArgsForCall(i int) (context.Context, []string) {
+	fake.swarmConnectMutex.RLock()
+	defer fake.swarmConnectMutex.RUnlock()
+	argsForCall := fake.swarmConnectArgsForCall[i]
+	return argsForCall.arg1, argsForCall.arg2
+}
+
+func (fake *FakeRTFSManager) SwarmConnectReturns(result1 error) {
+	fake.swarmConnectMutex.Lock()
+	defer fake.swarmConnectMutex.Unlock()
+	fake.SwarmConnectStub = nil
+	fake.swarmConnectReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeRTFSManager) SwarmConnectReturnsOnCall(i int, result1 error) {
+	fake.swarmConnectMutex.Lock()
+	defer fake.swarmConnectMutex.Unlock()
+	fake.SwarmConnectStub = nil
+	if fake.swarmConnectReturnsOnCall == nil {
+		fake.swarmConnectReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.swarmConnectReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeRTFSManager) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
+	fake.appendDataMutex.RLock()
+	defer fake.appendDataMutex.RUnlock()
 	fake.catMutex.RLock()
 	defer fake.catMutex.RUnlock()
 	fake.checkPinMutex.RLock()
@@ -862,16 +1487,30 @@ func (fake *FakeManager) Invocations() map[string][][]interface{} {
 	defer fake.dagGetMutex.RUnlock()
 	fake.dagPutMutex.RLock()
 	defer fake.dagPutMutex.RUnlock()
+	fake.newObjectMutex.RLock()
+	defer fake.newObjectMutex.RUnlock()
 	fake.nodeAddressMutex.RLock()
 	defer fake.nodeAddressMutex.RUnlock()
+	fake.patchLinkMutex.RLock()
+	defer fake.patchLinkMutex.RUnlock()
 	fake.pinMutex.RLock()
 	defer fake.pinMutex.RUnlock()
+	fake.pinUpdateMutex.RLock()
+	defer fake.pinUpdateMutex.RUnlock()
 	fake.pubSubPublishMutex.RLock()
 	defer fake.pubSubPublishMutex.RUnlock()
 	fake.publishMutex.RLock()
 	defer fake.publishMutex.RUnlock()
+	fake.refsMutex.RLock()
+	defer fake.refsMutex.RUnlock()
+	fake.resolveMutex.RLock()
+	defer fake.resolveMutex.RUnlock()
+	fake.setDataMutex.RLock()
+	defer fake.setDataMutex.RUnlock()
 	fake.statMutex.RLock()
 	defer fake.statMutex.RUnlock()
+	fake.swarmConnectMutex.RLock()
+	defer fake.swarmConnectMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value
@@ -879,7 +1518,7 @@ func (fake *FakeManager) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeManager) recordInvocation(key string, args []interface{}) {
+func (fake *FakeRTFSManager) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -891,4 +1530,4 @@ func (fake *FakeManager) recordInvocation(key string, args []interface{}) {
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ rtfs.Manager = new(FakeManager)
+var _ rtfs.Manager = new(FakeRTFSManager)

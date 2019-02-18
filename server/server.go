@@ -8,7 +8,7 @@ import (
 	"github.com/gofrs/uuid"
 	"go.uber.org/zap"
 
-	"github.com/RTradeLtd/Lens"
+	lens "github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/Lens/analyzer/images"
 	"github.com/RTradeLtd/Lens/search"
 	"github.com/RTradeLtd/config"
@@ -25,15 +25,16 @@ import (
 // API is the Lens API server
 type API struct {
 	meta Metadata
-	lens *lens.Service
+	lens *lens.V1
 
 	l *zap.SugaredLogger
 }
 
 // Metadata denotes metadata about the server
 type Metadata struct {
-	Version string
-	Edition string
+	Version    string
+	Edition    string
+	APIVersion int
 }
 
 // Run is used to create our API server
@@ -54,7 +55,7 @@ func Run(
 	ipfsAPI := fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port)
 	logger.Infow("instantiating IPFS connection",
 		"ipfs.api", ipfsAPI)
-	manager, err := rtfs.NewManager(ipfsAPI, nil, 1*time.Minute)
+	manager, err := rtfs.NewManager(ipfsAPI, "", 1*time.Minute)
 	if err != nil {
 		return fmt.Errorf("failed to instantiate ipfs manager: %s", err.Error())
 	}
@@ -80,7 +81,7 @@ func Run(
 
 	// instantiate Lens proper
 	logger.Info("instantiating lens service")
-	service, err := lens.NewService(opts, cfg, manager, ia, ss, logger)
+	service, err := lens.NewServiceV1(opts, cfg, manager, ia, ss, logger)
 	if err != nil {
 		return err
 	}
@@ -93,9 +94,9 @@ func Run(
 
 	// instantiate server settings
 	serverOpts, err := options(
-		cfg.Endpoints.Lens.TLS.CertPath,
-		cfg.Endpoints.Lens.TLS.KeyFile,
-		cfg.Endpoints.Lens.AuthKey,
+		cfg.Services.Lens.TLS.CertPath,
+		cfg.Services.Lens.TLS.KeyFile,
+		cfg.Services.Lens.AuthKey,
 		logger)
 	if err != nil {
 		return err

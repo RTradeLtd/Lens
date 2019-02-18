@@ -34,7 +34,7 @@ func TestLens_Integration(t *testing.T) {
 		t.Fatal(err)
 	}
 	ipfsAPI := fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port)
-	manager, err := rtfs.NewManager(ipfsAPI, nil, 1*time.Minute)
+	manager, err := rtfs.NewManager(ipfsAPI, "", 1*time.Minute)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -51,7 +51,7 @@ func TestLens_Integration(t *testing.T) {
 	}
 	defer searcher.Close()
 	defer os.RemoveAll("/tmp/integration_test/badgerds-lens")
-	service, err := NewService(ConfigOpts{
+	service, err := NewServiceV1(ConfigOpts{
 		UseChainAlgorithm: true,
 	}, *cfg, manager, ia, searcher, l)
 	if err != nil {
@@ -87,7 +87,7 @@ func TestLens_Integration(t *testing.T) {
 	}
 
 	// retrieve stored object
-	var out models.Object
+	var out models.ObjectV1
 	if err = service.ipfs.DagGet(resp.ContentHash, &out); err != nil {
 		t.Fatal(err)
 	}
@@ -115,7 +115,7 @@ func TestLens_Integration(t *testing.T) {
 	if err != nil {
 		t.Fatalf("failed to update object: %s", err.Error())
 	}
-	var updated models.Object
+	var updated models.ObjectV1
 	b, err := service.Get(o.LensID.String())
 	if err != nil {
 		t.Fatalf("failed to retrieve object: %s", err.Error())

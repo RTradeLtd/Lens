@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/RTradeLtd/Lens"
+	lens "github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/Lens/logs"
 	"github.com/RTradeLtd/Lens/mocks"
 	"github.com/RTradeLtd/config"
@@ -89,11 +89,11 @@ func TestAPIServer_Index(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			// set up dependencies
-			var ipfs = &mocks.FakeManager{}
+			var ipfs = &mocks.FakeRTFSManager{}
 			var tensor = &mocks.FakeTensorflowAnalyzer{}
 			var searcher = &mocks.FakeSearcher{}
 			var l, _ = logs.NewLogger("", false)
-			ls, err := lens.NewService(lens.ConfigOpts{}, config.TemporalConfig{},
+			ls, err := lens.NewServiceV1(lens.ConfigOpts{}, config.TemporalConfig{},
 				ipfs,
 				tensor,
 				searcher,
