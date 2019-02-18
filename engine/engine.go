@@ -168,7 +168,10 @@ func (e *Engine) IsIndexed(hash string) bool {
 	if hash == "" {
 		return false
 	}
-	return e.e.HasDoc(hash)
+	e.q.RLock()
+	var found = e.e.HasDoc(hash)
+	e.q.RUnlock()
+	return found
 }
 
 // Query denotes options for a search
