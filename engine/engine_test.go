@@ -8,6 +8,7 @@ import (
 
 	"go.uber.org/zap/zaptest"
 
+	"github.com/RTradeLtd/Lens/engine/queue"
 	"github.com/RTradeLtd/Lens/models"
 )
 
@@ -48,18 +49,25 @@ func TestEngine_Index(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			var l = zaptest.NewLogger(t).Sugar()
-			e, err := New(l, Opts{"", filepath.Join("tmp", t.Name()), time.Microsecond})
+			e, err := New(l, Opts{
+				DictPath:  "",
+				StorePath: filepath.Join("tmp", t.Name()),
+				Queue: queue.Options{
+					Rate:      500 * time.Millisecond,
+					BatchSize: 1,
+				}})
 			if err != nil {
 				t.Error("failed to create engine: " + err.Error())
 			}
 			defer e.Close()
-			go e.Run(nil)
+			go e.Run()
 
 			// request index
 			if err = e.Index(Document{tt.args.object, "", true}); (err == nil) != tt.wantIndexed {
 				t.Errorf("wanted Index error = %v, got %v", !tt.wantIndexed, err)
 			}
 			t.Logf("object index requested, got error = %v", err)
+			time.Sleep(time.Second)
 
 			// make sure object can be found (or can't)
 			var found bool
@@ -88,15 +96,22 @@ func TestEngine_Search(t *testing.T) {
 
 	// not testing indexing capabilities, so we can share an instance
 	var l = zaptest.NewLogger(t).Sugar()
-	e, err := New(l, Opts{"", filepath.Join("tmp", t.Name()), time.Microsecond})
+	e, err := New(l, Opts{
+		DictPath:  "",
+		StorePath: filepath.Join("tmp", t.Name()),
+		Queue: queue.Options{
+			Rate:      500 * time.Millisecond,
+			BatchSize: 1,
+		}})
 	if err != nil {
 		t.Error("failed to create engine: " + err.Error())
 	}
 	defer e.Close()
-	go e.Run(nil)
+	go e.Run()
 
 	// store test object in engine
 	e.Index(Document{&testObj, testContent, true})
+	time.Sleep(time.Second)
 
 	type args struct {
 		q Query

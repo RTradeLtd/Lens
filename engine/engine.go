@@ -6,8 +6,6 @@ import (
 	"time"
 
 	"github.com/go-ego/riot"
-	"github.com/go-ego/riot/net/com"
-	cluster "github.com/go-ego/riot/net/grpc"
 	"github.com/go-ego/riot/types"
 
 	"go.uber.org/zap"
@@ -43,7 +41,7 @@ type Engine struct {
 type Opts struct {
 	DictPath  string
 	StorePath string
-	FlushRate time.Duration
+	Queue     queue.Options
 }
 
 // New instantiates a new Engine
@@ -51,10 +49,6 @@ func New(l *zap.SugaredLogger, opts Opts) (*Engine, error) {
 	var e = &riot.Engine{}
 	var r = types.EngineOpts{
 		GseDict: opts.DictPath,
-	}
-
-	if opts.FlushRate == 0 {
-		opts.FlushRate = time.Minute
 	}
 
 	// database persistence settings
@@ -73,7 +67,7 @@ func New(l *zap.SugaredLogger, opts Opts) (*Engine, error) {
 		engineOpts: &r,
 
 		// TODO: insert queue, and flush there?
-		q: queue.New(l.Named("queue"), e.Flush, e.Close, opts.FlushRate),
+		q: queue.New(l.Named("queue"), e.Flush, e.Close, opts.Queue),
 
 		stop: make(chan bool),
 	}, nil
@@ -86,26 +80,30 @@ type ClusterOpts struct {
 }
 
 // Run starts any additional processes required to maintain the engine
-func (e *Engine) Run(c *ClusterOpts) {
-	if c != nil {
-		// TODO: implement
-		// https://github.com/go-ego/riot/issues/62
-		e.l.Fatal("cluster support is incomplete - do not use")
-		e.l.Infow("setting up Riot cluster", "opts", c)
-		cluster.InitEngine(com.Config{
-			Engine: com.Engine{
-				StoreEngine: e.engineOpts.StoreEngine,
-				StoreFolder: e.engineOpts.StoreFolder,
-			},
-			Rpc: com.Rpc{
-				GrpcPort: []string{}, // ??
-				DistPort: []string{}, // ??
-				Port:     c.Port,
-			},
-		})
-		go cluster.InitGrpc(c.Port)
-	}
-
+func (e *Engine) Run(
+//c *ClusterOpts,
+) {
+	/*
+		if c != nil {
+			// TODO: implement
+			// https://github.com/go-ego/riot/issues/62
+			e.l.Fatal("cluster support is incomplete - do not use")
+			e.l.Infow("setting up Riot cluster", "opts", c)
+			cluster.InitEngine(com.Config{
+				Engine: com.Engine{
+					StoreEngine: e.engineOpts.StoreEngine,
+					StoreFolder: e.engineOpts.StoreFolder,
+				},
+				Rpc: com.Rpc{
+					GrpcPort: []string{}, // ??
+					DistPort: []string{}, // ??
+					Port:     c.Port,
+				},
+			})
+			go cluster.InitGrpc(c.Port)
+		}
+	*/
+	go e.q.Run()
 	for {
 		select {
 		case <-e.stop:
@@ -155,11 +153,8 @@ func (e *Engine) Index(doc Document) error {
 		},
 	}
 
-	// execute index
-	e.e.Index(doc.Object.Hash, docData, doc.Reindex)
-
-	// queue for flush
-	e.q.Queue(doc.Object.Hash)
+	// queue for index flush
+	e.q.Queue(func() { e.e.Index(doc.Object.Hash, docData, doc.Reindex) })
 	l.Infow("index requested",
 		"size", len(doc.Content),
 		"labels", docData.Labels,
@@ -285,7 +280,9 @@ func (e *Engine) Search(q Query) ([]Result, error) {
 	}()
 
 	// execute request
+	e.q.RLock()
 	var out = e.e.Search(request)
+	e.q.RUnlock()
 	if out.NumDocs == 0 {
 		return nil, errors.New("no results found")
 	}
@@ -310,8 +307,7 @@ func (e *Engine) Search(q Query) ([]Result, error) {
 
 // Remove deletes an indexed object from the engine
 func (e *Engine) Remove(hash string) {
-	e.e.RemoveDoc(hash, true)
-	e.e.Flush()
+	e.q.Queue(func() { e.e.RemoveDoc(hash, true) })
 }
 
 // Close shuts down the engine
