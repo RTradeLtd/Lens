@@ -6,12 +6,11 @@ import (
 	"time"
 
 	"github.com/go-ego/riot"
-	"github.com/go-ego/riot/net/com"
-	cluster "github.com/go-ego/riot/net/grpc"
 	"github.com/go-ego/riot/types"
 
 	"go.uber.org/zap"
 
+	"github.com/RTradeLtd/Lens/engine/queue"
 	"github.com/RTradeLtd/Lens/models"
 )
 
@@ -28,18 +27,21 @@ type Searcher interface {
 
 // Engine implements Lens V2's core search functionality
 type Engine struct {
-	e *riot.Engine
 	l *zap.SugaredLogger
 
-	stop chan bool
-
+	e          *riot.Engine
 	engineOpts *types.EngineOpts
+
+	q *queue.Queue
+
+	stop chan bool
 }
 
 // Opts denotes options for the Lens engine
 type Opts struct {
 	DictPath  string
 	StorePath string
+	Queue     queue.Options
 }
 
 // New instantiates a new Engine
@@ -59,12 +61,15 @@ func New(l *zap.SugaredLogger, opts Opts) (*Engine, error) {
 	l.Infow("starting up search engine", "config", r)
 	e.Init(r)
 	return &Engine{
-		e: e,
 		l: l,
 
-		stop: make(chan bool),
-
+		e:          e,
 		engineOpts: &r,
+
+		// TODO: insert queue, and flush there?
+		q: queue.New(l.Named("queue"), e.Flush, e.Close, opts.Queue),
+
+		stop: make(chan bool),
 	}, nil
 }
 
@@ -75,35 +80,35 @@ type ClusterOpts struct {
 }
 
 // Run starts any additional processes required to maintain the engine
-func (e *Engine) Run(c *ClusterOpts) {
-	if c != nil {
-		// TODO: implement
-		// https://github.com/go-ego/riot/issues/62
-		e.l.Fatal("cluster support is incomplete - do not use")
-		e.l.Infow("setting up Riot cluster", "opts", c)
-		cluster.InitEngine(com.Config{
-			Engine: com.Engine{
-				StoreEngine: e.engineOpts.StoreEngine,
-				StoreFolder: e.engineOpts.StoreFolder,
-			},
-			Rpc: com.Rpc{
-				GrpcPort: []string{}, // ??
-				DistPort: []string{}, // ??
-				Port:     c.Port,
-			},
-		})
-		go cluster.InitGrpc(c.Port)
-	}
-
+func (e *Engine) Run(
+//c *ClusterOpts,
+) {
+	/*
+		if c != nil {
+			// TODO: implement
+			// https://github.com/go-ego/riot/issues/62
+			e.l.Fatal("cluster support is incomplete - do not use")
+			e.l.Infow("setting up Riot cluster", "opts", c)
+			cluster.InitEngine(com.Config{
+				Engine: com.Engine{
+					StoreEngine: e.engineOpts.StoreEngine,
+					StoreFolder: e.engineOpts.StoreFolder,
+				},
+				Rpc: com.Rpc{
+					GrpcPort: []string{}, // ??
+					DistPort: []string{}, // ??
+					Port:     c.Port,
+				},
+			})
+			go cluster.InitGrpc(c.Port)
+		}
+	*/
+	go e.q.Run()
 	for {
 		select {
 		case <-e.stop:
-			e.l.Infow("exit signal received")
-			var now = time.Now()
-			e.e.Close()
-			e.l.Infow("index flushed and engine closed",
-				"duration", time.Since(now),
-				"documents", e.e.NumIndexed())
+			e.l.Infow("exit signal received - closing")
+			e.q.Close()
 			return
 		}
 	}
@@ -148,17 +153,12 @@ func (e *Engine) Index(doc Document) error {
 		},
 	}
 
-	// execute index and flush
-	l.Debugw("requesting index",
+	// queue for index flush
+	e.q.Queue(func() { e.e.Index(doc.Object.Hash, docData, doc.Reindex) })
+	l.Infow("index requested",
+		"size", len(doc.Content),
 		"labels", docData.Labels,
 		"fields", docData.Fields)
-	e.e.Index(doc.Object.Hash, docData, doc.Reindex)
-	l.Infow("index requested", "size", len(doc.Content))
-	var now = time.Now()
-	e.e.Flush()
-	l.Infow("index flushed",
-		"duration", time.Since(now),
-		"documents", e.e.NumIndexed())
 
 	return nil
 }
@@ -168,7 +168,10 @@ func (e *Engine) IsIndexed(hash string) bool {
 	if hash == "" {
 		return false
 	}
-	return e.e.HasDoc(hash)
+	e.q.RLock()
+	var found = e.e.HasDoc(hash)
+	e.q.RUnlock()
+	return found
 }
 
 // Query denotes options for a search
@@ -280,7 +283,9 @@ func (e *Engine) Search(q Query) ([]Result, error) {
 	}()
 
 	// execute request
+	e.q.RLock()
 	var out = e.e.Search(request)
+	e.q.RUnlock()
 	if out.NumDocs == 0 {
 		return nil, errors.New("no results found")
 	}
@@ -305,12 +310,8 @@ func (e *Engine) Search(q Query) ([]Result, error) {
 
 // Remove deletes an indexed object from the engine
 func (e *Engine) Remove(hash string) {
-	e.e.RemoveDoc(hash, true)
-	e.e.Flush()
+	e.q.Queue(func() { e.e.RemoveDoc(hash, true) })
 }
 
-// Close shuts down the engine, but not the goroutine started by Run - cancel
-// the provided context to do that.
-func (e *Engine) Close() {
-	e.stop <- true
-}
+// Close shuts down the engine
+func (e *Engine) Close() { e.stop <- true }
