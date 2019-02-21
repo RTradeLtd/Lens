@@ -3,29 +3,24 @@ package engine
 import (
 	"strings"
 
+	"github.com/blevesearch/bleve/search"
+
 	"github.com/RTradeLtd/Lens/models"
-	"github.com/go-ego/riot/types"
 )
 
-func newResult(d *types.ScoredDoc) Result {
-	var score float32
-	if len(d.Scores) > 0 {
-		score = d.Scores[0]
-	}
+func newResult(d *search.DocumentMatch) Result {
 	var md models.MetaDataV2
 	if d.Fields != nil {
-		fields, ok := d.Fields.(map[string]string)
-		if ok {
-			md.DisplayName = fields["display_name"]
-			md.Category = fields["category"]
-			md.MimeType = fields["mime_type"]
-			md.Tags = strings.Split(fields["tags"], ",")
-		}
+		var fields = d.Fields
+		md.DisplayName = fields["display_name"].(string)
+		md.Category = fields["category"].(string)
+		md.MimeType = fields["mime_type"].(string)
+		md.Tags = strings.Split(fields["tags"].(string), ",")
 	}
 
 	return Result{
-		Hash:  d.DocId,
-		Score: score,
+		Hash:  d.ID,
+		Score: d.Score,
 		MD:    md,
 	}
 }
