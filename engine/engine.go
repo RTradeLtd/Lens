@@ -40,29 +40,22 @@ type Engine struct {
 
 // Opts denotes options for the Lens engine
 type Opts struct {
-	DictPath  string
 	StorePath string
 	Queue     queue.Options
 }
 
 // New instantiates a new Engine
 func New(l *zap.SugaredLogger, opts Opts) (*Engine, error) {
-	var mdIndex = bleve.NewDocumentMapping()
-
-	var pIndex = bleve.NewDocumentMapping()
-	pIndex.AddFieldMappingsAt("indexed", bleve.NewDateTimeFieldMapping())
-
-	var docIndex = bleve.NewDocumentMapping()
-	docIndex.AddFieldMappingsAt("content", bleve.NewTextFieldMapping())
-	docIndex.AddSubDocumentMapping("metadata", mdIndex)
-	docIndex.AddSubDocumentMapping("properties", pIndex)
-
-	var m = bleve.NewIndexMapping()
-	m.AddDocumentMapping("objects", docIndex)
-
-	index, err := bleve.New(opts.StorePath, m)
+	index, err := bleve.New(opts.StorePath, newLensIndex())
 	if err != nil {
-		return nil, fmt.Errorf("failed to instantiate index: %s", err.Error())
+		if err == bleve.ErrorIndexPathExists {
+			index, err = bleve.Open(opts.StorePath)
+			if err != nil {
+				return nil, fmt.Errorf("failed to instantiate index: %s", err.Error())
+			}
+		} else {
+			return nil, fmt.Errorf("failed to instantiate index: %s", err.Error())
+		}
 	}
 
 	var queueLogger = l.Named("queue")
@@ -91,7 +84,7 @@ func New(l *zap.SugaredLogger, opts Opts) (*Engine, error) {
 			index.Close,
 			opts.Queue),
 
-		stop: make(chan bool),
+		stop: make(chan bool, 1),
 	}, nil
 }
 
@@ -105,6 +98,7 @@ type ClusterOpts struct {
 func (e *Engine) Run(
 //c *ClusterOpts,
 ) {
+	e.q.Run()
 	for {
 		select {
 		case <-e.stop:
@@ -149,7 +143,13 @@ func (e *Engine) Index(doc Document) error {
 	}
 
 	// queue for index flush
-	e.q.Queue(&queue.Item{Key: doc.Object.Hash, Val: docData})
+	if e.q.IsStopped() {
+		l.Warnw("queue stopped - waiting and trying again")
+		time.Sleep(time.Second)
+	}
+	if err := e.q.Queue(&queue.Item{Key: doc.Object.Hash, Val: docData}); err != nil {
+		return fmt.Errorf("could not index object: %s", err.Error())
+	}
 	l.Infow("index requested",
 		"size", len(doc.Content))
 
@@ -162,7 +162,7 @@ func (e *Engine) IsIndexed(hash string) bool {
 		return false
 	}
 	d, err := e.index.Document(hash)
-	if err == nil && d.ID == hash {
+	if err == nil && d != nil && d.ID == hash {
 		return true
 	}
 	return false

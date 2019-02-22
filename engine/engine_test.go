@@ -2,6 +2,7 @@ package engine
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
@@ -51,7 +52,6 @@ func TestEngine_Index(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var l = zaptest.NewLogger(t).Sugar()
 			e, err := New(l, Opts{
-				DictPath:  "",
 				StorePath: filepath.Join("tmp", t.Name()),
 				Queue: queue.Options{
 					Rate:      500 * time.Millisecond,
@@ -59,8 +59,12 @@ func TestEngine_Index(t *testing.T) {
 				}})
 			if err != nil {
 				t.Error("failed to create engine: " + err.Error())
+				return
 			}
-			defer e.Close()
+			defer func() {
+				e.Close()
+				os.RemoveAll("tmp")
+			}()
 			go e.Run()
 
 			// request index
@@ -98,7 +102,6 @@ func TestEngine_Search(t *testing.T) {
 	// not testing indexing capabilities, so we can share an instance
 	var l = zaptest.NewLogger(t).Sugar()
 	e, err := New(l, Opts{
-		DictPath:  "",
 		StorePath: filepath.Join("tmp", t.Name()),
 		Queue: queue.Options{
 			Rate:      500 * time.Millisecond,
@@ -107,7 +110,10 @@ func TestEngine_Search(t *testing.T) {
 	if err != nil {
 		t.Error("failed to create engine: " + err.Error())
 	}
-	defer e.Close()
+	defer func() {
+		e.Close()
+		os.RemoveAll("tmp")
+	}()
 	go e.Run()
 
 	// store test object in engine

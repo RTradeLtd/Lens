@@ -18,7 +18,6 @@ func TestEngine_parallel(t *testing.T) {
 
 	var l = zaptest.NewLogger(t).Sugar()
 	e, err := New(l, Opts{
-		DictPath:  "",
 		StorePath: filepath.Join("tmp", t.Name()),
 		Queue: queue.Options{
 			Rate:      500 * time.Millisecond,
