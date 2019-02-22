@@ -2,6 +2,7 @@
 package mocks
 
 import (
+	"context"
 	"sync"
 
 	"github.com/RTradeLtd/Lens/engine"
@@ -39,10 +40,11 @@ type FakeEngineSearcher struct {
 	removeArgsForCall []struct {
 		arg1 string
 	}
-	SearchStub        func(engine.Query) ([]engine.Result, error)
+	SearchStub        func(context.Context, engine.Query) ([]engine.Result, error)
 	searchMutex       sync.RWMutex
 	searchArgsForCall []struct {
-		arg1 engine.Query
+		arg1 context.Context
+		arg2 engine.Query
 	}
 	searchReturns struct {
 		result1 []engine.Result
@@ -230,16 +232,17 @@ func (fake *FakeEngineSearcher) RemoveArgsForCall(i int) string {
 	return argsForCall.arg1
 }
 
-func (fake *FakeEngineSearcher) Search(arg1 engine.Query) ([]engine.Result, error) {
+func (fake *FakeEngineSearcher) Search(arg1 context.Context, arg2 engine.Query) ([]engine.Result, error) {
 	fake.searchMutex.Lock()
 	ret, specificReturn := fake.searchReturnsOnCall[len(fake.searchArgsForCall)]
 	fake.searchArgsForCall = append(fake.searchArgsForCall, struct {
-		arg1 engine.Query
-	}{arg1})
-	fake.recordInvocation("Search", []interface{}{arg1})
+		arg1 context.Context
+		arg2 engine.Query
+	}{arg1, arg2})
+	fake.recordInvocation("Search", []interface{}{arg1, arg2})
 	fake.searchMutex.Unlock()
 	if fake.SearchStub != nil {
-		return fake.SearchStub(arg1)
+		return fake.SearchStub(arg1, arg2)
 	}
 	if specificReturn {
 		return ret.result1, ret.result2
@@ -254,17 +257,17 @@ func (fake *FakeEngineSearcher) SearchCallCount() int {
 	return len(fake.searchArgsForCall)
 }
 
-func (fake *FakeEngineSearcher) SearchCalls(stub func(engine.Query) ([]engine.Result, error)) {
+func (fake *FakeEngineSearcher) SearchCalls(stub func(context.Context, engine.Query) ([]engine.Result, error)) {
 	fake.searchMutex.Lock()
 	defer fake.searchMutex.Unlock()
 	fake.SearchStub = stub
 }
 
-func (fake *FakeEngineSearcher) SearchArgsForCall(i int) engine.Query {
+func (fake *FakeEngineSearcher) SearchArgsForCall(i int) (context.Context, engine.Query) {
 	fake.searchMutex.RLock()
 	defer fake.searchMutex.RUnlock()
 	argsForCall := fake.searchArgsForCall[i]
-	return argsForCall.arg1
+	return argsForCall.arg1, argsForCall.arg2
 }
 
 func (fake *FakeEngineSearcher) SearchReturns(result1 []engine.Result, result2 error) {
