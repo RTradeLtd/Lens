@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"context"
 	"path/filepath"
 	"testing"
 	"time"
@@ -89,7 +90,7 @@ func TestEngine_parallel(t *testing.T) {
 				}
 
 				// attempt search
-				if res, err := e.Search(Query{
+				if res, err := e.Search(context.Background(), Query{
 					Text:   tcase.args.content,
 					Hashes: []string{objHash},
 				}); err == nil && len(res) > 0 {

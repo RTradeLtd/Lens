@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -19,7 +20,7 @@ import (
 // Searcher exposes Engine's primary functions
 type Searcher interface {
 	Index(doc Document) error
-	Search(query Query) ([]Result, error)
+	Search(ctx context.Context, query Query) ([]Result, error)
 
 	IsIndexed(hash string) bool
 	Remove(hash string)
@@ -63,19 +64,23 @@ func New(l *zap.SugaredLogger, opts Opts) (*Engine, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to instantiate index: %s", err.Error())
 	}
+
+	var queueLogger = l.Named("queue")
 	return &Engine{
 		l: l,
 
 		index: index,
 
-		// TODO: reassess queue structure, make use of bleve.Batch
-		q: queue.New(l.Named("queue"),
+		q: queue.New(queueLogger,
 			func(items []*queue.Item) error {
 				var b = index.NewBatch()
 				for _, item := range items {
 					if item != nil {
 						if item.Val != nil {
-							b.Index(item.Key, item.Val)
+							if err := b.Index(item.Key, item.Val); err != nil {
+								queueLogger.Errorw("failed to add document to batch",
+									"error", err, "key", item.Key)
+							}
 						} else {
 							b.Delete(item.Key)
 						}
@@ -187,7 +192,7 @@ type Result struct {
 }
 
 // Search performs a query
-func (e *Engine) Search(q Query) ([]Result, error) {
+func (e *Engine) Search(ctx context.Context, q Query) ([]Result, error) {
 	var l = e.l.With("query", q)
 	l.Debug("search requested")
 	var request = bleve.SearchRequest{
@@ -263,7 +268,9 @@ func (e *Engine) Search(q Query) ([]Result, error) {
 	}()
 
 	// execute request
-	out, err := e.index.Search(&request)
+	timeout, cancel := context.WithDeadline(ctx, time.Now().Add(30*time.Second))
+	out, err := e.index.SearchInContext(timeout, &request)
+	cancel()
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"context"
 	"path/filepath"
 	"reflect"
 	"testing"
@@ -196,7 +197,7 @@ func TestEngine_Search(t *testing.T) {
 			e.l = zaptest.NewLogger(t).Sugar()
 
 			// attempt to search for object
-			got, err := e.Search(tt.args.q)
+			got, err := e.Search(context.Background(), tt.args.q)
 			if err != nil && tt.wantDoc {
 				t.Error("got error: " + err.Error())
 				return
