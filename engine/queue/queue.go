@@ -37,7 +37,8 @@ type Options struct {
 }
 
 // New instantiates a new queue. flushFunc is is used for periodic index flusing,
-// and closeFunc will be used when closing. closeFunc should also handle a flush.
+// and closeFunc will be used when closing. flushFunc should add items with values,
+// and delete items without values. Nil items are possible.
 func New(
 	logger *zap.SugaredLogger,
 	flushFunc func([]*Item) error,
