@@ -69,7 +69,22 @@ func New(l *zap.SugaredLogger, opts Opts) (*Engine, error) {
 		index: index,
 
 		// TODO: reassess queue structure, make use of bleve.Batch
-		// 	q: queue.New(l.Named("queue"), e.Flush, e.Close, opts.Queue),
+		q: queue.New(l.Named("queue"),
+			func(items []*queue.Item) error {
+				var b = index.NewBatch()
+				for _, item := range items {
+					if item != nil {
+						if item.Val != nil {
+							b.Index(item.Key, item.Val)
+						} else {
+							b.Delete(item.Key)
+						}
+					}
+				}
+				return index.Batch(b)
+			},
+			index.Close,
+			opts.Queue),
 
 		stop: make(chan bool),
 	}, nil
@@ -129,7 +144,7 @@ func (e *Engine) Index(doc Document) error {
 	}
 
 	// queue for index flush
-	e.q.Queue(func() { e.index.Index(doc.Object.Hash, docData) })
+	e.q.Queue(&queue.Item{Key: doc.Object.Hash, Val: docData})
 	l.Infow("index requested",
 		"size", len(doc.Content))
 
@@ -137,17 +152,15 @@ func (e *Engine) Index(doc Document) error {
 }
 
 // IsIndexed checks if the given content hash has already been indexed
-func (e *Engine) IsIndexed(hash string) (found bool) {
+func (e *Engine) IsIndexed(hash string) bool {
 	if hash == "" {
 		return false
 	}
-	e.q.RLock()
 	d, err := e.index.Document(hash)
 	if err == nil && d.ID == hash {
-		found = true
+		return true
 	}
-	e.q.RUnlock()
-	return
+	return false
 }
 
 // Query denotes options for a search
@@ -250,9 +263,7 @@ func (e *Engine) Search(q Query) ([]Result, error) {
 	}()
 
 	// execute request
-	e.q.RLock()
 	out, err := e.index.Search(&request)
-	e.q.RUnlock()
 	if err != nil {
 		return nil, err
 	}
@@ -276,7 +287,7 @@ func (e *Engine) Search(q Query) ([]Result, error) {
 
 // Remove deletes an indexed object from the engine
 func (e *Engine) Remove(hash string) {
-	e.q.Queue(func() { e.index.Delete(hash) })
+	e.q.Queue(&queue.Item{Key: hash, Val: nil})
 }
 
 // Close shuts down the engine
