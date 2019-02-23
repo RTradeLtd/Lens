@@ -101,7 +101,7 @@ type ClusterOpts struct {
 func (e *Engine) Run(
 //c *ClusterOpts,
 ) {
-	e.q.Run()
+	go e.q.Run()
 	for {
 		select {
 		case <-e.stop:
