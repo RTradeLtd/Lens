@@ -1,6 +1,8 @@
 package engine
 
 import (
+	"context"
+	"os"
 	"path/filepath"
 	"reflect"
 	"testing"
@@ -50,7 +52,6 @@ func TestEngine_Index(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var l = zaptest.NewLogger(t).Sugar()
 			e, err := New(l, Opts{
-				DictPath:  "",
 				StorePath: filepath.Join("tmp", t.Name()),
 				Queue: queue.Options{
 					Rate:      500 * time.Millisecond,
@@ -58,8 +59,12 @@ func TestEngine_Index(t *testing.T) {
 				}})
 			if err != nil {
 				t.Error("failed to create engine: " + err.Error())
+				return
 			}
-			defer e.Close()
+			defer func() {
+				e.Close()
+				os.RemoveAll("tmp")
+			}()
 			go e.Run()
 
 			// request index
@@ -97,7 +102,6 @@ func TestEngine_Search(t *testing.T) {
 	// not testing indexing capabilities, so we can share an instance
 	var l = zaptest.NewLogger(t).Sugar()
 	e, err := New(l, Opts{
-		DictPath:  "",
 		StorePath: filepath.Join("tmp", t.Name()),
 		Queue: queue.Options{
 			Rate:      500 * time.Millisecond,
@@ -105,8 +109,12 @@ func TestEngine_Search(t *testing.T) {
 		}})
 	if err != nil {
 		t.Error("failed to create engine: " + err.Error())
+		return
 	}
-	defer e.Close()
+	defer func() {
+		e.Close()
+		os.RemoveAll("tmp")
+	}()
 	go e.Run()
 
 	// store test object in engine
@@ -134,9 +142,14 @@ func TestEngine_Search(t *testing.T) {
 				Hashes: []string{"not_my_hash"},
 			}},
 			false},
-		{"ok: find test obj with text",
+		{"ok: find test obj with subtext",
 			args{Query{
 				Text: "Interplanetary File System",
+			}},
+			true},
+		{"ok: find test obj with exact text",
+			args{Query{
+				Text: testContent,
 			}},
 			true},
 		{"fail: do NOT find test obj with wrong text",
@@ -196,7 +209,7 @@ func TestEngine_Search(t *testing.T) {
 			e.l = zaptest.NewLogger(t).Sugar()
 
 			// attempt to search for object
-			got, err := e.Search(tt.args.q)
+			got, err := e.Search(context.Background(), tt.args.q)
 			if err != nil && tt.wantDoc {
 				t.Error("got error: " + err.Error())
 				return

@@ -60,5 +60,5 @@ ignored = ["github.com/gen2brain/go-fitz"]
   version = "1.2.0"
 
 [[constraint]]
-  name = "github.com/go-ego/riot"
+  name = "github.com/blevesearch/bleve"
   branch = "master"

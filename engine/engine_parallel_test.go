@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"context"
 	"path/filepath"
 	"testing"
 	"time"
@@ -12,12 +13,8 @@ import (
 )
 
 func TestEngine_parallel(t *testing.T) {
-	// TODO: turn this back one
-	t.Skip()
-
 	var l = zaptest.NewLogger(t).Sugar()
 	e, err := New(l, Opts{
-		DictPath:  "",
 		StorePath: filepath.Join("tmp", t.Name()),
 		Queue: queue.Options{
 			Rate:      500 * time.Millisecond,
@@ -73,7 +70,7 @@ func TestEngine_parallel(t *testing.T) {
 				t.Parallel()
 
 				// request index
-				if err = e.Index(Document{tcase.args.object, tcase.args.content, true}); err != nil {
+				if err := e.Index(Document{tcase.args.object, tcase.args.content, true}); err != nil {
 					t.Errorf("wanted Index error = false, got %v", err)
 				}
 
@@ -89,7 +86,7 @@ func TestEngine_parallel(t *testing.T) {
 				}
 
 				// attempt search
-				if res, err := e.Search(Query{
+				if res, err := e.Search(context.Background(), Query{
 					Text:   tcase.args.content,
 					Hashes: []string{objHash},
 				}); err == nil && len(res) > 0 {

@@ -1,151 +1,166 @@
 package queue
 
 import (
+	"errors"
 	"sync"
-	"sync/atomic"
 	"time"
 
 	"go.uber.org/zap"
 )
 
+// Item represents an entry for the queue
+type Item struct {
+	Key string
+	Val interface{}
+}
+
 // Queue handles document indexing
 type Queue struct {
 	l *zap.SugaredLogger
 
-	fmux      sync.RWMutex
-	closeFunc func()
-	flushFunc func()
+	closeFunc func() error
+	flushFunc func([]*Item) error
 
-	pendingC  chan func()
-	pending   *int32
-	rate      time.Duration
-	batchSize int32
+	pendingC     chan *Item
+	pendingItems []*Item
+	pending      int
+	rate         time.Duration
+	batchSize    int
 
 	stopC   chan bool
 	stopped bool
+	smux    sync.RWMutex
 }
 
 // Options declares queue mangement options
 type Options struct {
 	Rate      time.Duration
-	BatchSize int32
+	BatchSize int
 }
 
 // New instantiates a new queue. flushFunc is is used for periodic index flusing,
-// and closeFunc will be used when closing. closeFunc should also handle a flush.
+// and closeFunc will be used when closing. flushFunc should add items with values,
+// and delete items without values. Nil items are possible.
+//
+// The goal is to batch index updates on a single thread.
 func New(
 	logger *zap.SugaredLogger,
-	flushFunc, closeFunc func(),
+	flushFunc func([]*Item) error,
+	closeFunc func() error,
 	opts Options,
 ) *Queue {
 	if flushFunc == nil {
-		flushFunc = func() {}
+		flushFunc = func([]*Item) error { return nil }
 	}
 	if closeFunc == nil {
-		closeFunc = func() {}
+		closeFunc = func() error { return nil }
 	}
 	if opts.Rate == 0 {
 		opts.Rate = 5 * time.Second
 	}
 
-	var counter = int32(0)
 	return &Queue{
 		l: logger,
 
 		closeFunc: closeFunc,
 		flushFunc: flushFunc,
 
-		pendingC:  make(chan func(), 3*opts.BatchSize),
-		pending:   &counter,
-		rate:      opts.Rate,
-		batchSize: opts.BatchSize,
+		pendingC:     make(chan *Item, opts.BatchSize),
+		pending:      0,
+		pendingItems: make([]*Item, opts.BatchSize),
+		rate:         opts.Rate,
+		batchSize:    opts.BatchSize,
 
 		stopC:   make(chan bool, 1),
-		stopped: false,
+		stopped: true,
 	}
 }
 
-// Queue indicates that a new item is pending insertion
-func (q *Queue) Queue(action func()) {
-	if !q.stopped {
-		q.pendingC <- action
-	} else {
-		q.l.Error("queue failed: queue is stopped, cannot queue more elements")
+// Queue indicates that a new item is pending insertion. A nil value indicates
+// the item should be deleted.
+func (q *Queue) Queue(item *Item) error {
+	if item == nil || item.Key == "" {
+		return errors.New("item requires valid key")
 	}
+
+	q.smux.RLock()
+	if !q.stopped {
+		q.pendingC <- item
+		q.smux.RUnlock()
+		return nil
+	}
+	q.smux.RUnlock()
+	q.l.Error("queue failed: queue is stopped, cannot queue more elements")
+	return errors.New("queue is stopped, cannot queue more element")
 }
 
 // Run maintains the queue and executes flushes as necessary
 func (q *Queue) Run() {
+	q.smux.Lock()
+	q.stopped = false
+	q.smux.Unlock()
+	q.l.Infow("spinning up queue", "rate", q.rate)
 	var ticker = time.NewTicker(q.rate)
 	for {
 		select {
 		case <-ticker.C:
-			q.l.Debugw("preparing to flush")
-			q.flush()
+			q.flushIfNeeded()
 
-		case action := <-q.pendingC:
-			q.l.Debugw("executing and adding to flush queue")
-			go q.queue(action)
+		case item := <-q.pendingC:
+			q.pendingItems[q.pending] = item
+			q.pending++
+			q.flushIfNeeded()
 
 		case <-q.stopC:
 			q.l.Infow("stopping background job")
 			ticker.Stop()
+			q.stop()
 			return
 		}
 	}
 }
 
-// RLock allows engine to make queries without interfering with indexing ops
-// TODO: investigate Riot search concurrency, currently bugged (https://github.com/go-ego/riot/issues/82)
-func (q *Queue) RLock() { q.fmux.Lock() }
-
-// RUnlock allows engine to make queries without interfering with indexing ops
-// TODO: investigate Riot search concurrency, currently bugged (https://github.com/go-ego/riot/issues/82)
-func (q *Queue) RUnlock() { q.fmux.Unlock() }
-
 // Close stops the queue runner and releases queue assets
-func (q *Queue) Close() {
-	q.stopC <- true
-	q.stop()
+func (q *Queue) Close() { q.stopC <- true }
+
+// IsStopped checks if the queue is still running and active
+func (q *Queue) IsStopped() bool {
+	q.smux.RLock()
+	var stopped = q.stopped
+	q.smux.RUnlock()
+	return stopped
 }
 
-func (q *Queue) queue(action func()) {
-	q.fmux.Lock()
-	action()
-	atomic.AddInt32(q.pending, 1)
-	q.fmux.Unlock()
-}
-
-func (q *Queue) flush() {
-	if pending := atomic.LoadInt32(q.pending); pending > q.batchSize {
-		q.fmux.Lock()
-
-		q.l.Infow("executing flush", "items", pending)
+func (q *Queue) flushIfNeeded() {
+	if q.pending >= q.batchSize {
+		q.l.Infow("executing flush", "items", q.pending)
 		var now = time.Now()
-		q.flushFunc()
-		atomic.StoreInt32(q.pending, 0)
+		q.flushFunc(q.pendingItems)
+		q.pending = 0
+		q.pendingItems = make([]*Item, q.batchSize)
 		q.l.Infow("flush complete",
-			"items", pending,
+			"items", q.pending,
 			"duration", time.Since(now))
-
-		q.fmux.Unlock()
 	}
 }
 
 func (q *Queue) stop() {
-	q.fmux.Lock()
+	q.smux.Lock()
 
-	var pending = atomic.LoadInt32(q.pending)
 	q.l.Infow("executing close",
-		"items", pending)
+		"items", q.pending)
 	var now = time.Now()
-	q.closeFunc()
-	q.l.Infow("flush complete",
-		"items", pending,
+	if err := q.flushFunc(q.pendingItems); err != nil {
+		q.l.Errorw("unable to flush", "error", err)
+	}
+	if err := q.closeFunc(); err != nil {
+		q.l.Errorw("error occured on close", "error", err)
+	}
+	q.l.Infow("queue and index closed",
 		"duration", time.Since(now))
 
 	// prevent further entries
 	q.stopped = true
 
-	q.fmux.Unlock()
+	q.smux.Unlock()
 }

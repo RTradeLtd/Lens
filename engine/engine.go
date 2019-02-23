@@ -1,12 +1,12 @@
 package engine
 
 import (
+	"context"
 	"errors"
-	"strings"
+	"fmt"
 	"time"
 
-	"github.com/go-ego/riot"
-	"github.com/go-ego/riot/types"
+	"github.com/blevesearch/bleve"
 
 	"go.uber.org/zap"
 
@@ -17,10 +17,10 @@ import (
 // Searcher exposes Engine's primary functions
 type Searcher interface {
 	Index(doc Document) error
-	Search(query Query) ([]Result, error)
+	Search(ctx context.Context, query Query) ([]Result, error)
 
 	IsIndexed(hash string) bool
-	Remove(hash string)
+	Remove(hash string) error
 
 	Close()
 }
@@ -29,47 +29,65 @@ type Searcher interface {
 type Engine struct {
 	l *zap.SugaredLogger
 
-	e          *riot.Engine
-	engineOpts *types.EngineOpts
-
-	q *queue.Queue
+	index bleve.Index
+	q     *queue.Queue
 
 	stop chan bool
 }
 
 // Opts denotes options for the Lens engine
 type Opts struct {
-	DictPath  string
 	StorePath string
 	Queue     queue.Options
 }
 
 // New instantiates a new Engine
 func New(l *zap.SugaredLogger, opts Opts) (*Engine, error) {
-	var e = &riot.Engine{}
-	var r = types.EngineOpts{
-		GseDict: opts.DictPath,
+	index, err := bleve.New(opts.StorePath, newLensIndex())
+	if err != nil {
+		if err == bleve.ErrorIndexPathExists {
+			l.Infow("opening existing index",
+				"path", opts.StorePath)
+			index, err = bleve.Open(opts.StorePath)
+			if err != nil {
+				return nil, fmt.Errorf("failed to open existing index at %s: %s",
+					opts.StorePath, err.Error())
+			}
+		} else {
+			return nil, fmt.Errorf("failed to instantiate index: %s", err.Error())
+		}
+	} else {
+		l.Infow("successfully created new bleve index",
+			"path", opts.StorePath)
 	}
 
-	// database persistence settings
-	if opts.StorePath != "" {
-		r.UseStore = true
-		r.StoreEngine = "bg" // use badger for persistence
-		r.StoreFolder = opts.StorePath
-	}
-
-	l.Infow("starting up search engine", "config", r)
-	e.Init(r)
+	var queueLogger = l.Named("queue")
 	return &Engine{
 		l: l,
 
-		e:          e,
-		engineOpts: &r,
+		index: index,
 
-		// TODO: insert queue, and flush there?
-		q: queue.New(l.Named("queue"), e.Flush, e.Close, opts.Queue),
+		q: queue.New(queueLogger,
+			func(items []*queue.Item) error {
+				var b = index.NewBatch()
+				for _, item := range items {
+					if item != nil {
+						if item.Val != nil {
+							if err := b.Index(item.Key, item.Val); err != nil {
+								queueLogger.Errorw("failed to add document to batch",
+									"error", err, "key", item.Key)
+							}
+						} else {
+							b.Delete(item.Key)
+						}
+					}
+				}
+				return index.Batch(b)
+			},
+			index.Close,
+			opts.Queue),
 
-		stop: make(chan bool),
+		stop: make(chan bool, 1),
 	}, nil
 }
 
@@ -83,26 +101,6 @@ type ClusterOpts struct {
 func (e *Engine) Run(
 //c *ClusterOpts,
 ) {
-	/*
-		if c != nil {
-			// TODO: implement
-			// https://github.com/go-ego/riot/issues/62
-			e.l.Fatal("cluster support is incomplete - do not use")
-			e.l.Infow("setting up Riot cluster", "opts", c)
-			cluster.InitEngine(com.Config{
-				Engine: com.Engine{
-					StoreEngine: e.engineOpts.StoreEngine,
-					StoreFolder: e.engineOpts.StoreFolder,
-				},
-				Rpc: com.Rpc{
-					GrpcPort: []string{}, // ??
-					DistPort: []string{}, // ??
-					Port:     c.Port,
-				},
-			})
-			go cluster.InitGrpc(c.Port)
-		}
-	*/
 	go e.q.Run()
 	for {
 		select {
@@ -126,6 +124,9 @@ func (e *Engine) Index(doc Document) error {
 	if doc.Object == nil || doc.Object.Hash == "" {
 		return errors.New("no object details provided")
 	}
+	if e.IsIndexed(doc.Object.Hash) && !doc.Reindex {
+		return fmt.Errorf("document with hash '%s' already exists", doc.Object.Hash)
+	}
 	var l = e.l.With("hash", doc.Object.Hash)
 
 	// populate defaults if necessary
@@ -138,27 +139,22 @@ func (e *Engine) Index(doc Document) error {
 		doc.Object.MD.Category = "unknown"
 	}
 
-	// prepare doc data
-	var docData = types.DocData{
-		Content: doc.Content,
-		Labels: append(doc.Object.MD.Tags,
-			mimeType(doc.Object.MD.MimeType),
-			category(doc.Object.MD.Category)),
-		Fields: map[string]string{
-			"indexed":      time.Now().String(),
-			"display_name": doc.Object.MD.DisplayName,
-			"category":     doc.Object.MD.Category,
-			"mime_type":    doc.Object.MD.MimeType,
-			"tags":         strings.Join(doc.Object.MD.Tags, ","),
-		},
-	}
-
 	// queue for index flush
-	e.q.Queue(func() { e.e.Index(doc.Object.Hash, docData, doc.Reindex) })
+	if e.q.IsStopped() {
+		l.Warnw("queue stopped - waiting and trying again")
+		time.Sleep(3 * time.Second)
+	}
+	if err := e.q.Queue(&queue.Item{Key: doc.Object.Hash, Val: DocData{
+		Content:  doc.Content,
+		Metadata: &doc.Object.MD,
+		Properties: &DocProps{
+			Indexed: time.Now().String(),
+		},
+	}}); err != nil {
+		return fmt.Errorf("could not index object: %s", err.Error())
+	}
 	l.Infow("index requested",
-		"size", len(doc.Content),
-		"labels", docData.Labels,
-		"fields", docData.Fields)
+		"size", len(doc.Content))
 
 	return nil
 }
@@ -168,149 +164,69 @@ func (e *Engine) IsIndexed(hash string) bool {
 	if hash == "" {
 		return false
 	}
-	e.q.RLock()
-	var found = e.e.HasDoc(hash)
-	e.q.RUnlock()
-	return found
-}
-
-// Query denotes options for a search
-type Query struct {
-	Text     string
-	Required []string
-
-	// Query metadata
-	Tags       []string
-	Categories []string
-	MimeTypes  []string
-
-	// Hashes restricts what documents to include in query - this is only a
-	// filtering option, so some other query fields must be provided as well
-	Hashes []string
-}
-
-// Result denotes a found document
-type Result struct {
-	Hash string
-	MD   models.MetaDataV2
-
-	Score float32
+	d, err := e.index.Document(hash)
+	if err == nil && d != nil && d.ID == hash {
+		return true
+	}
+	return false
 }
 
 // Search performs a query
-func (e *Engine) Search(q Query) ([]Result, error) {
-	var l = e.l.With("query", q)
-	l.Debug("search requested")
-
-	// construct search request
-	var request = types.SearchReq{
-		// search for provided plain-text query
-		Text: q.Text,
-
-		// query for specific tags, categories, or mimetypes
-		Labels: func() (labels []string) {
-			if len(q.Tags) > 0 {
-				labels = q.Tags
-			} else if len(q.Categories) > 0 || len(q.MimeTypes) > 0 {
-				labels = make([]string, 0)
-			} else {
-				return
-			}
-			for _, c := range q.Categories {
-				labels = append(labels, category(c))
-			}
-			for _, m := range q.MimeTypes {
-				labels = append(labels, mimeType(m))
-			}
-			return
-		}(),
-
-		// filter results by specific documents, if requested
-		DocIds: func() (ids map[string]bool) {
-			if len(q.Hashes) > 0 {
-				ids = make(map[string]bool)
-				for _, h := range q.Hashes {
-					ids[h] = true
-				}
-			}
-			return ids
-		}(),
-
-		// require certain words
-		Logic: types.Logic{
-			Expr: types.Expr{
-				Must: func() (required []string) {
-					if len(q.Required) < 1 {
-						return
-					}
-					// required must be lowercase, and cannot have spaces. we also want
-					// to avoid required strings that are too short.
-					var splitter = func(c rune) bool { return c == ' ' }
-					required = make([]string, 0)
-					for _, cur := range q.Required {
-						if parts := strings.FieldsFunc(cur, splitter); len(parts) > 1 {
-							for _, p := range parts {
-								if len(p) > 1 {
-									required = append(required, strings.ToLower(p))
-								}
-							}
-						} else {
-							if stripped := strings.Replace(cur, " ", "", -1); len(stripped) > 1 {
-								required = append(required, strings.ToLower(stripped))
-							}
-						}
-					}
-					return
-				}(),
-			},
-		},
-
-		// prevent query from blowing up
-		Timeout: 10000, // 10 seconds
-		RankOpts: &types.RankOpts{
-			MaxOutputs: 1000, // max 1000 documents
-		},
+func (e *Engine) Search(ctx context.Context, q Query) ([]Result, error) {
+	var l = e.l.With("query_id", q.Hash())
+	var start = time.Now()
+	var request = bleve.SearchRequest{
+		Query:  newBleveQuery(&q),
+		Fields: allMetaFields,
+		Size:   1000,
 	}
-	l.Debugw("search constructed", "request", request)
+	l.Debugw("search constructed",
+		"query", q,
+		"request", request)
 
 	// always log results of search
-	var maxScore float32
+	var out = &bleve.SearchResult{}
 	var results = make([]Result, 0)
 	defer func() {
-		l.Infow("search completed",
+		l.Infow("search ended",
 			"found", len(results),
-			"max_score", maxScore)
+			"max_score", out.MaxScore,
+			"duration.search", out.Took,
+			"duration.total", time.Since(start))
 	}()
 
 	// execute request
-	e.q.RLock()
-	var out = e.e.Search(request)
-	e.q.RUnlock()
-	if out.NumDocs == 0 {
+	timeout, cancel := context.WithDeadline(ctx, time.Now().Add(30*time.Second))
+	var err error
+	out, err = e.index.SearchInContext(timeout, &request)
+	cancel()
+	if err != nil {
+		return nil, fmt.Errorf("failed to execute search: %s", err.Error())
+	}
+	if out.Size() == 0 {
 		return nil, errors.New("no results found")
 	}
 
 	// check returned docs
-	l.Debugw("search returned", "docs", out.Docs)
-	docs, ok := out.Docs.(types.ScoredDocs)
-	if !ok {
-		return nil, errors.New("failed to read search result")
-	}
-
-	for _, d := range docs {
-		var r = newResult(&d)
-		if r.Score > maxScore {
-			maxScore = r.Score
-		}
-		results = append(results, r)
+	l.Debugw("search returned", "hits", out.Hits)
+	for _, d := range out.Hits {
+		results = append(results, newResult(d))
 	}
 
 	return results, nil
 }
 
 // Remove deletes an indexed object from the engine
-func (e *Engine) Remove(hash string) {
-	e.q.Queue(func() { e.e.RemoveDoc(hash, true) })
+func (e *Engine) Remove(hash string) error {
+	if !e.IsIndexed(hash) {
+		return fmt.Errorf("no document '%s' in index", hash)
+	}
+	if e.q.IsStopped() {
+		e.l.Warnw("queue stopped - waiting and trying again",
+			"hash", hash)
+		time.Sleep(3 * time.Second)
+	}
+	return e.q.Queue(&queue.Item{Key: hash, Val: nil})
 }
 
 // Close shuts down the engine

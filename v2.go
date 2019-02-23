@@ -166,9 +166,9 @@ func (v *V2) Search(ctx context.Context, req *lensv2.SearchReq) (*lensv2.SearchR
 	}
 
 	if opts == nil {
-		results, err = v.se.Search(engine.Query{Text: req.GetQuery()})
+		results, err = v.se.Search(ctx, engine.Query{Text: req.GetQuery()})
 	} else {
-		results, err = v.se.Search(engine.Query{
+		results, err = v.se.Search(ctx, engine.Query{
 			Text:       req.GetQuery(),
 			Required:   opts.GetRequired(),
 			Tags:       opts.GetTags(),
@@ -192,7 +192,7 @@ func (v *V2) Search(ctx context.Context, req *lensv2.SearchReq) (*lensv2.SearchR
 			for i := 0; i < len(results); i++ {
 				var r = results[i]
 				formatted[i] = &lensv2.SearchResp_Result{
-					Score: r.Score,
+					Score: float32(r.Score),
 					Doc: &lensv2.Document{
 						Hash:        r.Hash,
 						DisplayName: r.MD.DisplayName,
