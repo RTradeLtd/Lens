@@ -18,14 +18,20 @@ import (
 func TestNewV2(t *testing.T) {
 	var ipfs = &mocks.FakeRTFSManager{}
 	var ia = &mocks.FakeTensorflowAnalyzer{}
-	if _, err := NewV2(V2Options{}, ipfs, ia, nil); err != nil {
+	var service *V2
+	var err error
+	if service, err = NewV2(V2Options{
+		Engine: engine.Opts{StorePath: "tmp"},
+	}, ipfs, ia, nil); err != nil {
 		t.Errorf("NewV2() error = %v", err)
 		return
 	}
-	if v := NewV2WithEngine(V2Options{}, ipfs, ia, &mocks.FakeEngineSearcher{}, nil); v == nil {
+	service.Close()
+	if service = NewV2WithEngine(V2Options{}, ipfs, ia, &mocks.FakeEngineSearcher{}, nil); service == nil {
 		t.Error("NewV2WithEngine() = nil")
 		return
 	}
+	service.Close()
 }
 
 func TestV2_Index(t *testing.T) {
