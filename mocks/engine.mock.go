@@ -35,10 +35,16 @@ type FakeEngineSearcher struct {
 	isIndexedReturnsOnCall map[int]struct {
 		result1 bool
 	}
-	RemoveStub        func(string)
+	RemoveStub        func(string) error
 	removeMutex       sync.RWMutex
 	removeArgsForCall []struct {
 		arg1 string
+	}
+	removeReturns struct {
+		result1 error
+	}
+	removeReturnsOnCall map[int]struct {
+		result1 error
 	}
 	SearchStub        func(context.Context, engine.Query) ([]engine.Result, error)
 	searchMutex       sync.RWMutex
@@ -201,16 +207,22 @@ func (fake *FakeEngineSearcher) IsIndexedReturnsOnCall(i int, result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeEngineSearcher) Remove(arg1 string) {
+func (fake *FakeEngineSearcher) Remove(arg1 string) error {
 	fake.removeMutex.Lock()
+	ret, specificReturn := fake.removeReturnsOnCall[len(fake.removeArgsForCall)]
 	fake.removeArgsForCall = append(fake.removeArgsForCall, struct {
 		arg1 string
 	}{arg1})
 	fake.recordInvocation("Remove", []interface{}{arg1})
 	fake.removeMutex.Unlock()
 	if fake.RemoveStub != nil {
-		fake.RemoveStub(arg1)
+		return fake.RemoveStub(arg1)
 	}
+	if specificReturn {
+		return ret.result1
+	}
+	fakeReturns := fake.removeReturns
+	return fakeReturns.result1
 }
 
 func (fake *FakeEngineSearcher) RemoveCallCount() int {
@@ -219,7 +231,7 @@ func (fake *FakeEngineSearcher) RemoveCallCount() int {
 	return len(fake.removeArgsForCall)
 }
 
-func (fake *FakeEngineSearcher) RemoveCalls(stub func(string)) {
+func (fake *FakeEngineSearcher) RemoveCalls(stub func(string) error) {
 	fake.removeMutex.Lock()
 	defer fake.removeMutex.Unlock()
 	fake.RemoveStub = stub
@@ -230,6 +242,29 @@ func (fake *FakeEngineSearcher) RemoveArgsForCall(i int) string {
 	defer fake.removeMutex.RUnlock()
 	argsForCall := fake.removeArgsForCall[i]
 	return argsForCall.arg1
+}
+
+func (fake *FakeEngineSearcher) RemoveReturns(result1 error) {
+	fake.removeMutex.Lock()
+	defer fake.removeMutex.Unlock()
+	fake.RemoveStub = nil
+	fake.removeReturns = struct {
+		result1 error
+	}{result1}
+}
+
+func (fake *FakeEngineSearcher) RemoveReturnsOnCall(i int, result1 error) {
+	fake.removeMutex.Lock()
+	defer fake.removeMutex.Unlock()
+	fake.RemoveStub = nil
+	if fake.removeReturnsOnCall == nil {
+		fake.removeReturnsOnCall = make(map[int]struct {
+			result1 error
+		})
+	}
+	fake.removeReturnsOnCall[i] = struct {
+		result1 error
+	}{result1}
 }
 
 func (fake *FakeEngineSearcher) Search(arg1 context.Context, arg2 engine.Query) ([]engine.Result, error) {

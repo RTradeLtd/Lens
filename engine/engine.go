@@ -20,7 +20,7 @@ type Searcher interface {
 	Search(ctx context.Context, query Query) ([]Result, error)
 
 	IsIndexed(hash string) bool
-	Remove(hash string)
+	Remove(hash string) error
 
 	Close()
 }
