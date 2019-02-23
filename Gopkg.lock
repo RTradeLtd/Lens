@@ -10,19 +10,6 @@
   revision = "343706a395b76e5ca5c7dca46a5d937b48febc74"
 
 [[projects]]
-  digest = "1:33a7bacf8dd1ddffb774bf44e28d804caa568f3eec9cfacfbefaf45d34c2adaf"
-  name = "github.com/DavidBelicza/TextRank"
-  packages = [
-    ".",
-    "convert",
-    "parse",
-    "rank",
-  ]
-  pruneopts = "T"
-  revision = "79e14bab980af3a1c9f4f5b73672ae1ef18ab732"
-  version = "v2.1.1"
-
-[[projects]]
   branch = "master"
   digest = "1:4a7be34ac4d3c56c039ece7d674236bde2d95f6adc93262cbb21d5b758566b15"
   name = "github.com/Kubuxu/go-os-helper"
@@ -698,10 +685,6 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/DavidBelicza/TextRank",
-    "github.com/DavidBelicza/TextRank/convert",
-    "github.com/DavidBelicza/TextRank/parse",
-    "github.com/DavidBelicza/TextRank/rank",
     "github.com/RTradeLtd/cmd",
     "github.com/RTradeLtd/config",
     "github.com/RTradeLtd/go-ipfs-api",

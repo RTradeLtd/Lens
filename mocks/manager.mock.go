@@ -26,6 +26,19 @@ type FakeRTFSManager struct {
 		result1 string
 		result2 error
 	}
+	AddDirStub        func(string) (string, error)
+	addDirMutex       sync.RWMutex
+	addDirArgsForCall []struct {
+		arg1 string
+	}
+	addDirReturns struct {
+		result1 string
+		result2 error
+	}
+	addDirReturnsOnCall map[int]struct {
+		result1 string
+		result2 error
+	}
 	AppendDataStub        func(string, interface{}) (string, error)
 	appendDataMutex       sync.RWMutex
 	appendDataArgsForCall []struct {
@@ -333,6 +346,69 @@ func (fake *FakeRTFSManager) AddReturnsOnCall(i int, result1 string, result2 err
 		})
 	}
 	fake.addReturnsOnCall[i] = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRTFSManager) AddDir(arg1 string) (string, error) {
+	fake.addDirMutex.Lock()
+	ret, specificReturn := fake.addDirReturnsOnCall[len(fake.addDirArgsForCall)]
+	fake.addDirArgsForCall = append(fake.addDirArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("AddDir", []interface{}{arg1})
+	fake.addDirMutex.Unlock()
+	if fake.AddDirStub != nil {
+		return fake.AddDirStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.addDirReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeRTFSManager) AddDirCallCount() int {
+	fake.addDirMutex.RLock()
+	defer fake.addDirMutex.RUnlock()
+	return len(fake.addDirArgsForCall)
+}
+
+func (fake *FakeRTFSManager) AddDirCalls(stub func(string) (string, error)) {
+	fake.addDirMutex.Lock()
+	defer fake.addDirMutex.Unlock()
+	fake.AddDirStub = stub
+}
+
+func (fake *FakeRTFSManager) AddDirArgsForCall(i int) string {
+	fake.addDirMutex.RLock()
+	defer fake.addDirMutex.RUnlock()
+	argsForCall := fake.addDirArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeRTFSManager) AddDirReturns(result1 string, result2 error) {
+	fake.addDirMutex.Lock()
+	defer fake.addDirMutex.Unlock()
+	fake.AddDirStub = nil
+	fake.addDirReturns = struct {
+		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRTFSManager) AddDirReturnsOnCall(i int, result1 string, result2 error) {
+	fake.addDirMutex.Lock()
+	defer fake.addDirMutex.Unlock()
+	fake.AddDirStub = nil
+	if fake.addDirReturnsOnCall == nil {
+		fake.addDirReturnsOnCall = make(map[int]struct {
+			result1 string
+			result2 error
+		})
+	}
+	fake.addDirReturnsOnCall[i] = struct {
 		result1 string
 		result2 error
 	}{result1, result2}
@@ -1475,6 +1551,8 @@ func (fake *FakeRTFSManager) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.addMutex.RLock()
 	defer fake.addMutex.RUnlock()
+	fake.addDirMutex.RLock()
+	defer fake.addDirMutex.RUnlock()
 	fake.appendDataMutex.RLock()
 	defer fake.appendDataMutex.RUnlock()
 	fake.catMutex.RLock()
