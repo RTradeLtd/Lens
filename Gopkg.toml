@@ -9,7 +9,7 @@ ignored = ["github.com/gen2brain/go-fitz"]
 
 [[constraint]]
   name = "github.com/RTradeLtd/grpc"
-  branch = "lens/v2"
+  branch = "master"
 
 [[constraint]]
   name = "github.com/RTradeLtd/rtfs"
@@ -34,10 +34,6 @@ ignored = ["github.com/gen2brain/go-fitz"]
 [[constraint]]
   name = "github.com/DavidBelicza/TextRank"
   version = "2.1.1"
-
-[[constraint]]
-  name = "github.com/gofrs/uuid"
-  version = "3.1.1"
 
 [[constraint]]
   name = "github.com/ipfs/go-cid"
