@@ -3,8 +3,8 @@ go:
   - "1.11"
 services:
   - docker
-compiler:
-  - gcc
+#compiler:
+#  - gcc
 env:
   - TF_VERSION=linux-x86_64-1.12.0 LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
 
