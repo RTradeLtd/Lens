@@ -79,6 +79,10 @@ func New(
 // Queue indicates that a new item is pending insertion. A nil value indicates
 // the item should be deleted.
 func (q *Queue) Queue(item *Item) error {
+	if item == nil || item.Key == "" {
+		return errors.New("item requires valid key")
+	}
+
 	q.smux.RLock()
 	if !q.stopped {
 		q.pendingC <- item
