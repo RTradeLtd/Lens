@@ -12,6 +12,7 @@ import (
 	lens "github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/Lens/analyzer/images"
 	"github.com/RTradeLtd/Lens/engine"
+	"github.com/RTradeLtd/Lens/engine/queue"
 	"github.com/RTradeLtd/Lens/logs"
 	"github.com/RTradeLtd/Lens/server"
 	"github.com/RTradeLtd/cmd"
@@ -69,7 +70,15 @@ var commands = map[string]cmd.Cmd{
 
 			// create lens v2 service
 			l.Info("instantiating Lens V2")
-			srv, err := lens.NewV2(lens.V2Options{Engine: engine.Opts{StorePath: *dsPath}}, manager, tf, l)
+			srv, err := lens.NewV2(lens.V2Options{
+				Engine: engine.Opts{
+					StorePath: *dsPath,
+					Queue: queue.Options{
+						Rate:      500 * time.Millisecond,
+						BatchSize: 1,
+					},
+				},
+			}, manager, tf, l)
 			if err != nil {
 				l.Fatalw("failed to instantiate Lens V2", "error", err)
 			}
