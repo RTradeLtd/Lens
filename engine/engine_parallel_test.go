@@ -70,7 +70,7 @@ func TestEngine_parallel(t *testing.T) {
 				t.Parallel()
 
 				// request index
-				if err = e.Index(Document{tcase.args.object, tcase.args.content, true}); err != nil {
+				if err := e.Index(Document{tcase.args.object, tcase.args.content, true}); err != nil {
 					t.Errorf("wanted Index error = false, got %v", err)
 				}
 
