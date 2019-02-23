@@ -8,6 +8,7 @@ import (
 	"go.uber.org/zap"
 )
 
+// Item represents an entry for the queue
 type Item struct {
 	Key string
 	Val interface{}
@@ -17,7 +18,6 @@ type Item struct {
 type Queue struct {
 	l *zap.SugaredLogger
 
-	mux       sync.RWMutex
 	closeFunc func() error
 	flushFunc func([]*Item) error
 
@@ -29,6 +29,7 @@ type Queue struct {
 
 	stopC   chan bool
 	stopped bool
+	smux    sync.RWMutex
 }
 
 // Options declares queue mangement options
@@ -40,6 +41,8 @@ type Options struct {
 // New instantiates a new queue. flushFunc is is used for periodic index flusing,
 // and closeFunc will be used when closing. flushFunc should add items with values,
 // and delete items without values. Nil items are possible.
+//
+// The goal is to batch index updates on a single thread.
 func New(
 	logger *zap.SugaredLogger,
 	flushFunc func([]*Item) error,
@@ -76,18 +79,22 @@ func New(
 // Queue indicates that a new item is pending insertion. A nil value indicates
 // the item should be deleted.
 func (q *Queue) Queue(item *Item) error {
+	q.smux.RLock()
 	if !q.stopped {
 		q.pendingC <- item
-	} else {
-		q.l.Error("queue failed: queue is stopped, cannot queue more elements")
-		return errors.New("queue is stopped, cannot queue more element")
+		q.smux.RUnlock()
+		return nil
 	}
-	return nil
+	q.smux.RUnlock()
+	q.l.Error("queue failed: queue is stopped, cannot queue more elements")
+	return errors.New("queue is stopped, cannot queue more element")
 }
 
 // Run maintains the queue and executes flushes as necessary
 func (q *Queue) Run() {
+	q.smux.Lock()
 	q.stopped = false
+	q.smux.Unlock()
 	q.l.Infow("spinning up queue", "rate", q.rate)
 	var ticker = time.NewTicker(q.rate)
 	for {
@@ -103,18 +110,22 @@ func (q *Queue) Run() {
 		case <-q.stopC:
 			q.l.Infow("stopping background job")
 			ticker.Stop()
+			q.stop()
 			return
 		}
 	}
 }
 
 // Close stops the queue runner and releases queue assets
-func (q *Queue) Close() {
-	q.stopC <- true
-	q.stop()
-}
+func (q *Queue) Close() { q.stopC <- true }
 
-func (q *Queue) IsStopped() bool { return q.stopped }
+// IsStopped checks if the queue is still running and active
+func (q *Queue) IsStopped() bool {
+	q.smux.RLock()
+	var stopped = q.stopped
+	q.smux.RUnlock()
+	return stopped
+}
 
 func (q *Queue) flushIfNeeded() {
 	if q.pending >= q.batchSize {
@@ -130,6 +141,8 @@ func (q *Queue) flushIfNeeded() {
 }
 
 func (q *Queue) stop() {
+	q.smux.Lock()
+
 	q.l.Infow("executing close",
 		"items", q.pending)
 	var now = time.Now()
@@ -144,4 +157,6 @@ func (q *Queue) stop() {
 
 	// prevent further entries
 	q.stopped = true
+
+	q.smux.Unlock()
 }

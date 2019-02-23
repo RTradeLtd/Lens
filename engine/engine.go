@@ -139,21 +139,18 @@ func (e *Engine) Index(doc Document) error {
 		doc.Object.MD.Category = "unknown"
 	}
 
-	// prepare doc data
-	var docData = DocData{
+	// queue for index flush
+	if e.q.IsStopped() {
+		l.Warnw("queue stopped - waiting and trying again")
+		time.Sleep(3 * time.Second)
+	}
+	if err := e.q.Queue(&queue.Item{Key: doc.Object.Hash, Val: DocData{
 		Content:  doc.Content,
 		Metadata: &doc.Object.MD,
 		Properties: &DocProps{
 			Indexed: time.Now().String(),
 		},
-	}
-
-	// queue for index flush
-	if e.q.IsStopped() {
-		l.Warnw("queue stopped - waiting and trying again")
-		time.Sleep(time.Second)
-	}
-	if err := e.q.Queue(&queue.Item{Key: doc.Object.Hash, Val: docData}); err != nil {
+	}}); err != nil {
 		return fmt.Errorf("could not index object: %s", err.Error())
 	}
 	l.Infow("index requested",
@@ -220,8 +217,16 @@ func (e *Engine) Search(ctx context.Context, q Query) ([]Result, error) {
 }
 
 // Remove deletes an indexed object from the engine
-func (e *Engine) Remove(hash string) {
-	e.q.Queue(&queue.Item{Key: hash, Val: nil})
+func (e *Engine) Remove(hash string) error {
+	if !e.IsIndexed(hash) {
+		return fmt.Errorf("no document '%s' in index", hash)
+	}
+	if e.q.IsStopped() {
+		e.l.Warnw("queue stopped - waiting and trying again",
+			"hash", hash)
+		time.Sleep(3 * time.Second)
+	}
+	return e.q.Queue(&queue.Item{Key: hash, Val: nil})
 }
 
 // Close shuts down the engine
