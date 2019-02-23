@@ -738,6 +738,7 @@
     "github.com/RTradeLtd/grpc/middleware",
     "github.com/RTradeLtd/rtfs",
     "github.com/blevesearch/bleve",
+    "github.com/blevesearch/bleve/mapping",
     "github.com/blevesearch/bleve/search",
     "github.com/blevesearch/bleve/search/query",
     "github.com/gofrs/uuid",
