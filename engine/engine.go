@@ -4,10 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"strings"
 	"time"
-
-	"github.com/blevesearch/bleve/search/query"
 
 	"github.com/blevesearch/bleve"
 
@@ -49,13 +46,19 @@ func New(l *zap.SugaredLogger, opts Opts) (*Engine, error) {
 	index, err := bleve.New(opts.StorePath, newLensIndex())
 	if err != nil {
 		if err == bleve.ErrorIndexPathExists {
+			l.Infow("opening existing index",
+				"path", opts.StorePath)
 			index, err = bleve.Open(opts.StorePath)
 			if err != nil {
-				return nil, fmt.Errorf("failed to instantiate index: %s", err.Error())
+				return nil, fmt.Errorf("failed to open existing index at %s: %s",
+					opts.StorePath, err.Error())
 			}
 		} else {
 			return nil, fmt.Errorf("failed to instantiate index: %s", err.Error())
 		}
+	} else {
+		l.Infow("successfully created new bleve index",
+			"path", opts.StorePath)
 	}
 
 	var queueLogger = l.Named("queue")
@@ -121,6 +124,9 @@ func (e *Engine) Index(doc Document) error {
 	if doc.Object == nil || doc.Object.Hash == "" {
 		return errors.New("no object details provided")
 	}
+	if e.IsIndexed(doc.Object.Hash) && !doc.Reindex {
+		return fmt.Errorf("document with hash '%s' already exists", doc.Object.Hash)
+	}
 	var l = e.l.With("hash", doc.Object.Hash)
 
 	// populate defaults if necessary
@@ -168,125 +174,46 @@ func (e *Engine) IsIndexed(hash string) bool {
 	return false
 }
 
-// Query denotes options for a search
-type Query struct {
-	Text     string
-	Required []string
-
-	// Query metadata
-	Tags       []string
-	Categories []string
-	MimeTypes  []string
-
-	// Hashes restricts what documents to include in query - this is only a
-	// filtering option, so some other query fields must be provided as well
-	Hashes []string
-}
-
-// Result denotes a found document
-type Result struct {
-	Hash string
-	MD   models.MetaDataV2
-
-	Score float64
-}
-
 // Search performs a query
 func (e *Engine) Search(ctx context.Context, q Query) ([]Result, error) {
-	var l = e.l.With("query", q)
-	l.Debug("search requested")
+	var l = e.l.With("query_id", q.Hash())
+	var start = time.Now()
 	var request = bleve.SearchRequest{
-		Query: query.NewBooleanQuery(
-			func() []query.Query {
-				var qs = make([]query.Query, 0)
-
-				// require phrase
-				if q.Text != "" {
-					qs = append(qs, query.NewMatchPhraseQuery(q.Text))
-				}
-
-				// require required words
-				if len(q.Required) > 0 {
-					var terms = make([]query.Query, 0)
-					// required must be lowercase, and cannot have spaces. we also want
-					// to avoid required strings that are too short.
-					var splitter = func(c rune) bool { return c == ' ' }
-					for _, cur := range q.Required {
-						if parts := strings.FieldsFunc(cur, splitter); len(parts) > 1 {
-							for _, p := range parts {
-								if len(p) > 1 {
-									terms = append(terms, query.NewTermQuery(strings.ToLower(p)))
-								}
-							}
-						} else {
-							if stripped := strings.Replace(cur, " ", "", -1); len(stripped) > 1 {
-								terms = append(terms, query.NewTermQuery(strings.ToLower(stripped)))
-							}
-						}
-					}
-					var bq = query.NewBooleanQuery(terms, nil, nil)
-					bq.SetBoost(10)
-					qs = append(qs, bq)
-				}
-
-				// require tags
-				if len(q.Tags) > 0 {
-					// TODO
-				}
-
-				// require categories
-				if len(q.Categories) > 0 {
-					// TODO
-				}
-
-				// require mimetypes
-				if len(q.MimeTypes) > 0 {
-					// TODO
-				}
-
-				// require hashses
-				if len(q.Hashes) > 0 {
-					qs = append(qs, query.NewDocIDQuery(q.Hashes))
-				}
-
-				return qs
-			}(),
-			nil,
-			nil,
-		),
-		Size: 1000,
+		Query:  newBleveQuery(&q),
+		Fields: allMetaFields,
+		Size:   1000,
 	}
-	l.Debugw("search constructed", "request", request)
+	l.Debugw("search constructed",
+		"query", q,
+		"request", request)
 
 	// always log results of search
-	var maxScore float64
+	var out = &bleve.SearchResult{}
 	var results = make([]Result, 0)
 	defer func() {
-		l.Infow("search completed",
+		l.Infow("search ended",
 			"found", len(results),
-			"max_score", maxScore)
+			"max_score", out.MaxScore,
+			"duration.search", out.Took,
+			"duration.total", time.Since(start))
 	}()
 
 	// execute request
 	timeout, cancel := context.WithDeadline(ctx, time.Now().Add(30*time.Second))
-	out, err := e.index.SearchInContext(timeout, &request)
+	var err error
+	out, err = e.index.SearchInContext(timeout, &request)
 	cancel()
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to execute search: %s", err.Error())
 	}
 	if out.Size() == 0 {
 		return nil, errors.New("no results found")
 	}
 
 	// check returned docs
-	l.Debugw("search returned", "docs", out.Hits)
-
+	l.Debugw("search returned", "hits", out.Hits)
 	for _, d := range out.Hits {
-		var r = newResult(d)
-		if r.Score > maxScore {
-			maxScore = r.Score
-		}
-		results = append(results, r)
+		results = append(results, newResult(d))
 	}
 
 	return results, nil

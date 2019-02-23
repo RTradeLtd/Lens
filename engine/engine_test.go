@@ -109,6 +109,7 @@ func TestEngine_Search(t *testing.T) {
 		}})
 	if err != nil {
 		t.Error("failed to create engine: " + err.Error())
+		return
 	}
 	defer func() {
 		e.Close()
@@ -141,9 +142,14 @@ func TestEngine_Search(t *testing.T) {
 				Hashes: []string{"not_my_hash"},
 			}},
 			false},
-		{"ok: find test obj with text",
+		{"ok: find test obj with subtext",
 			args{Query{
 				Text: "Interplanetary File System",
+			}},
+			true},
+		{"ok: find test obj with exact text",
+			args{Query{
+				Text: testContent,
 			}},
 			true},
 		{"fail: do NOT find test obj with wrong text",
