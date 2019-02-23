@@ -6,9 +6,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/RTradeLtd/Lens/xtractor/planetary"
 	"github.com/RTradeLtd/config"
 	"github.com/RTradeLtd/rtfs"
+
+	"github.com/RTradeLtd/Lens/source/planetary"
 )
 
 const (
