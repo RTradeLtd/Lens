@@ -57,4 +57,4 @@ COPY ./test/config.json /data/lens/config.json
 
 # Set default command
 ENTRYPOINT [ "temporal-lens" ]
-CMD [ "v1" ]
+CMD [ "v2" ]

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -13,7 +12,6 @@ import (
 	lens "github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/Lens/analyzer/images"
 	"github.com/RTradeLtd/Lens/logs"
-	"github.com/RTradeLtd/Lens/search"
 	"github.com/RTradeLtd/Lens/server"
 	"github.com/RTradeLtd/cmd"
 	"github.com/RTradeLtd/config"
@@ -88,77 +86,6 @@ var commands = map[string]cmd.Cmd{
 			l.Infow("spinning up server", "config", cfg.Services.Lens)
 			if err := server.RunV2(stop, l, srv, cfg.Services.Lens); err != nil {
 				l.Fatalw("error encountered on server run", "error", err)
-			}
-		},
-	},
-	"v1": cmd.Cmd{
-		Blurb:       "start Lens V1 server",
-		Description: "Start the Lens meta data extraction service, which includes the API",
-		Action: func(cfg config.TemporalConfig, args map[string]string) {
-			l, err := logs.NewLogger(*logPath, *devMode)
-			if err != nil {
-				log.Fatal("failed to instantiate logger:", err.Error())
-			}
-			defer l.Sync()
-
-			l = l.With(
-				"version", Version,
-				"edition", Edition)
-			if *logPath != "" {
-				println("logger initialized - output will be written to", *logPath)
-			}
-
-			// handle graceful shutdown
-			ctx, cancel := context.WithCancel(context.Background())
-			signals := make(chan os.Signal)
-			signal.Notify(signals, os.Interrupt, syscall.SIGTERM, syscall.SIGINT)
-			go func() {
-				<-signals
-				cancel()
-			}()
-
-			// let's goooo
-			if err := server.Run(
-				ctx,
-				cfg.Services.Lens.URL,
-				server.Metadata{
-					Version: Version,
-					Edition: Edition,
-				},
-				lens.ConfigOpts{
-					UseChainAlgorithm: true,
-					DataStorePath:     *dsPath,
-					ModelsPath:        *modelPath,
-				},
-				cfg,
-				l.Named("server"),
-			); err != nil {
-				log.Fatal(err)
-			}
-		},
-	},
-	"migrate": cmd.Cmd{
-		Blurb:       "Used to migrate teh datastore",
-		Description: "Performs a complete migration of the old datastore to new datastore",
-		Action: func(cfg config.TemporalConfig, args map[string]string) {
-			im, err := rtfs.NewManager(
-				fmt.Sprintf("%s:%s", cfg.IPFS.APIConnection.Host, cfg.IPFS.APIConnection.Port),
-				"",
-				5*time.Minute)
-			if err != nil {
-				log.Fatal(err)
-			}
-			s, err := search.NewService(*dsPath)
-			if err != nil {
-				log.Fatal(err)
-			}
-			defer s.Close()
-			entriesToMigrate, err := s.GetEntries()
-			if err != nil {
-				log.Fatal(err)
-			}
-			if err = s.MigrateEntries(entriesToMigrate, im, true); err != nil {
-				log.Fatal(err)
 			}
 		},
 	},
