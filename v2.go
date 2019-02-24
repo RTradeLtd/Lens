@@ -120,18 +120,10 @@ func (v *V2) Index(ctx context.Context, req *lensv2.IndexReq) (*lensv2.IndexResp
 			"failed to perform magnification for '%s': %s", hash, err.Error())
 	}
 
-	if !reindex {
-		if err = v.store(hash, content, md); err != nil {
-			l.Errorw("failed to store document", "error", err)
-			return nil, status.Errorf(codes.Internal,
-				"failed to store requested document: %s", err.Error())
-		}
-	} else {
-		if err = v.update(hash, content, md); err != nil {
-			l.Errorw("failed to update document", "error", err)
-			return nil, status.Errorf(codes.Internal,
-				"failed to update requested document: %s", err.Error())
-		}
+	if err = v.store(hash, content, md, reindex); err != nil {
+		l.Errorw("failed to store document", "error", err)
+		return nil, status.Errorf(codes.Internal,
+			"failed to store requested document: %s", err.Error())
 	}
 
 	l.Info("document indexed")

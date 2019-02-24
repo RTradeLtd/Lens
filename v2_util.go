@@ -104,22 +104,15 @@ func (v *V2) magnify(hash string, opts magnifyOpts) (content string, metadata *m
 }
 
 // Store is used to store our collected meta data in a formatted object
-func (v *V2) store(hash string, content string, md *models.MetaDataV2) error {
+func (v *V2) store(hash, content string, md *models.MetaDataV2, reindex bool) error {
 	return v.se.Index(engine.Document{
 		Object: &models.ObjectV2{
 			Hash: hash,
 			MD:   *md,
 		},
 		Content: content,
+		Reindex: reindex,
 	})
-}
-
-// Update is used to update an indexed object
-func (v *V2) update(hash string, content string, md *models.MetaDataV2) error {
-	if err := v.remove(hash); err != nil {
-		return err
-	}
-	return v.store(hash, content, md)
 }
 
 // Remove is used to remove an indexed object
