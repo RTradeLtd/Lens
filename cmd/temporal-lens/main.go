@@ -11,6 +11,8 @@ import (
 
 	lens "github.com/RTradeLtd/Lens"
 	"github.com/RTradeLtd/Lens/analyzer/images"
+	"github.com/RTradeLtd/Lens/engine"
+	"github.com/RTradeLtd/Lens/engine/queue"
 	"github.com/RTradeLtd/Lens/logs"
 	"github.com/RTradeLtd/Lens/server"
 	"github.com/RTradeLtd/cmd"
@@ -30,8 +32,6 @@ var (
 		"path to Temporal configuration")
 	modelPath = flag.String("models", "/tmp",
 		"path to TensorFlow models")
-	dsPath = flag.String("datastore", "/data/lens/badgerds-lens",
-		"path to Badger datastore")
 	logPath = flag.String("logpath", "",
 		"path to write logs to - leave blank for stdout")
 	devMode = flag.Bool("dev", false,
@@ -68,7 +68,15 @@ var commands = map[string]cmd.Cmd{
 
 			// create lens v2 service
 			l.Info("instantiating Lens V2")
-			srv, err := lens.NewV2(lens.V2Options{}, manager, tf, l)
+			srv, err := lens.NewV2(lens.V2Options{
+				Engine: engine.Opts{
+					StorePath: cfg.Lens.Options.Engine.StorePath,
+					Queue: queue.Options{
+						Rate:      time.Duration(cfg.Lens.Options.Engine.Queue.Rate) * time.Second,
+						BatchSize: cfg.Lens.Options.Engine.Queue.Batch,
+					},
+				},
+			}, manager, tf, l)
 			if err != nil {
 				l.Fatalw("failed to instantiate Lens V2", "error", err)
 			}
