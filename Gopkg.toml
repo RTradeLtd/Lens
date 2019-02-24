@@ -21,7 +21,7 @@ ignored = ["github.com/gen2brain/go-fitz"]
 
 [[constraint]]
   name = "github.com/RTradeLtd/config"
-  branch = "lens/opts#queue"
+  version = "~v2.0.0"
 
 ###############
 # THIRD PARTY #
