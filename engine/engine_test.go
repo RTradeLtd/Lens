@@ -16,7 +16,8 @@ import (
 
 func TestEngine_Index(t *testing.T) {
 	type args struct {
-		object *models.ObjectV2
+		object  *models.ObjectV2
+		reindex bool
 	}
 	tests := []struct {
 		name        string
@@ -26,14 +27,14 @@ func TestEngine_Index(t *testing.T) {
 		{"no hash",
 			args{&models.ObjectV2{
 				MD: models.MetaDataV2{},
-			}},
+			}, false},
 			false,
 		},
 		{"ok",
 			args{&models.ObjectV2{
 				Hash: "abcde",
 				MD:   models.MetaDataV2{},
-			}},
+			}, false},
 			true,
 		},
 		{"with tags and some metadata",
@@ -44,7 +45,7 @@ func TestEngine_Index(t *testing.T) {
 					Category:    "startup",
 					Tags:        []string{"ipfs", "decentralized"},
 				},
-			}},
+			}, true},
 			true,
 		},
 	}
@@ -67,8 +68,19 @@ func TestEngine_Index(t *testing.T) {
 			}()
 			go e.Run()
 
+			// insert bogus doc if testing reindex
+			if tt.args.reindex {
+				var bogus = *tt.args.object
+				bogus.MD.Tags = []string{"i", "am", "fake"}
+				if err = e.Index(Document{&bogus, "", true}); (err == nil) != tt.wantIndexed {
+					t.Errorf("wanted Index error = %v, got %v", !tt.wantIndexed, err)
+					return
+				}
+				time.Sleep(time.Second)
+			}
+
 			// request index
-			if err = e.Index(Document{tt.args.object, "", true}); (err == nil) != tt.wantIndexed {
+			if err = e.Index(Document{tt.args.object, "", tt.args.reindex}); (err == nil) != tt.wantIndexed {
 				t.Errorf("wanted Index error = %v, got %v", !tt.wantIndexed, err)
 			}
 			t.Logf("object index requested, got error = %v", err)
@@ -79,7 +91,22 @@ func TestEngine_Index(t *testing.T) {
 			if found = e.IsIndexed(tt.args.object.Hash); found != tt.wantIndexed {
 				t.Errorf("wanted IsIndexed = '%v', got '%v'", tt.wantIndexed, found)
 			}
-			t.Logf("checked for object, got %v", found)
+
+			// run additional check on actual stored object if wantIndexed
+			if tt.wantIndexed {
+				r, err := e.Search(context.Background(), Query{Hashes: []string{tt.args.object.Hash}})
+				if err != nil {
+					t.Errorf("wanted Search err = nil, got '%v'", err)
+					return
+				}
+				if len(r) < 1 {
+					t.Errorf("could not find object '%s' in search", tt.args.object.Hash)
+					return
+				}
+				if !reflect.DeepEqual(r[0].MD, tt.args.object.MD) {
+					t.Errorf("Engine.Search() = %v, want %v", r[0].MD, tt.args.object.MD)
+				}
+			}
 		})
 	}
 }
