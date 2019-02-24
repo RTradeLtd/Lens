@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -32,8 +33,6 @@ var (
 		"path to Temporal configuration")
 	modelPath = flag.String("models", "/tmp",
 		"path to TensorFlow models")
-	dsPath = flag.String("datastore", "/data/lens/badgerds-lens",
-		"path to Badger datastore")
 	logPath = flag.String("logpath", "",
 		"path to write logs to - leave blank for stdout")
 	devMode = flag.Bool("dev", false,
@@ -68,14 +67,23 @@ var commands = map[string]cmd.Cmd{
 				l.Fatalw("failed to instantiate image analyzer", "error", err)
 			}
 
+			rateInt, err := strconv.ParseInt(cfg.Lens.Options.Queue.Rate, 10, 64)
+			if err != nil {
+				l.Fatalw("failed to parse rate to integer", "error", err)
+			}
+			batchInt, err := strconv.ParseInt(cfg.Lens.Options.Queue.Batch, 10, 64)
+			if err != nil {
+				l.Fatalw("failed to parse batch to integer", "error", err)
+			}
+
 			// create lens v2 service
 			l.Info("instantiating Lens V2")
 			srv, err := lens.NewV2(lens.V2Options{
 				Engine: engine.Opts{
-					StorePath: *dsPath,
+					StorePath: cfg.Lens.Options.Engine.StorePath,
 					Queue: queue.Options{
-						Rate:      500 * time.Millisecond,
-						BatchSize: 1,
+						Rate:      time.Duration(rateInt) * time.Second,
+						BatchSize: int(batchInt),
 					},
 				},
 			}, manager, tf, l)
