@@ -4,7 +4,7 @@
 
 Lens is an opt-in search engine and data collection tool to aid content discovery
 of the distributed web. It exposes a simple, minimal API for intelligently indexing
-searching content on [IPFS](https://ipfs.io/).
+and querying content on [IPFS](https://ipfs.io/).
 
 [![GoDoc](https://godoc.org/github.com/RTradeLtd/Lens?status.svg)](https://godoc.org/github.com/RTradeLtd/Lens)
 [![Build Status](https://travis-ci.com/RTradeLtd/Lens.svg?branch=master)](https://travis-ci.com/RTradeLtd/Lens)
