@@ -1,52 +1,97 @@
-# Lens
+# 🔍 Lens
 
-[![GoDoc](https://godoc.org/github.com/RTradeLtd/Lens?status.svg)](https://godoc.org/github.com/RTradeLtd/Lens) [![codecov](https://codecov.io/gh/RTradeLtd/Lens/branch/master/graph/badge.svg)](https://codecov.io/gh/RTradeLtd/Lens) [![Build Status](https://travis-ci.com/RTradeLtd/Lens.svg?branch=master)](https://travis-ci.com/RTradeLtd/Lens) [![Go Report Card](https://goreportcard.com/badge/github.com/RTradeLtd/Lens)](https://goreportcard.com/report/github.com/RTradeLtd/Lens)
+> Search engine for the distributed web
 
-Lens is an opt-in search engine and data collection tool to aid content discovery of the distributed web. Initially integrated with TEMPORAL, Lens will allow users to optionally have the data they upload be searched and indexed and be awarded with RTC for participating in the data collection process. Users can then search for "keywords" of content, such as "document" or "api". Lens will then use this keyword to retrieve all content which matched.
+Lens is an opt-in search engine and data collection tool to aid content discovery
+of the distributed web. It exposes a simple, minimal API for intelligently indexing
+searching content on [IPFS](https://ipfs.io/).
 
-Searching through Lens will be facilitated through the TEMPORAL web interface. Optionally, we will have a service independent from TEMPORAL which users can submit content to have it be indexed. This however, is not compensated with RTC. In order to receive the RTC, you must participate through Lens indexing within the TEMPORAL web interface.
+[![GoDoc](https://godoc.org/github.com/RTradeLtd/Lens?status.svg)](https://godoc.org/github.com/RTradeLtd/Lens)
+[![Build Status](https://travis-ci.com/RTradeLtd/Lens.svg?branch=master)](https://travis-ci.com/RTradeLtd/Lens)
+[![codecov](https://codecov.io/gh/RTradeLtd/Lens/branch/master/graph/badge.svg)](https://codecov.io/gh/RTradeLtd/Lens) 
+[![Go Report Card](https://goreportcard.com/badge/github.com/RTradeLtd/Lens)](https://goreportcard.com/report/github.com/RTradeLtd/Lens)
+[![Latest Release](https://img.shields.io/github/release/RTradeLtd/Lens.svg?colorB=red)](https://github.com/RTradeLtd/Lens/releases)
 
-## Supported Formats
+## Features and Usage
 
-Only IPFS CIDs are supported, and they must be plaintext files. We attempt to determine the content type via mime type sniffing, and use that to determine whether or not we can analyze the content.
+Initially integrated with Temporal, Lens will allow users to optionally have the
+data they upload be searched and indexed and be awarded with RTC for participating
+in the data collection process. Users can then search for content using a
+simple-to-use API.
 
-Please see the following table for supported content types that we can index. Note if the type is listed as `<type>/*` it means that any "sub type" of that mime type is supported.
+Searching through Lens will be facilitated through [Temporal web](https://temporal.cloud/lens).
+Optionally, we will have a service independent from Temporal which users can
+submit content to have it be indexed. This however, is not compensated with RTC.
+In order to receive the RTC, you must participate through Lens indexing within
+the Temporal web interface.
+
+### API
+
+Lens exposes a simple API via [gRPC](https://grpc.io/). The definitions are in
+[`RTradeLtd/grpc`](https://github.com/RTradeLtd/grpc/blob/master/lensv2/service.proto).
+
+The Lens API, summarized, currently consists of three core RPCs:
+
+```proto
+service LensV2 {
+  rpc Index(IndexReq)   returns (IndexResp)  {}
+  rpc Search(SearchReq) returns (SearchResp) {}
+  rpc Remove(RemoveReq) returns (RemoveResp) {}
+}
+```
+
+Golang bindings for the Lens API can be found in
+[`RTradeLtd/grpc`](https://github.com/RTradeLtd/grpc).
+
+### Supported Formats
+
+Only IPFS [CIDs](https://github.com/multiformats/cid) are supported, and they
+must be plaintext files. We attempt to determine the content type via mime type
+sniffing, and use that to determine whether or not we can analyze the content.
+
+Please see the following table for supported content types that we can index.
+Note if the type is listed as `<type>/*` it means that any "sub type" of that
+mime type is supported.
 
 | Mime Type        | Support Level | Tested Types             |
 |------------------|---------------|--------------------------|
-| `text/*`         | Alpha         | `text/plain`, `text/html`|
-| `image/*`        | Alpha         | `image/jpeg`             |
-| `application/pdf`| Alpha         | `application/pdf`        |
+| `text/*`         | Beta          | `text/plain`, `text/html`|
+| `image/*`        | Beta          | `image/jpeg`             |
+| `application/pdf`| Beta          | `application/pdf`        |
 
-## Processing
+## Deployment
 
-We support two types of processing, index and search requests
+The recommended way to deploy a Lens instance is via the
+[`rtradetech/lens`](https://cloud.docker.com/u/rtradetech/repository/docker/rtradetech/lens)
+Docker image.
 
-### Indexing
+```sh
+$> docker pull rtradetech/lens:latest
+```
 
-1) When receiving an index request, we check to make sure the object to be indexed is a supported data type.
-2) We then attempt to determine the mime type of whatever object is being indexed, and validate it to make sure its a supported format.
-3) We then extract consumable data from the object through an `xtractor` service.
-4) After extracting usable data, we then send it to an `analyzer` service which is responsible for analyzer content to create meta-data
-5) After the meta-data is generated, we then pass it onto the core of the lens service
-6) The lens service is responsible for creating lens objects, which are valid IPLD objects, and storing them within IPFS, and within a local badgerds instance
+A [`docker-compose`](https://docs.docker.com/compose/) [configuration](/lens.yml)
+is available that also starts up other prerequisites:
 
-The following objects are created during an indexing request:
+```sh
+$> wget -O lens.yml https://raw.githubusercontent.com/RTradeLtd/Lens/master/lens.yml
+$> LENS=latest BASE=/my/dir docker-compose -f lens.yml up
+```
 
-Keyword Object:
+## Development
 
-* A keyword object contains all of the Lens Identifiers for content that can be searched for with this keyword
+This project requires:
 
-Object:
+* [Go 1.11+](https://golang.org/dl/)
+* [dep](https://github.com/golang/dep#installation)
+* [Tesseract](https://github.com/tesseract-ocr/tesseract#installing-tesseract)
+* [Tensorflow](https://www.tensorflow.org/install)
+* [go-fitz](https://github.com/gen2brain/go-fitz#install)
 
-* An object is content that was indexed, and includes a Lens Identifier for this content within the lens system (note, this is simply to enable easy lookup and is not valid outside of Lens)
-* Also includes are all the keywords that can be used to search for this particular content
+To fetch the codebase, use `go get`:
 
-For image indexing, we currently run the images against pre-trained InceptionV5 tensorflow models. In the future we will more than likely migrate to models we train ourselves, leveraging our extensive GPU computing infrastructure.
+```sh
+$> go get github.com/RTradeLtd/Lens
+```
 
-## Searching
-
-1) When receiving a search request, we are simply provided with a list of keywords to search through.
-2) Using these keywords, we then search through badgerds to see if these keywords have been seen before. If they have, we then pull a list of all lens identifiers that can be matched by this keyword. 
-3) After repeating step 2 for all keywords, we then search through badgerds to find the objects that the lens identifiers refer to
-4) The user is then sent a list of all object names (ie, ipfs content hashes) for which.
+A rudimentary Makefile target [`make dep`](https://github.com/RTradeLtd/Lens/blob/master/Makefile#L13)
+is available for installing the required dependencies.
