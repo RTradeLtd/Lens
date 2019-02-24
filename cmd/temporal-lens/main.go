@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"strconv"
 	"syscall"
 	"time"
 
@@ -67,23 +66,14 @@ var commands = map[string]cmd.Cmd{
 				l.Fatalw("failed to instantiate image analyzer", "error", err)
 			}
 
-			rateInt, err := strconv.ParseInt(cfg.Lens.Options.Queue.Rate, 10, 64)
-			if err != nil {
-				l.Fatalw("failed to parse rate to integer", "error", err)
-			}
-			batchInt, err := strconv.ParseInt(cfg.Lens.Options.Queue.Batch, 10, 64)
-			if err != nil {
-				l.Fatalw("failed to parse batch to integer", "error", err)
-			}
-
 			// create lens v2 service
 			l.Info("instantiating Lens V2")
 			srv, err := lens.NewV2(lens.V2Options{
 				Engine: engine.Opts{
 					StorePath: cfg.Lens.Options.Engine.StorePath,
 					Queue: queue.Options{
-						Rate:      time.Duration(rateInt) * time.Second,
-						BatchSize: int(batchInt),
+						Rate:      time.Duration(cfg.Lens.Options.Engine.Queue.Rate) * time.Second,
+						BatchSize: cfg.Lens.Options.Engine.Queue.Batch,
 					},
 				},
 			}, manager, tf, l)

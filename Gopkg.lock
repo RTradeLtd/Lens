@@ -27,11 +27,11 @@
 
 [[projects]]
   branch = "lens/opts#queue"
-  digest = "1:8668b739aab67e72ddd4890b3976e7a94e31488a3d1f7750abfeacdea5fe72f3"
+  digest = "1:bde6e5a9cb11741ce5dd34851590bbae178ae232a3bc605b459154fa03dfa183"
   name = "github.com/RTradeLtd/config"
   packages = ["."]
   pruneopts = "T"
-  revision = "064b7ed9c3bef449a6989abf6f191f6dbc899717"
+  revision = "db743af86b73ac68c1001443ea8a790d57975752"
 
 [[projects]]
   digest = "1:a05f942064ec8f597114935de279d334456cb5540a3aec871c51351b09ee4cdc"
