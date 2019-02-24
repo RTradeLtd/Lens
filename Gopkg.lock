@@ -26,12 +26,12 @@
   version = "v1.0.4"
 
 [[projects]]
-  branch = "master"
-  digest = "1:6745d03b8fe80de8662ec3f838a28731cf3b7ed85cc6959c1f765bab711c322d"
+  branch = "lens/opts#queue"
+  digest = "1:8668b739aab67e72ddd4890b3976e7a94e31488a3d1f7750abfeacdea5fe72f3"
   name = "github.com/RTradeLtd/config"
   packages = ["."]
   pruneopts = "T"
-  revision = "8a4af7437b526a027348bdbc2530f93bf5efd424"
+  revision = "064b7ed9c3bef449a6989abf6f191f6dbc899717"
 
 [[projects]]
   digest = "1:a05f942064ec8f597114935de279d334456cb5540a3aec871c51351b09ee4cdc"
