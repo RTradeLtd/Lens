@@ -6,7 +6,7 @@ ARG LENSVERSION
 ARG TENSORFLOW_DIST
 
 # Mount source code
-ENV BUILD_HOME=/go/src/github.com/RTradeLtd/Lens
+ENV BUILD_HOME=/go/src/github.com/RTradeLtd/Lens GO111MODULE=on
 ADD . ${BUILD_HOME}
 WORKDIR ${BUILD_HOME}
 
@@ -19,8 +19,7 @@ ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
 ## Tesseract
 RUN bash setup/scripts/tesseract_install.sh
 ## Golang dependencies
-RUN curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-RUN dep ensure -v
+RUN go mod vendor
 ## Go-fitz
 RUN go get -u -tags gcc7 github.com/gen2brain/go-fitz
 

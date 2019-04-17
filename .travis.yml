@@ -14,10 +14,9 @@ install:
   # tensorflow
   - bash setup/scripts/tensorflow_install.sh
   # golang dependencies
-  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
   - go get -u golang.org/x/lint/golint
   - go get -u -v -tags nopie github.com/gen2brain/go-fitz # https://github.com/gen2brain/go-fitz#build-tags
-  - dep ensure -v
+  - GO111MODULE=on go mod download
 
 before_script:
   - go vet -tags nopie ./...

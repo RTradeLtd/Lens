@@ -19,10 +19,10 @@ deps:
 	bash setup/scripts/tesseract_install.sh
 
 	# Update standard dependencies
-	dep ensure -v
+	GO111MODULE=on go mod vendor
 
 	# install gofitz
-	go get -u $(GOFLAGS) github.com/gen2brain/go-fitz
+	GO111MODULE=on go get -u $(GOFLAGS) github.com/gen2brain/go-fitz
 
 	# Install counterfeiter, used for mock generation
 	go get -u github.com/maxbrunsfeld/counterfeiter
