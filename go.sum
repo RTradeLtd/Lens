@@ -21,8 +21,6 @@ github.com/RTradeLtd/rtfs v2.0.1+incompatible/go.mod h1:6ASGKwTU8Bf0o3YOGzXsU2oV
 github.com/RoaringBitmap/roaring v0.4.17 h1:oCYFIFEMSQZrLHpywH7919esI1VSrQZ0pJXkZPGIJ78=
 github.com/RoaringBitmap/roaring v0.4.17/go.mod h1:D3qVegWTmfCaX4Bl5CrBE9hfrSrrXIr8KVNvRsDi1NI=
 github.com/aead/siphash v1.0.1/go.mod h1:Nywa3cDsYNNK3gaciGTWPwHt0wlpNV15vwmswBAUSII=
-github.com/blevesearch/bleve v0.0.0-20190220013344-cb59b33c8bb0 h1:gBDiK08/5sQHSE+I//vQAStE/ZdRHVrAcyCCE7J57Jc=
-github.com/blevesearch/bleve v0.0.0-20190220013344-cb59b33c8bb0/go.mod h1:Y2lmIkzV6mcNfAnAdOd+ZxHkHchhBfU/xroGIp61wfw=
 github.com/blevesearch/bleve v0.7.1-0.20190409055314-a7b50b3b0dbd h1:sKDUyIRCaN8cdP3ULrjZ5Yr2lXrvyjurna57l5eGX4Y=
 github.com/blevesearch/bleve v0.7.1-0.20190409055314-a7b50b3b0dbd/go.mod h1:Y2lmIkzV6mcNfAnAdOd+ZxHkHchhBfU/xroGIp61wfw=
 github.com/blevesearch/blevex v0.0.0-20180227211930-4b158bb555a3 h1:U6vnxZrTfItfiUiYx0lf/LgHjRSfaKK5QHSom3lEbnA=
