@@ -12,10 +12,10 @@ import (
 	"github.com/RTradeLtd/grpc/lensv2"
 	"github.com/RTradeLtd/rtfs/v2"
 
-	"github.com/RTradeLtd/Lens/analyzer/images"
-	"github.com/RTradeLtd/Lens/analyzer/ocr"
-	"github.com/RTradeLtd/Lens/engine"
-	"github.com/RTradeLtd/Lens/source/planetary"
+	"github.com/RTradeLtd/Lens/v2/analyzer/images"
+	"github.com/RTradeLtd/Lens/v2/analyzer/ocr"
+	"github.com/RTradeLtd/Lens/v2/engine"
+	"github.com/RTradeLtd/Lens/v2/source/planetary"
 )
 
 // V2 is the new Lens API, and implements the LensV2 gRPC interface directly.

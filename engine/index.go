@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"github.com/RTradeLtd/Lens/models"
+	"github.com/RTradeLtd/Lens/v2/models"
 	"github.com/blevesearch/bleve"
 	"github.com/blevesearch/bleve/mapping"
 )

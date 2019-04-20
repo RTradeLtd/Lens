@@ -9,15 +9,16 @@ import (
 	"syscall"
 	"time"
 
-	lens "github.com/RTradeLtd/Lens"
-	"github.com/RTradeLtd/Lens/analyzer/images"
-	"github.com/RTradeLtd/Lens/engine"
-	"github.com/RTradeLtd/Lens/engine/queue"
-	"github.com/RTradeLtd/Lens/logs"
-	"github.com/RTradeLtd/Lens/server"
 	"github.com/RTradeLtd/cmd/v2"
 	"github.com/RTradeLtd/config/v2"
 	"github.com/RTradeLtd/rtfs/v2"
+
+	lens "github.com/RTradeLtd/Lens/v2"
+	"github.com/RTradeLtd/Lens/v2/analyzer/images"
+	"github.com/RTradeLtd/Lens/v2/engine"
+	"github.com/RTradeLtd/Lens/v2/engine/queue"
+	"github.com/RTradeLtd/Lens/v2/logs"
+	"github.com/RTradeLtd/Lens/v2/server"
 )
 
 var (
@@ -114,7 +115,7 @@ func main() {
 
 	// run no-config commands, exit if command was run
 	flag.Parse()
-	if exit := tlens.PreRun(flag.Args()); exit == cmd.CodeOK {
+	if exit := tlens.PreRun(map[string]string{}, flag.Args()); exit == cmd.CodeOK {
 		os.Exit(0)
 	}
 

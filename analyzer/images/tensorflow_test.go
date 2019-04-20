@@ -4,8 +4,8 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/RTradeLtd/Lens/analyzer/images"
-	"github.com/RTradeLtd/Lens/logs"
+	"github.com/RTradeLtd/Lens/v2/analyzer/images"
+	"github.com/RTradeLtd/Lens/v2/logs"
 )
 
 const (

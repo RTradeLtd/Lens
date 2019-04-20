@@ -8,8 +8,8 @@ import (
 
 	"go.uber.org/zap/zaptest"
 
-	"github.com/RTradeLtd/Lens/engine/queue"
-	"github.com/RTradeLtd/Lens/models"
+	"github.com/RTradeLtd/Lens/v2/engine/queue"
+	"github.com/RTradeLtd/Lens/v2/models"
 )
 
 func TestEngine_parallel(t *testing.T) {

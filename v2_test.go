@@ -7,9 +7,9 @@ import (
 
 	"google.golang.org/grpc/status"
 
-	"github.com/RTradeLtd/Lens/engine"
-	"github.com/RTradeLtd/Lens/mocks"
-	"github.com/RTradeLtd/Lens/models"
+	"github.com/RTradeLtd/Lens/v2/engine"
+	"github.com/RTradeLtd/Lens/v2/mocks"
+	"github.com/RTradeLtd/Lens/v2/models"
 	"github.com/RTradeLtd/grpc/lensv2"
 	"go.uber.org/zap"
 	"google.golang.org/grpc/codes"

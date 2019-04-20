@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/RTradeLtd/Lens/engine"
-	"github.com/RTradeLtd/Lens/logs"
-	"github.com/RTradeLtd/Lens/models"
+	"github.com/RTradeLtd/Lens/v2/engine"
+	"github.com/RTradeLtd/Lens/v2/logs"
+	"github.com/RTradeLtd/Lens/v2/models"
 )
 
 // magnifyOpts declares configuration for magnification

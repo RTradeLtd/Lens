@@ -5,7 +5,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/RTradeLtd/Lens/logs"
+	"github.com/RTradeLtd/Lens/v2/logs"
 )
 
 func Test_options(t *testing.T) {

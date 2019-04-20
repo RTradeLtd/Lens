@@ -5,7 +5,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/RTradeLtd/Lens/engine"
+	"github.com/RTradeLtd/Lens/v2/engine"
 )
 
 type FakeEngineSearcher struct {

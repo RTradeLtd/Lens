@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/RTradeLtd/Lens/logs"
+	"github.com/RTradeLtd/Lens/v2/logs"
 
 	"github.com/otiai10/gosseract"
 )

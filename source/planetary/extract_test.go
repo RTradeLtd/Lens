@@ -9,7 +9,7 @@ import (
 	"github.com/RTradeLtd/config/v2"
 	"github.com/RTradeLtd/rtfs/v2"
 
-	"github.com/RTradeLtd/Lens/source/planetary"
+	"github.com/RTradeLtd/Lens/v2/source/planetary"
 )
 
 const (

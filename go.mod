@@ -1,4 +1,4 @@
-module github.com/RTradeLtd/Lens
+module github.com/RTradeLtd/Lens/v2
 
 go 1.12
 
