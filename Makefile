@@ -61,9 +61,10 @@ check:
 # Generate code
 .PHONY: gen
 gen:
+	GO111MODULE=off go get github.com/maxbrunsfeld/counterfeiter
 	counterfeiter -o ./mocks/manager.mock.go \
 		-fake-name FakeRTFSManager \
-		./vendor/github.com/RTradeLtd/rtfs/rtfs.i.go Manager
+		./vendor/github.com/RTradeLtd/rtfs/v2/rtfs.i.go Manager
 	counterfeiter -o ./mocks/images.mock.go \
 		./analyzer/images/tensorflow.go TensorflowAnalyzer
 	counterfeiter -o ./mocks/engine.mock.go \

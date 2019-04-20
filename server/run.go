@@ -3,7 +3,7 @@ package server
 import (
 	"net"
 
-	"github.com/RTradeLtd/config"
+	"github.com/RTradeLtd/config/v2"
 	"github.com/RTradeLtd/grpc/lensv2"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"

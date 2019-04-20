@@ -8,7 +8,7 @@ import (
 	"time"
 
 	shell "github.com/RTradeLtd/go-ipfs-api"
-	"github.com/RTradeLtd/rtfs"
+	rtfs "github.com/RTradeLtd/rtfs/v2"
 )
 
 type FakeRTFSManager struct {

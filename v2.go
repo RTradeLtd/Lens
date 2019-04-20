@@ -10,7 +10,7 @@ import (
 	"google.golang.org/grpc/status"
 
 	"github.com/RTradeLtd/grpc/lensv2"
-	"github.com/RTradeLtd/rtfs"
+	"github.com/RTradeLtd/rtfs/v2"
 
 	"github.com/RTradeLtd/Lens/analyzer/images"
 	"github.com/RTradeLtd/Lens/analyzer/ocr"

@@ -6,8 +6,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/RTradeLtd/config"
-	"github.com/RTradeLtd/rtfs"
+	"github.com/RTradeLtd/config/v2"
+	"github.com/RTradeLtd/rtfs/v2"
 
 	"github.com/RTradeLtd/Lens/source/planetary"
 )

@@ -15,9 +15,9 @@ import (
 	"github.com/RTradeLtd/Lens/engine/queue"
 	"github.com/RTradeLtd/Lens/logs"
 	"github.com/RTradeLtd/Lens/server"
-	"github.com/RTradeLtd/cmd"
-	"github.com/RTradeLtd/config"
-	"github.com/RTradeLtd/rtfs"
+	"github.com/RTradeLtd/cmd/v2"
+	"github.com/RTradeLtd/config/v2"
+	"github.com/RTradeLtd/rtfs/v2"
 )
 
 var (
