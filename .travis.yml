@@ -14,9 +14,9 @@ install:
   # tensorflow
   - bash setup/scripts/tensorflow_install.sh
   # golang dependencies
+  - GO111MODULE=on go mod vendor
   - go get -u golang.org/x/lint/golint
   - go get -u -v -tags nopie github.com/gen2brain/go-fitz # https://github.com/gen2brain/go-fitz#build-tags
-  - GO111MODULE=on go mod vendor
 
 before_script:
   - go vet -tags nopie ./...
