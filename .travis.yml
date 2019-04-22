@@ -7,6 +7,7 @@ compiler:
   - gcc
 env:
   - TF_VERSION=linux-x86_64-1.12.0 LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
+  - GO111MODULE=on
 
 install:
   # tesseract
@@ -14,7 +15,6 @@ install:
   # tensorflow
   - bash setup/scripts/tensorflow_install.sh
   # golang dependencies
-  - GO111MODULE=on go mod vendor
   - go get -u golang.org/x/lint/golint
   - go get -u -v -tags nopie github.com/gen2brain/go-fitz # https://github.com/gen2brain/go-fitz#build-tags
 
