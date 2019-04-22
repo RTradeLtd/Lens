@@ -25,7 +25,7 @@ deps:
 	GO111MODULE=on go get -u $(GOFLAGS) github.com/gen2brain/go-fitz
 
 	# Install counterfeiter, used for mock generation
-	go get -u github.com/maxbrunsfeld/counterfeiter
+	GO111MODULE=off go get -u github.com/maxbrunsfeld/counterfeiter
 	@echo "===================          done           ==================="
 
 # Build lens cli
