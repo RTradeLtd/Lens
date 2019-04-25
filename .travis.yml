@@ -15,8 +15,9 @@ install:
   - bash setup/scripts/tesseract_install.sh
   # tensorflow
   - bash setup/scripts/tensorflow_install.sh
-  # golang dependencies
-  - go get -u -v -tags nopie github.com/gen2brain/go-fitz # https://github.com/gen2brain/go-fitz#build-tags
+  # golang dependencies - run separately, to make sure we get the right tags
+  # see https://github.com/gen2brain/go-fitz#build-tags
+  - go get -u -v -tags nopie github.com/gen2brain/go-fitz
 
 before_script:
   - go vet -tags nopie ./...
@@ -27,8 +28,7 @@ before_script:
 script:
   - go fmt ./...
   - go run golang.org/x/lint/golint $(go list ./... | grep -v /vendor/) # golint doesn't ignore vendor
-  #- go test -tags nopie -race -short -coverprofile=coverage.txt ./...
-  - go test -tags nopie -short -coverprofile=coverage.txt ./...
+  - go test -tags nopie -race -short -coverprofile=coverage.txt ./...
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
