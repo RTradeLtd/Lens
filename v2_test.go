@@ -27,7 +27,7 @@ func TestNewV2(t *testing.T) {
 		return
 	}
 	service.Close()
-	if service = NewV2WithEngine(V2Options{}, ipfs, ia, &mocks.FakeEngineSearcher{}, nil); service == nil {
+	if service = NewV2WithEngine(V2Options{}, ipfs, ia, &mocks.FakeSearcher{}, nil); service == nil {
 		t.Error("NewV2WithEngine() = nil")
 		return
 	}
@@ -116,7 +116,7 @@ func TestV2_Index(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var ipfs = &mocks.FakeRTFSManager{}
 			var tensor = &mocks.FakeTensorflowAnalyzer{}
-			var se = &mocks.FakeEngineSearcher{}
+			var se = &mocks.FakeSearcher{}
 			var v = NewV2WithEngine(V2Options{},
 				ipfs,
 				tensor,
@@ -229,7 +229,7 @@ func TestV2_Search(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var ipfs = &mocks.FakeRTFSManager{}
 			var tensor = &mocks.FakeTensorflowAnalyzer{}
-			var se = &mocks.FakeEngineSearcher{}
+			var se = &mocks.FakeSearcher{}
 			var v = NewV2WithEngine(V2Options{},
 				ipfs,
 				tensor,
@@ -303,7 +303,7 @@ func TestV2_Remove(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			var ipfs = &mocks.FakeRTFSManager{}
 			var tensor = &mocks.FakeTensorflowAnalyzer{}
-			var se = &mocks.FakeEngineSearcher{}
+			var se = &mocks.FakeSearcher{}
 			var v = NewV2WithEngine(V2Options{},
 				ipfs,
 				tensor,

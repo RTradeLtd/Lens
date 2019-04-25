@@ -8,7 +8,7 @@ import (
 	"github.com/RTradeLtd/Lens/v2/engine"
 )
 
-type FakeEngineSearcher struct {
+type FakeSearcher struct {
 	CloseStub        func()
 	closeMutex       sync.RWMutex
 	closeArgsForCall []struct {
@@ -64,7 +64,7 @@ type FakeEngineSearcher struct {
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *FakeEngineSearcher) Close() {
+func (fake *FakeSearcher) Close() {
 	fake.closeMutex.Lock()
 	fake.closeArgsForCall = append(fake.closeArgsForCall, struct {
 	}{})
@@ -75,19 +75,19 @@ func (fake *FakeEngineSearcher) Close() {
 	}
 }
 
-func (fake *FakeEngineSearcher) CloseCallCount() int {
+func (fake *FakeSearcher) CloseCallCount() int {
 	fake.closeMutex.RLock()
 	defer fake.closeMutex.RUnlock()
 	return len(fake.closeArgsForCall)
 }
 
-func (fake *FakeEngineSearcher) CloseCalls(stub func()) {
+func (fake *FakeSearcher) CloseCalls(stub func()) {
 	fake.closeMutex.Lock()
 	defer fake.closeMutex.Unlock()
 	fake.CloseStub = stub
 }
 
-func (fake *FakeEngineSearcher) Index(arg1 engine.Document) error {
+func (fake *FakeSearcher) Index(arg1 engine.Document) error {
 	fake.indexMutex.Lock()
 	ret, specificReturn := fake.indexReturnsOnCall[len(fake.indexArgsForCall)]
 	fake.indexArgsForCall = append(fake.indexArgsForCall, struct {
@@ -105,26 +105,26 @@ func (fake *FakeEngineSearcher) Index(arg1 engine.Document) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeEngineSearcher) IndexCallCount() int {
+func (fake *FakeSearcher) IndexCallCount() int {
 	fake.indexMutex.RLock()
 	defer fake.indexMutex.RUnlock()
 	return len(fake.indexArgsForCall)
 }
 
-func (fake *FakeEngineSearcher) IndexCalls(stub func(engine.Document) error) {
+func (fake *FakeSearcher) IndexCalls(stub func(engine.Document) error) {
 	fake.indexMutex.Lock()
 	defer fake.indexMutex.Unlock()
 	fake.IndexStub = stub
 }
 
-func (fake *FakeEngineSearcher) IndexArgsForCall(i int) engine.Document {
+func (fake *FakeSearcher) IndexArgsForCall(i int) engine.Document {
 	fake.indexMutex.RLock()
 	defer fake.indexMutex.RUnlock()
 	argsForCall := fake.indexArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeEngineSearcher) IndexReturns(result1 error) {
+func (fake *FakeSearcher) IndexReturns(result1 error) {
 	fake.indexMutex.Lock()
 	defer fake.indexMutex.Unlock()
 	fake.IndexStub = nil
@@ -133,7 +133,7 @@ func (fake *FakeEngineSearcher) IndexReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeEngineSearcher) IndexReturnsOnCall(i int, result1 error) {
+func (fake *FakeSearcher) IndexReturnsOnCall(i int, result1 error) {
 	fake.indexMutex.Lock()
 	defer fake.indexMutex.Unlock()
 	fake.IndexStub = nil
@@ -147,7 +147,7 @@ func (fake *FakeEngineSearcher) IndexReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeEngineSearcher) IsIndexed(arg1 string) bool {
+func (fake *FakeSearcher) IsIndexed(arg1 string) bool {
 	fake.isIndexedMutex.Lock()
 	ret, specificReturn := fake.isIndexedReturnsOnCall[len(fake.isIndexedArgsForCall)]
 	fake.isIndexedArgsForCall = append(fake.isIndexedArgsForCall, struct {
@@ -165,26 +165,26 @@ func (fake *FakeEngineSearcher) IsIndexed(arg1 string) bool {
 	return fakeReturns.result1
 }
 
-func (fake *FakeEngineSearcher) IsIndexedCallCount() int {
+func (fake *FakeSearcher) IsIndexedCallCount() int {
 	fake.isIndexedMutex.RLock()
 	defer fake.isIndexedMutex.RUnlock()
 	return len(fake.isIndexedArgsForCall)
 }
 
-func (fake *FakeEngineSearcher) IsIndexedCalls(stub func(string) bool) {
+func (fake *FakeSearcher) IsIndexedCalls(stub func(string) bool) {
 	fake.isIndexedMutex.Lock()
 	defer fake.isIndexedMutex.Unlock()
 	fake.IsIndexedStub = stub
 }
 
-func (fake *FakeEngineSearcher) IsIndexedArgsForCall(i int) string {
+func (fake *FakeSearcher) IsIndexedArgsForCall(i int) string {
 	fake.isIndexedMutex.RLock()
 	defer fake.isIndexedMutex.RUnlock()
 	argsForCall := fake.isIndexedArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeEngineSearcher) IsIndexedReturns(result1 bool) {
+func (fake *FakeSearcher) IsIndexedReturns(result1 bool) {
 	fake.isIndexedMutex.Lock()
 	defer fake.isIndexedMutex.Unlock()
 	fake.IsIndexedStub = nil
@@ -193,7 +193,7 @@ func (fake *FakeEngineSearcher) IsIndexedReturns(result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeEngineSearcher) IsIndexedReturnsOnCall(i int, result1 bool) {
+func (fake *FakeSearcher) IsIndexedReturnsOnCall(i int, result1 bool) {
 	fake.isIndexedMutex.Lock()
 	defer fake.isIndexedMutex.Unlock()
 	fake.IsIndexedStub = nil
@@ -207,7 +207,7 @@ func (fake *FakeEngineSearcher) IsIndexedReturnsOnCall(i int, result1 bool) {
 	}{result1}
 }
 
-func (fake *FakeEngineSearcher) Remove(arg1 string) error {
+func (fake *FakeSearcher) Remove(arg1 string) error {
 	fake.removeMutex.Lock()
 	ret, specificReturn := fake.removeReturnsOnCall[len(fake.removeArgsForCall)]
 	fake.removeArgsForCall = append(fake.removeArgsForCall, struct {
@@ -225,26 +225,26 @@ func (fake *FakeEngineSearcher) Remove(arg1 string) error {
 	return fakeReturns.result1
 }
 
-func (fake *FakeEngineSearcher) RemoveCallCount() int {
+func (fake *FakeSearcher) RemoveCallCount() int {
 	fake.removeMutex.RLock()
 	defer fake.removeMutex.RUnlock()
 	return len(fake.removeArgsForCall)
 }
 
-func (fake *FakeEngineSearcher) RemoveCalls(stub func(string) error) {
+func (fake *FakeSearcher) RemoveCalls(stub func(string) error) {
 	fake.removeMutex.Lock()
 	defer fake.removeMutex.Unlock()
 	fake.RemoveStub = stub
 }
 
-func (fake *FakeEngineSearcher) RemoveArgsForCall(i int) string {
+func (fake *FakeSearcher) RemoveArgsForCall(i int) string {
 	fake.removeMutex.RLock()
 	defer fake.removeMutex.RUnlock()
 	argsForCall := fake.removeArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *FakeEngineSearcher) RemoveReturns(result1 error) {
+func (fake *FakeSearcher) RemoveReturns(result1 error) {
 	fake.removeMutex.Lock()
 	defer fake.removeMutex.Unlock()
 	fake.RemoveStub = nil
@@ -253,7 +253,7 @@ func (fake *FakeEngineSearcher) RemoveReturns(result1 error) {
 	}{result1}
 }
 
-func (fake *FakeEngineSearcher) RemoveReturnsOnCall(i int, result1 error) {
+func (fake *FakeSearcher) RemoveReturnsOnCall(i int, result1 error) {
 	fake.removeMutex.Lock()
 	defer fake.removeMutex.Unlock()
 	fake.RemoveStub = nil
@@ -267,7 +267,7 @@ func (fake *FakeEngineSearcher) RemoveReturnsOnCall(i int, result1 error) {
 	}{result1}
 }
 
-func (fake *FakeEngineSearcher) Search(arg1 context.Context, arg2 engine.Query) ([]engine.Result, error) {
+func (fake *FakeSearcher) Search(arg1 context.Context, arg2 engine.Query) ([]engine.Result, error) {
 	fake.searchMutex.Lock()
 	ret, specificReturn := fake.searchReturnsOnCall[len(fake.searchArgsForCall)]
 	fake.searchArgsForCall = append(fake.searchArgsForCall, struct {
@@ -286,26 +286,26 @@ func (fake *FakeEngineSearcher) Search(arg1 context.Context, arg2 engine.Query) 
 	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *FakeEngineSearcher) SearchCallCount() int {
+func (fake *FakeSearcher) SearchCallCount() int {
 	fake.searchMutex.RLock()
 	defer fake.searchMutex.RUnlock()
 	return len(fake.searchArgsForCall)
 }
 
-func (fake *FakeEngineSearcher) SearchCalls(stub func(context.Context, engine.Query) ([]engine.Result, error)) {
+func (fake *FakeSearcher) SearchCalls(stub func(context.Context, engine.Query) ([]engine.Result, error)) {
 	fake.searchMutex.Lock()
 	defer fake.searchMutex.Unlock()
 	fake.SearchStub = stub
 }
 
-func (fake *FakeEngineSearcher) SearchArgsForCall(i int) (context.Context, engine.Query) {
+func (fake *FakeSearcher) SearchArgsForCall(i int) (context.Context, engine.Query) {
 	fake.searchMutex.RLock()
 	defer fake.searchMutex.RUnlock()
 	argsForCall := fake.searchArgsForCall[i]
 	return argsForCall.arg1, argsForCall.arg2
 }
 
-func (fake *FakeEngineSearcher) SearchReturns(result1 []engine.Result, result2 error) {
+func (fake *FakeSearcher) SearchReturns(result1 []engine.Result, result2 error) {
 	fake.searchMutex.Lock()
 	defer fake.searchMutex.Unlock()
 	fake.SearchStub = nil
@@ -315,7 +315,7 @@ func (fake *FakeEngineSearcher) SearchReturns(result1 []engine.Result, result2 e
 	}{result1, result2}
 }
 
-func (fake *FakeEngineSearcher) SearchReturnsOnCall(i int, result1 []engine.Result, result2 error) {
+func (fake *FakeSearcher) SearchReturnsOnCall(i int, result1 []engine.Result, result2 error) {
 	fake.searchMutex.Lock()
 	defer fake.searchMutex.Unlock()
 	fake.SearchStub = nil
@@ -331,7 +331,7 @@ func (fake *FakeEngineSearcher) SearchReturnsOnCall(i int, result1 []engine.Resu
 	}{result1, result2}
 }
 
-func (fake *FakeEngineSearcher) Invocations() map[string][][]interface{} {
+func (fake *FakeSearcher) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.closeMutex.RLock()
@@ -351,7 +351,7 @@ func (fake *FakeEngineSearcher) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *FakeEngineSearcher) recordInvocation(key string, args []interface{}) {
+func (fake *FakeSearcher) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {
@@ -363,4 +363,4 @@ func (fake *FakeEngineSearcher) recordInvocation(key string, args []interface{})
 	fake.invocations[key] = append(fake.invocations[key], args)
 }
 
-var _ engine.Searcher = new(FakeEngineSearcher)
+var _ engine.Searcher = new(FakeSearcher)

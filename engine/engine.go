@@ -15,6 +15,7 @@ import (
 )
 
 // Searcher exposes Engine's primary functions
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o ../mocks/engine.mock.go github.com/RTradeLtd/Lens/v2/engine.Searcher
 type Searcher interface {
 	Index(doc Document) error
 	Search(ctx context.Context, query Query) ([]Result, error)

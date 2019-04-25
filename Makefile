@@ -21,11 +21,8 @@ deps:
 	# Update standard dependencies
 	GO111MODULE=on go mod vendor
 
-	# install gofitz
-	GO111MODULE=on go get -u $(GOFLAGS) github.com/gen2brain/go-fitz
-
-	# Install counterfeiter, used for mock generation
-	GO111MODULE=off go get -u github.com/maxbrunsfeld/counterfeiter
+	# install gofitz with flags
+	GO111MODULE=on go get $(GOFLAGS) github.com/gen2brain/go-fitz
 	@echo "===================          done           ==================="
 
 # Build lens cli
@@ -61,15 +58,7 @@ check:
 # Generate code
 .PHONY: gen
 gen:
-	GO111MODULE=off go get github.com/maxbrunsfeld/counterfeiter
-	counterfeiter -o ./mocks/manager.mock.go \
-		-fake-name FakeRTFSManager \
-		./vendor/github.com/RTradeLtd/rtfs/v2/rtfs.i.go Manager
-	counterfeiter -o ./mocks/images.mock.go \
-		./analyzer/images/tensorflow.go TensorflowAnalyzer
-	counterfeiter -o ./mocks/engine.mock.go \
-		-fake-name FakeEngineSearcher \
-		./engine/engine.go Searcher
+	GO111MODULE=on go generate ./...
 
 # Build docker release
 .PHONY: docker
