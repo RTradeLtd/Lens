@@ -40,7 +40,7 @@ var (
 )
 
 var commands = map[string]cmd.Cmd{
-	"v2": cmd.Cmd{
+	"v2": {
 		Blurb: "start the Lens V2 server",
 		Action: func(cfg config.TemporalConfig, args map[string]string) {
 			// set up logger
