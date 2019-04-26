@@ -62,10 +62,7 @@ func TestEngine_Index(t *testing.T) {
 				t.Error("failed to create engine: " + err.Error())
 				return
 			}
-			defer func() {
-				e.Close()
-				os.RemoveAll("tmp")
-			}()
+			defer os.RemoveAll("tmp")
 			go e.Run()
 
 			// insert bogus doc if testing reindex
@@ -74,6 +71,7 @@ func TestEngine_Index(t *testing.T) {
 				bogus.MD.Tags = []string{"i", "am", "fake"}
 				if err = e.Index(Document{&bogus, "", true}); (err == nil) != tt.wantIndexed {
 					t.Errorf("wanted Index error = %v, got %v", !tt.wantIndexed, err)
+					e.Close()
 					return
 				}
 				time.Sleep(time.Second)
@@ -95,6 +93,7 @@ func TestEngine_Index(t *testing.T) {
 			// run additional check on actual stored object if wantIndexed
 			if tt.wantIndexed {
 				r, err := e.Search(context.Background(), Query{Hashes: []string{tt.args.object.Hash}})
+				e.Close()
 				if err != nil {
 					t.Errorf("wanted Search err = nil, got '%v'", err)
 					return
@@ -138,10 +137,6 @@ func TestEngine_Search(t *testing.T) {
 		t.Error("failed to create engine: " + err.Error())
 		return
 	}
-	defer func() {
-		e.Close()
-		os.RemoveAll("tmp")
-	}()
 	go e.Run()
 
 	// store test object in engine
@@ -257,4 +252,7 @@ func TestEngine_Search(t *testing.T) {
 			}
 		})
 	}
+
+	e.Close()
+	os.RemoveAll("tmp")
 }
