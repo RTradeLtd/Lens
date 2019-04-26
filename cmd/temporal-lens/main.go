@@ -12,12 +12,12 @@ import (
 	"github.com/RTradeLtd/cmd/v2"
 	"github.com/RTradeLtd/config/v2"
 	"github.com/RTradeLtd/rtfs/v2"
+	"github.com/bobheadxi/zapx"
 
 	lens "github.com/RTradeLtd/Lens/v2"
 	"github.com/RTradeLtd/Lens/v2/analyzer/images"
 	"github.com/RTradeLtd/Lens/v2/engine"
 	"github.com/RTradeLtd/Lens/v2/engine/queue"
-	"github.com/RTradeLtd/Lens/v2/logs"
 	"github.com/RTradeLtd/Lens/v2/server"
 )
 
@@ -44,10 +44,11 @@ var commands = map[string]cmd.Cmd{
 		Blurb: "start the Lens V2 server",
 		Action: func(cfg config.TemporalConfig, args map[string]string) {
 			// set up logger
-			l, err := logs.NewLogger(*logPath, *devMode)
+			logger, err := zapx.New(*logPath, *devMode)
 			if err != nil {
 				log.Fatal("failed to instantiate logger:", err.Error())
 			}
+			l := logger.Sugar()
 			defer l.Sync()
 
 			// instantiate ipfs connection

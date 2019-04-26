@@ -105,6 +105,8 @@ func TestEngine_Index(t *testing.T) {
 				if !reflect.DeepEqual(r[0].MD, tt.args.object.MD) {
 					t.Errorf("Engine.Search() = %v, want %v", r[0].MD, tt.args.object.MD)
 				}
+			} else {
+				e.Close()
 			}
 		})
 	}
@@ -227,9 +229,6 @@ func TestEngine_Search(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// set new logger for each test for cleanliness
-			e.l = zaptest.NewLogger(t).Sugar()
-
 			// attempt to search for object
 			got, err := e.Search(context.Background(), tt.args.q)
 			if err != nil && tt.wantDoc {

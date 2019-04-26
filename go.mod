@@ -4,8 +4,8 @@ go 1.12
 
 require (
 	bou.ke/monkey v1.0.1 // indirect
-	github.com/RTradeLtd/Lens v0.2.0
 	github.com/RTradeLtd/cmd/v2 v2.1.0
+	github.com/RTradeLtd/config v2.0.5+incompatible // indirect
 	github.com/RTradeLtd/config/v2 v2.1.1
 	github.com/RTradeLtd/go-ipfs-api v2.0.9+incompatible
 	github.com/RTradeLtd/grpc v0.0.0-20190418211244-442966584c77
@@ -15,6 +15,7 @@ require (
 	github.com/blevesearch/blevex v0.0.0-20180227211930-4b158bb555a3 // indirect
 	github.com/blevesearch/go-porterstemmer v1.0.2 // indirect
 	github.com/blevesearch/segment v0.0.0-20160915185041-762005e7a34f // indirect
+	github.com/bobheadxi/zapx v0.2.0
 	github.com/cheekybits/is v0.0.0-20150225183255-68e9c0620927 // indirect
 	github.com/couchbase/vellum v0.0.0-20190111184608-e91b68ff3efe // indirect
 	github.com/cznic/b v0.0.0-20181122101859-a26611c4d92d // indirect
@@ -30,7 +31,7 @@ require (
 	github.com/ipfs/go-cid v0.0.1
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/libp2p/go-libp2p-pubsub v0.0.1 // indirect
-	github.com/maxbrunsfeld/counterfeiter/v6 v6.0.2 // indirect
+	github.com/maxbrunsfeld/counterfeiter/v6 v6.0.2
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/otiai10/curr v0.0.0-20150429015615-9b4961190c95 // indirect
 	github.com/otiai10/gosseract v2.2.1+incompatible
@@ -42,14 +43,13 @@ require (
 	github.com/tensorflow/tensorflow v1.12.0
 	github.com/whyrusleeping/tar-utils v0.0.0-20180509141711-8c6c8ba81d5c // indirect
 	go.etcd.io/bbolt v1.3.2 // indirect
-	go.uber.org/atomic v1.3.2 // indirect
-	go.uber.org/multierr v1.1.0 // indirect
 	go.uber.org/zap v1.9.1
 	golang.org/x/crypto v0.0.0-20190424203555-c05e17bb3b2d // indirect
+	golang.org/x/lint v0.0.0-20190409202823-959b441ac422
 	golang.org/x/net v0.0.0-20190424112056-4829fb13d2c6 // indirect
 	golang.org/x/sys v0.0.0-20190425145619-16072639606e // indirect
 	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/tools v0.0.0-20190425222832-ad9eeb80039a // indirect
-	google.golang.org/genproto v0.0.0-20190219182410-082222b4a5c5 // indirect
-	google.golang.org/grpc v1.18.1
+	google.golang.org/genproto v0.0.0-20190425155659-357c62f0e4bb // indirect
+	google.golang.org/grpc v1.20.1
 )

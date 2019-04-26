@@ -4,12 +4,11 @@ import (
 	"testing"
 
 	"go.uber.org/zap"
-
-	"github.com/RTradeLtd/Lens/v2/logs"
+	"go.uber.org/zap/zaptest"
 )
 
 func Test_options(t *testing.T) {
-	var l, _ = logs.NewLogger("", false)
+	var l = zaptest.NewLogger(t).Sugar()
 	type args struct {
 		certpath string
 		keypath  string

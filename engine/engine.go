@@ -103,14 +103,9 @@ func (e *Engine) Run(
 //c *ClusterOpts,
 ) {
 	go e.q.Run()
-	for {
-		select {
-		case <-e.stop:
-			e.l.Infow("exit signal received - closing")
-			e.q.Close()
-			return
-		}
-	}
+	<-e.stop
+	e.l.Infow("exit signal received - closing")
+	e.q.Close()
 }
 
 // Document denotes a document to index
