@@ -4,7 +4,7 @@ package mocks
 import (
 	"sync"
 
-	"github.com/RTradeLtd/Lens/analyzer/images"
+	"github.com/RTradeLtd/Lens/v2/analyzer/images"
 )
 
 type FakeTensorflowAnalyzer struct {

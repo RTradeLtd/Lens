@@ -121,7 +121,13 @@ func (q *Queue) Run() {
 }
 
 // Close stops the queue runner and releases queue assets
-func (q *Queue) Close() { q.stopC <- true }
+func (q *Queue) Close() {
+	q.stopC <- true
+	time.Sleep(time.Millisecond)
+	for !q.IsStopped() {
+		time.Sleep(time.Second)
+	}
+}
 
 // IsStopped checks if the queue is still running and active
 func (q *Queue) IsStopped() bool {

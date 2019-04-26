@@ -7,7 +7,7 @@ import (
 	"image/png"
 	"time"
 
-	"github.com/RTradeLtd/Lens/logs"
+	"github.com/RTradeLtd/Lens/v2/logs"
 
 	"go.uber.org/zap"
 

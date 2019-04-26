@@ -4,8 +4,8 @@ import (
 	"io/ioutil"
 	"testing"
 
-	"github.com/RTradeLtd/Lens/analyzer/images"
-	"github.com/RTradeLtd/Lens/logs"
+	"github.com/RTradeLtd/Lens/v2/analyzer/images"
+	"go.uber.org/zap/zaptest"
 )
 
 const (
@@ -13,10 +13,10 @@ const (
 )
 
 func TestTendorize(t *testing.T) {
-	var l, _ = logs.NewLogger("", true)
+	var l = zaptest.NewLogger(t)
 	analyzer, err := images.NewAnalyzer(images.ConfigOpts{
 		ModelLocation: "models",
-	}, l)
+	}, l.Sugar())
 	if err != nil {
 		t.Fatal(err)
 	}

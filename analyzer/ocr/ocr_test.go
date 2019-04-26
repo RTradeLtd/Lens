@@ -7,14 +7,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/RTradeLtd/Lens/logs"
+	"go.uber.org/zap/zaptest"
 
 	"github.com/otiai10/gosseract"
 )
 
 func TestNewAnalyzer(t *testing.T) {
-	var l, _ = logs.NewLogger("", true)
-	var a = NewAnalyzer("", l)
+	var l = zaptest.NewLogger(t)
+	var a = NewAnalyzer("", l.Sugar())
 	if a.Version() != gosseract.Version() {
 		t.Errorf("expected version %s, got %s", gosseract.Version(), a.Version())
 	}
@@ -55,7 +55,7 @@ func TestAnalyzer_Analyze(t *testing.T) {
 			}
 			b, _ := ioutil.ReadAll(f)
 
-			var l, _ = logs.NewLogger("", true)
+			var l = zaptest.NewLogger(t).Sugar()
 			var a = NewAnalyzer("", l)
 
 			var start = time.Now()

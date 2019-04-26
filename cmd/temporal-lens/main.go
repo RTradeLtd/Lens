@@ -9,15 +9,16 @@ import (
 	"syscall"
 	"time"
 
-	lens "github.com/RTradeLtd/Lens"
-	"github.com/RTradeLtd/Lens/analyzer/images"
-	"github.com/RTradeLtd/Lens/engine"
-	"github.com/RTradeLtd/Lens/engine/queue"
-	"github.com/RTradeLtd/Lens/logs"
-	"github.com/RTradeLtd/Lens/server"
-	"github.com/RTradeLtd/cmd"
-	"github.com/RTradeLtd/config"
-	"github.com/RTradeLtd/rtfs"
+	"github.com/RTradeLtd/cmd/v2"
+	"github.com/RTradeLtd/config/v2"
+	"github.com/RTradeLtd/rtfs/v2"
+	"github.com/bobheadxi/zapx"
+
+	lens "github.com/RTradeLtd/Lens/v2"
+	"github.com/RTradeLtd/Lens/v2/analyzer/images"
+	"github.com/RTradeLtd/Lens/v2/engine"
+	"github.com/RTradeLtd/Lens/v2/engine/queue"
+	"github.com/RTradeLtd/Lens/v2/server"
 )
 
 var (
@@ -39,14 +40,15 @@ var (
 )
 
 var commands = map[string]cmd.Cmd{
-	"v2": cmd.Cmd{
+	"v2": {
 		Blurb: "start the Lens V2 server",
 		Action: func(cfg config.TemporalConfig, args map[string]string) {
 			// set up logger
-			l, err := logs.NewLogger(*logPath, *devMode)
+			logger, err := zapx.New(*logPath, *devMode)
 			if err != nil {
 				log.Fatal("failed to instantiate logger:", err.Error())
 			}
+			l := logger.Sugar()
 			defer l.Sync()
 
 			// instantiate ipfs connection
@@ -114,7 +116,7 @@ func main() {
 
 	// run no-config commands, exit if command was run
 	flag.Parse()
-	if exit := tlens.PreRun(flag.Args()); exit == cmd.CodeOK {
+	if exit := tlens.PreRun(map[string]string{}, flag.Args()); exit == cmd.CodeOK {
 		os.Exit(0)
 	}
 

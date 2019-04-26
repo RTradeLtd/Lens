@@ -37,14 +37,13 @@ func TestQueue_Queue(t *testing.T) {
 			go q.Run()
 			if tt.wantClosed {
 				q.Close()
-			} else {
-				defer q.Close()
 			}
 			time.Sleep(500 * time.Millisecond)
 			if err := q.Queue(tt.args.item); (err != nil) != tt.wantErr {
 				t.Errorf("Queue.Queue() error = %v, wantErr %v", err, tt.wantErr)
 			}
 			time.Sleep(time.Second)
+			q.Close()
 		})
 	}
 }

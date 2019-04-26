@@ -5,7 +5,7 @@ import (
 
 	"github.com/blevesearch/bleve/search"
 
-	"github.com/RTradeLtd/Lens/models"
+	"github.com/RTradeLtd/Lens/v2/models"
 )
 
 // Result denotes a found document

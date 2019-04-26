@@ -17,6 +17,7 @@ import (
 )
 
 // TensorflowAnalyzer represents a wrapper around a Tensorflow-based analyzer
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o ../../mocks/images.mock.go github.com/RTradeLtd/Lens/v2/analyzer/images.TensorflowAnalyzer
 type TensorflowAnalyzer interface {
 	Analyze(jobID string, content []byte) (category string, err error)
 }
@@ -60,8 +61,6 @@ func NewAnalyzer(opts ConfigOpts, logger *zap.SugaredLogger) (*Analyzer, error) 
 	if err != nil {
 		return nil, err
 	}
-	// defer session closure
-	// defer session.Close()
 	return &Analyzer{
 		session:    session,
 		labelsFile: labelsFile,

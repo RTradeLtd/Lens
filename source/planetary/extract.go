@@ -1,7 +1,7 @@
 package planetary
 
 import (
-	"github.com/RTradeLtd/rtfs"
+	"github.com/RTradeLtd/rtfs/v2"
 )
 
 // Extractor is how we grab data from ipld objects

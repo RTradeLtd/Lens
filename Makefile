@@ -19,13 +19,10 @@ deps:
 	bash setup/scripts/tesseract_install.sh
 
 	# Update standard dependencies
-	dep ensure -v
+	GO111MODULE=on go mod vendor
 
-	# install gofitz
-	go get -u $(GOFLAGS) github.com/gen2brain/go-fitz
-
-	# Install counterfeiter, used for mock generation
-	go get -u github.com/maxbrunsfeld/counterfeiter
+	# install gofitz with flags
+	GO111MODULE=on go get $(GOFLAGS) github.com/gen2brain/go-fitz
 	@echo "===================          done           ==================="
 
 # Build lens cli
@@ -61,14 +58,7 @@ check:
 # Generate code
 .PHONY: gen
 gen:
-	counterfeiter -o ./mocks/manager.mock.go \
-		-fake-name FakeRTFSManager \
-		./vendor/github.com/RTradeLtd/rtfs/rtfs.i.go Manager
-	counterfeiter -o ./mocks/images.mock.go \
-		./analyzer/images/tensorflow.go TensorflowAnalyzer
-	counterfeiter -o ./mocks/engine.mock.go \
-		-fake-name FakeEngineSearcher \
-		./engine/engine.go Searcher
+	GO111MODULE=on go generate ./...
 
 # Build docker release
 .PHONY: docker

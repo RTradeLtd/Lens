@@ -1,23 +1,23 @@
 language: go
 go:
-  - "1.11"
+  - "1.12"
 services:
   - docker
 compiler:
   - gcc
 env:
-  - TF_VERSION=linux-x86_64-1.12.0 LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
+  global:
+    - TF_VERSION=linux-x86_64-1.12.0 LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/lib
+    - GO111MODULE=on
 
 install:
   # tesseract
   - bash setup/scripts/tesseract_install.sh
   # tensorflow
   - bash setup/scripts/tensorflow_install.sh
-  # golang dependencies
-  - curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
-  - go get -u golang.org/x/lint/golint
-  - go get -u -v -tags nopie github.com/gen2brain/go-fitz # https://github.com/gen2brain/go-fitz#build-tags
-  - dep ensure -v
+  # golang dependencies - run separately, to make sure we get the right tags
+  # see https://github.com/gen2brain/go-fitz#build-tags
+  - go get -u -v -tags nopie github.com/gen2brain/go-fitz
 
 before_script:
   - go vet -tags nopie ./...
@@ -27,9 +27,8 @@ before_script:
 
 script:
   - go fmt ./...
-  - golint $(go list ./... | grep -v /vendor/) # golint doesn't ignore vendor
-  #- go test -tags nopie -race -short -coverprofile=coverage.txt ./...
-  - go test -tags nopie -short -coverprofile=coverage.txt ./...
+  - go run golang.org/x/lint/golint $(go list ./... | grep -v /vendor/) # golint doesn't ignore vendor
+  - go test -tags nopie -race -short -coverprofile=coverage.txt ./...
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)

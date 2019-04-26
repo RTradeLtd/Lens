@@ -10,11 +10,12 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/RTradeLtd/Lens/engine/queue"
-	"github.com/RTradeLtd/Lens/models"
+	"github.com/RTradeLtd/Lens/v2/engine/queue"
+	"github.com/RTradeLtd/Lens/v2/models"
 )
 
 // Searcher exposes Engine's primary functions
+//go:generate go run github.com/maxbrunsfeld/counterfeiter/v6 -o ../mocks/engine.mock.go github.com/RTradeLtd/Lens/v2/engine.Searcher
 type Searcher interface {
 	Index(doc Document) error
 	Search(ctx context.Context, query Query) ([]Result, error)
@@ -102,14 +103,10 @@ func (e *Engine) Run(
 //c *ClusterOpts,
 ) {
 	go e.q.Run()
-	for {
-		select {
-		case <-e.stop:
-			e.l.Infow("exit signal received - closing")
-			e.q.Close()
-			return
-		}
-	}
+	<-e.stop
+	e.l.Infow("exit signal received - closing")
+	e.q.Close()
+	e.index.Close()
 }
 
 // Document denotes a document to index
@@ -230,4 +227,13 @@ func (e *Engine) Remove(hash string) error {
 }
 
 // Close shuts down the engine
-func (e *Engine) Close() { e.stop <- true }
+func (e *Engine) Close() {
+	e.stop <- true
+
+	// TODO: better way to kill all goroutines, to prevent logs from writing
+	// to test logger after test ends, which cases panic and race
+	time.Sleep(time.Millisecond)
+	for !e.q.IsStopped() {
+		time.Sleep(time.Second)
+	}
+}

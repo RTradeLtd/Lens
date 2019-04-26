@@ -7,9 +7,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/RTradeLtd/Lens/engine"
-	"github.com/RTradeLtd/Lens/logs"
-	"github.com/RTradeLtd/Lens/models"
+	"github.com/RTradeLtd/Lens/v2/engine"
+	"github.com/RTradeLtd/Lens/v2/logs"
+	"github.com/RTradeLtd/Lens/v2/models"
 )
 
 // magnifyOpts declares configuration for magnification
@@ -47,7 +47,7 @@ func (v *V2) magnify(hash string, opts magnifyOpts) (content string, metadata *m
 		"content_type", contentType)
 
 	// contentType will be in the format of `<content-type>; charset=...`
-	// we use strings.FieldsFunc to seperate the string, and to be able to exmaine
+	// we use strings.FieldsFunc to separate the string, and to be able to examine
 	// the content type
 	var parsed = strings.FieldsFunc(contentType, func(r rune) bool { return (r == ';') })
 	if parsed == nil || len(parsed) == 0 {

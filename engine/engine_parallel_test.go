@@ -8,8 +8,8 @@ import (
 
 	"go.uber.org/zap/zaptest"
 
-	"github.com/RTradeLtd/Lens/engine/queue"
-	"github.com/RTradeLtd/Lens/models"
+	"github.com/RTradeLtd/Lens/v2/engine/queue"
+	"github.com/RTradeLtd/Lens/v2/models"
 )
 
 func TestEngine_parallel(t *testing.T) {
@@ -23,7 +23,6 @@ func TestEngine_parallel(t *testing.T) {
 	if err != nil {
 		t.Error("failed to create engine: " + err.Error())
 	}
-	defer e.Close()
 	go e.Run()
 
 	// each case must be able to successfully index the given args.object and content
@@ -112,4 +111,6 @@ func TestEngine_parallel(t *testing.T) {
 			})
 		}
 	})
+
+	e.Close()
 }
