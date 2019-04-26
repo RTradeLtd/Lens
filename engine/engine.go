@@ -227,4 +227,13 @@ func (e *Engine) Remove(hash string) error {
 }
 
 // Close shuts down the engine
-func (e *Engine) Close() { e.stop <- true }
+func (e *Engine) Close() {
+	e.stop <- true
+
+	// TODO: better way to kill all goroutines, to prevent logs from writing
+	// to test logger after test ends, which cases panic and race
+	time.Sleep(time.Millisecond)
+	for !e.q.IsStopped() {
+		time.Sleep(time.Second)
+	}
+}
