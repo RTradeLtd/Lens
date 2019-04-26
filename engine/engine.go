@@ -106,6 +106,7 @@ func (e *Engine) Run(
 	<-e.stop
 	e.l.Infow("exit signal received - closing")
 	e.q.Close()
+	e.index.Close()
 }
 
 // Document denotes a document to index
