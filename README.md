@@ -45,9 +45,7 @@ Golang bindings for the Lens API can be found in
 
 ### Supported Formats
 
-Only IPFS [CIDs](https://github.com/multiformats/cid) are supported, and they
-must be plaintext files. We attempt to determine the content type via mime type
-sniffing, and use that to determine whether or not we can analyze the content.
+Only IPFS [CIDs](https://github.com/multiformats/cid) are supported, and must be either images, text files, or pdfs. We attempt to determine the content type via mime type sniffing, and use that to determine whether or not we can analyze the content.
 
 Please see the following table for supported content types that we can index.
 Note if the type is listed as `<type>/*` it means that any "sub type" of that
