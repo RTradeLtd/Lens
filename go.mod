@@ -32,7 +32,6 @@ require (
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/libp2p/go-libp2p-pubsub v0.0.1 // indirect
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.0.2
-	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/otiai10/curr v0.0.0-20150429015615-9b4961190c95 // indirect
 	github.com/otiai10/gosseract v2.2.1+incompatible
 	github.com/otiai10/mint v1.2.3 // indirect
@@ -46,10 +45,10 @@ require (
 	go.uber.org/zap v1.9.1
 	golang.org/x/crypto v0.0.0-20190424203555-c05e17bb3b2d // indirect
 	golang.org/x/lint v0.0.0-20190409202823-959b441ac422
-	golang.org/x/net v0.0.0-20190424112056-4829fb13d2c6 // indirect
-	golang.org/x/sys v0.0.0-20190425145619-16072639606e // indirect
 	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/tools v0.0.0-20190425222832-ad9eeb80039a // indirect
 	google.golang.org/genproto v0.0.0-20190425155659-357c62f0e4bb // indirect
 	google.golang.org/grpc v1.20.1
 )
+
+replace github.com/dgraph-io/badger v2.0.0-rc.2+incompatible => github.com/dgraph-io/badger v1.6.0
