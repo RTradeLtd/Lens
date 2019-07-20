@@ -3,7 +3,7 @@ version: '3'
 services:
   ipfs:
     container_name: "ipfs_node"
-    image: ipfs/go-ipfs:v0.4.18
+    image: ipfs/go-ipfs:v0.4.22-rc1
     command: daemon --migrate=true --enable-pubsub-experiment
     ports:
       - 4001:4001
