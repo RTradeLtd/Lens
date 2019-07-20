@@ -29,6 +29,7 @@ require (
 	github.com/gen2brain/go-fitz v0.0.0-20190406123625-a8bb4f9e52c1
 	github.com/grpc-ecosystem/go-grpc-middleware v1.0.0
 	github.com/ipfs/go-cid v0.0.1
+	github.com/ipfs/go-ds-badger v0.0.5 // indirect
 	github.com/jmhodges/levigo v1.0.0 // indirect
 	github.com/libp2p/go-libp2p-pubsub v0.0.1 // indirect
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.0.2
