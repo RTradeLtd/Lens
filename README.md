@@ -12,6 +12,10 @@ and querying content on [IPFS](https://ipfs.io/).
 [![Go Report Card](https://goreportcard.com/badge/github.com/RTradeLtd/Lens)](https://goreportcard.com/report/github.com/RTradeLtd/Lens)
 [![Latest Release](https://img.shields.io/github/release/RTradeLtd/Lens.svg?colorB=red)](https://github.com/RTradeLtd/Lens/releases)
 
+## Multi-Language
+
+[![](https://img.shields.io/badge/Lang-English-blue.svg)](README.md)  [![jaywcjlove/sb](https://jaywcjlove.github.io/sb/lang/chinese.svg)](README-zh.md)
+
 ## Features and Usage
 
 Initially integrated with Temporal, Lens will allow users to optionally have the
