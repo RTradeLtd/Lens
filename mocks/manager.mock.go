@@ -123,6 +123,19 @@ type FakeRTFSManager struct {
 		result1 string
 		result2 error
 	}
+	GetLogsStub        func(context.Context) (shell.Logger, error)
+	getLogsMutex       sync.RWMutex
+	getLogsArgsForCall []struct {
+		arg1 context.Context
+	}
+	getLogsReturns struct {
+		result1 shell.Logger
+		result2 error
+	}
+	getLogsReturnsOnCall map[int]struct {
+		result1 shell.Logger
+		result2 error
+	}
 	NewObjectStub        func(string) (string, error)
 	newObjectMutex       sync.RWMutex
 	newObjectArgsForCall []struct {
@@ -793,6 +806,69 @@ func (fake *FakeRTFSManager) DagPutReturnsOnCall(i int, result1 string, result2 
 	}
 	fake.dagPutReturnsOnCall[i] = struct {
 		result1 string
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRTFSManager) GetLogs(arg1 context.Context) (shell.Logger, error) {
+	fake.getLogsMutex.Lock()
+	ret, specificReturn := fake.getLogsReturnsOnCall[len(fake.getLogsArgsForCall)]
+	fake.getLogsArgsForCall = append(fake.getLogsArgsForCall, struct {
+		arg1 context.Context
+	}{arg1})
+	fake.recordInvocation("GetLogs", []interface{}{arg1})
+	fake.getLogsMutex.Unlock()
+	if fake.GetLogsStub != nil {
+		return fake.GetLogsStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.getLogsReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *FakeRTFSManager) GetLogsCallCount() int {
+	fake.getLogsMutex.RLock()
+	defer fake.getLogsMutex.RUnlock()
+	return len(fake.getLogsArgsForCall)
+}
+
+func (fake *FakeRTFSManager) GetLogsCalls(stub func(context.Context) (shell.Logger, error)) {
+	fake.getLogsMutex.Lock()
+	defer fake.getLogsMutex.Unlock()
+	fake.GetLogsStub = stub
+}
+
+func (fake *FakeRTFSManager) GetLogsArgsForCall(i int) context.Context {
+	fake.getLogsMutex.RLock()
+	defer fake.getLogsMutex.RUnlock()
+	argsForCall := fake.getLogsArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *FakeRTFSManager) GetLogsReturns(result1 shell.Logger, result2 error) {
+	fake.getLogsMutex.Lock()
+	defer fake.getLogsMutex.Unlock()
+	fake.GetLogsStub = nil
+	fake.getLogsReturns = struct {
+		result1 shell.Logger
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *FakeRTFSManager) GetLogsReturnsOnCall(i int, result1 shell.Logger, result2 error) {
+	fake.getLogsMutex.Lock()
+	defer fake.getLogsMutex.Unlock()
+	fake.GetLogsStub = nil
+	if fake.getLogsReturnsOnCall == nil {
+		fake.getLogsReturnsOnCall = make(map[int]struct {
+			result1 shell.Logger
+			result2 error
+		})
+	}
+	fake.getLogsReturnsOnCall[i] = struct {
+		result1 shell.Logger
 		result2 error
 	}{result1, result2}
 }
@@ -1565,6 +1641,8 @@ func (fake *FakeRTFSManager) Invocations() map[string][][]interface{} {
 	defer fake.dagGetMutex.RUnlock()
 	fake.dagPutMutex.RLock()
 	defer fake.dagPutMutex.RUnlock()
+	fake.getLogsMutex.RLock()
+	defer fake.getLogsMutex.RUnlock()
 	fake.newObjectMutex.RLock()
 	defer fake.newObjectMutex.RUnlock()
 	fake.nodeAddressMutex.RLock()
