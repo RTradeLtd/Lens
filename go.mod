@@ -37,7 +37,6 @@ require (
 	github.com/kkdai/bstream v0.0.0-20181106074824-b3251f7901ec // indirect
 	github.com/kr/pty v1.1.4 // indirect
 	github.com/libp2p/go-libp2p-peer v0.1.0 // indirect
-	github.com/libp2p/go-libp2p-pubsub v0.0.1 // indirect
 	github.com/maxbrunsfeld/counterfeiter/v6 v6.2.2
 	github.com/multiformats/go-multiaddr-dns v0.0.2 // indirect
 	github.com/opentracing/opentracing-go v1.1.0 // indirect
@@ -48,6 +47,7 @@ require (
 	github.com/sirupsen/logrus v1.4.1 // indirect
 	github.com/steveyen/gtreap v0.0.0-20150807155958-0abe01ef9be2 // indirect
 	github.com/stretchr/objx v0.2.0 // indirect
+	github.com/syndtr/goleveldb v1.0.0 // indirect
 	github.com/tecbot/gorocksdb v0.0.0-20181010114359-8752a9433481 // indirect
 	github.com/tensorflow/tensorflow v1.12.0
 	go.etcd.io/bbolt v1.3.2 // indirect
